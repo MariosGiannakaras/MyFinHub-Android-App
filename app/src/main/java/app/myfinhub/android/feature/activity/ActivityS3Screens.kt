@@ -457,6 +457,7 @@ private fun ActivityMonthlyOverviewSurface(
         YearMonth.parse(overview.month).atDay(1)
             .format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("el-GR")))
     }.getOrDefault(overview.month)
+    var comparisonsExpanded by rememberSaveable(overview.month) { mutableStateOf(false) }
     fun trend(current: Double, previous: Double): String {
         val change = activityMonthPercentChange(current, previous)
             ?: return "— έναντι προηγ. μήνα"
@@ -513,20 +514,33 @@ private fun ActivityMonthlyOverviewSurface(
                 "Καθαρό αποτέλεσμα: ${amountVisibilityText(formatSignedEuro(overview.net), amountsVisible)}",
                 style = MaterialTheme.typography.bodyMedium,
             )
-            if (amountsVisible) {
+            Text(
+                "Συναλλαγές μήνα: ${overview.transactionCount}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (comparisonsExpanded) {
+                if (amountsVisible) {
+                    Text(
+                        "Έσοδα: ${trend(overview.income, overview.previousIncome)}" +
+                            " · Έξοδα: ${trend(overview.expense, overview.previousExpense)}" +
+                            " · Καθαρό: ${trend(overview.net, overview.previousNet)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 Text(
-                    "Έσοδα: ${trend(overview.income, overview.previousIncome)}" +
-                        " · Έξοδα: ${trend(overview.expense, overview.previousExpense)}" +
-                        " · Καθαρό: ${trend(overview.net, overview.previousNet)}",
+                    countComparison,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Text(
-                "Συναλλαγές μήνα: ${overview.transactionCount} · $countComparison",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            TextButton(
+                onClick = { comparisonsExpanded = !comparisonsExpanded },
+                modifier = Modifier.testTag("activity_month_comparison_toggle"),
+            ) {
+                Text(if (comparisonsExpanded) "Απόκρυψη σύγκρισης" else "Σύγκριση με προηγ. μήνα")
+            }
             TextButton(
                 onClick = onToggleMonth,
                 modifier = Modifier.testTag("activity_month_scope_toggle"),
