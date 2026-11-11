@@ -1,10 +1,13 @@
 package app.myfinhub.android.feature.quickentry
 
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.app.projectQuickEntryState
@@ -49,9 +52,19 @@ class CreditStatementSelectorComposeTest {
                 )
             }
         }
-        rule.onNodeWithText("Δήλωση πιστωτικής (προαιρετικά)").fetchSemanticsNode()
-        rule.onNodeWithText(statement.label).performScrollTo().performClick()
-        rule.onNodeWithText("Χωρίς σύνδεση με δήλωση").performClick()
+        // The Amount field takes initial focus and may keep the IME visible.
+        // Close it as a user would, then tap the accessible selector itself:
+        // tapping the selected statement's text does not reliably open its sheet.
+        rule.waitForIdle()
+        Espresso.closeSoftKeyboard()
+        rule.waitForIdle()
+        rule.onNode(
+            hasContentDescription("Δήλωση πιστωτικής (προαιρετικά): ${statement.label}. Αλλαγή επιλογής"),
+        ).performScrollTo().performClick()
+        rule.waitUntil(timeoutMillis = 5_000) {
+            rule.onAllNodes(hasText("Χωρίς σύνδεση με δήλωση")).fetchSemanticsNodes().isNotEmpty()
+        }
+        rule.onNodeWithText("Χωρίς σύνδεση με δήλωση").performScrollTo().performClick()
         rule.runOnIdle {
             assertTrue(action is QuickEntryAction.StatementChanged)
             assertEquals("", (action as QuickEntryAction.StatementChanged).id)
