@@ -20,17 +20,17 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #155 — Reconcile Android finance contracts and restore web-parity Home and cards.
 - Workstream state: `in_progress`.
-- Latest private production candidate: `1.0.0-rc12` / `10011` — `installed_pending_functional_acceptance`.
+- Latest private production candidate: `1.0.0-rc13` / `10012` — `published_pending_physical_installation_and_acceptance`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Owner-approved streamlined Android companion was integrated into develop by merged PR #448, squash commit 66c0440353eacd3c239fd82eb61306ea5bf6cbb3. Home/Activity/Cards are the three primary destinations and Android-native Settings remains accessible. Cash, payroll and savings explicitly preserve their Web-style primary account cards with actual history curves, 30-day changes, account context/IBAN, savings goal and per-account actions. New official Compose PNGs and public mirrors were rendered and visually inspected; the screenshot golden regression passed. On immutable PR head 67aeed4223b894d41bfd656669853dda86122e10, Project Tracking, Android CI, screenshot regression and hosted S24 emulator shard 0 (180 tests) and shard 1 (177 tests) all passed; no review objections. This is software integration, NOT physical S24 Ultra acceptance and NOT a same-signer production candidate. Existing installed rc12/10011 predates this code. Deploy remains 6/8; D7 physical acceptance and D8 protected release are not complete.
+Owner-approved native Android companion UI merged through PR #448 (develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3), preserving Home Cash/Payroll/Savings Web-equivalent graphs, 30-day comparisons, IBAN/context and actions, three Home/Activity/Cards tabs, Quick Entry and native Settings. Immutable head 67aeed4223b894d41bfd656669853dda86122e10 passed Project Tracking, Android CI, screenshot regression and hosted S24 emulator tests (180+177). D7 preflight/source tracking PR #449 subsequently merged develop 0b862eb595f1bf8c72151c348cd4c18e7468c1af with its exact-head required gates passing. Protected publisher run #42790602178 separately published signed rc13/10012 on 2026-11-10 from older PR #446 source, before PRs #448/#449 merged; consequently rc13 is the latest published build but does NOT contain the current develop UI. Software Web parity remains 5/6 implementations and 23/24 subtasks. Owner physical W6.4/D7 acceptance and distinct D8 stable promotion remain pending; no installation, financial mutations, signing or release are performed by this tracking/preflight checkpoint.
 
 ## Immediate work
 
-- D7: prepare the post-merge same-signer S24 Ultra acceptance source from develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3. The existing rc12/10011 cannot validate these changes. Do not publish, sign, install or promote a new production build without the owner's explicit authorization and all protected release gates.
-- After an explicitly authorized newer same-signer candidate is installed IN PLACE on the owner's actual Galaxy S24 Ultra (no uninstall or data clearing), record session/PIN/biometric/card-vault/offline/Quick Entry continuity and visual acceptance from the physical phone. Only then may D7 complete; D8 requires a separate authorized protected production-release promotion.
+- Validate and integrate the active rc13 record/S24 read-only preflight PR #447 against latest develop, preserving PR #449 optional expected-version checks and exact-head CI. No extra release is authorized by this checkpoint. The published rc13/10012 predates UI PR #448 and cannot itself prove acceptance of the latest develop.
+- For D7 acceptance of the current native UI, require separately owner-authorized same-signer protected publication from the post-#448 develop source, followed by an IN-PLACE upgrade on the owner's actual S24 Ultra (no uninstall/data clearing) and explicit observed session, PIN/biometric, owner+AAL2 vault, finance, Quick Entry, offline/reconnect, privacy and UI continuity. W6.4/D7 remain pending until then; D8 stable promotion is separately owner-gated.
 
 ## Constraints
 

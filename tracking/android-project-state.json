@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-10",
+  "updated_at": "2026-11-11",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,18 +12,18 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Owner-approved streamlined Android companion was integrated into develop by merged PR #448, squash commit 66c0440353eacd3c239fd82eb61306ea5bf6cbb3. Home/Activity/Cards are the three primary destinations and Android-native Settings remains accessible. Cash, payroll and savings explicitly preserve their Web-style primary account cards with actual history curves, 30-day changes, account context/IBAN, savings goal and per-account actions. New official Compose PNGs and public mirrors were rendered and visually inspected; the screenshot golden regression passed. On immutable PR head 67aeed4223b894d41bfd656669853dda86122e10, Project Tracking, Android CI, screenshot regression and hosted S24 emulator shard 0 (180 tests) and shard 1 (177 tests) all passed; no review objections. This is software integration, NOT physical S24 Ultra acceptance and NOT a same-signer production candidate. Existing installed rc12/10011 predates this code. Deploy remains 6/8; D7 physical acceptance and D8 protected release are not complete.",
+    "summary": "Owner-approved native Android companion UI merged through PR #448 (develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3), preserving Home Cash/Payroll/Savings Web-equivalent graphs, 30-day comparisons, IBAN/context and actions, three Home/Activity/Cards tabs, Quick Entry and native Settings. Immutable head 67aeed4223b894d41bfd656669853dda86122e10 passed Project Tracking, Android CI, screenshot regression and hosted S24 emulator tests (180+177). D7 preflight/source tracking PR #449 subsequently merged develop 0b862eb595f1bf8c72151c348cd4c18e7468c1af with its exact-head required gates passing. Protected publisher run #42790602178 separately published signed rc13/10012 on 2026-11-10 from older PR #446 source, before PRs #448/#449 merged; consequently rc13 is the latest published build but does NOT contain the current develop UI. Software Web parity remains 5/6 implementations and 23/24 subtasks. Owner physical W6.4/D7 acceptance and distinct D8 stable promotion remain pending; no installation, financial mutations, signing or release are performed by this tracking/preflight checkpoint.",
     "next": [
-      "D7: prepare the post-merge same-signer S24 Ultra acceptance source from develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3. The existing rc12/10011 cannot validate these changes. Do not publish, sign, install or promote a new production build without the owner's explicit authorization and all protected release gates.",
-      "After an explicitly authorized newer same-signer candidate is installed IN PLACE on the owner's actual Galaxy S24 Ultra (no uninstall or data clearing), record session/PIN/biometric/card-vault/offline/Quick Entry continuity and visual acceptance from the physical phone. Only then may D7 complete; D8 requires a separate authorized protected production-release promotion."
+      "Validate and integrate the active rc13 record/S24 read-only preflight PR #447 against latest develop, preserving PR #449 optional expected-version checks and exact-head CI. No extra release is authorized by this checkpoint. The published rc13/10012 predates UI PR #448 and cannot itself prove acceptance of the latest develop.",
+      "For D7 acceptance of the current native UI, require separately owner-authorized same-signer protected publication from the post-#448 develop source, followed by an IN-PLACE upgrade on the owner's actual S24 Ultra (no uninstall/data clearing) and explicit observed session, PIN/biometric, owner+AAL2 vault, finance, Quick Entry, offline/reconnect, privacy and UI continuity. W6.4/D7 remain pending until then; D8 stable promotion is separately owner-gated."
     ]
   },
   "latest_production_candidate": {
-    "version_name": "1.0.0-rc12",
-    "version_code": 10011,
-    "status": "installed_pending_functional_acceptance",
-    "source_pr": 150,
-    "notes": "Protected release workflow run 38552478100 published production-signed MyFinHub Android 1.0.0-rc12 / versionCode 10011 on 2026-10-14 from validated PR #150 source 0e438e1d9ca1365637edfc907e2f210b23bfedae. The publisher verified the enrolled signer, package, version and APK SHA-256; uploaded and re-read the exact APK bytes (3,520,604 bytes; SHA-256 f162e4b66a1d5fef209045fffc9d3668f507fe12d0c75bf7a02b24651d1f83de) at private path production/10011/MyFinHub-10011.apk, then published metadata. Immutable GitHub prerelease v1.0.0-rc12 includes the APK, signed Play-compatible AAB, checksums and safe metadata. On 2026-10-14 the owner reported that rc12 was installed on the supported physical Galaxy S24 Ultra; the method of installation, continuity smoke tests and explicit functional acceptance have not yet been reported. rc11/10010 remains the last version with recorded full owner acceptance."
+    "version_name": "1.0.0-rc13",
+    "version_code": 10012,
+    "status": "published_pending_physical_installation_and_acceptance",
+    "source_pr": 446,
+    "notes": "Protected Production Release workflow run #42790602178 succeeded on 2026-11-10 using validated release-source PR #446 head 76f5cc7b2be7eb52c63a3600ca5591e1545f1f0d (closed unmerged after publication). Signed app.myfinhub.android 1.0.0-rc13 / versionCode 10012 was published to immutable GitHub prerelease v1.0.0-rc13 and verified private update path production/10012/MyFinHub-10012.apk; signed APK 3,946,588 bytes, SHA-256 4aa586664ac1e2dbc187790ae554cea9a693bbb0e165288280e8c7ed18834449. The protected publisher asserted the enrolled production signer and checksums. IMPORTANT: rc13's source was captured BEFORE merged Android UI PR #448 (develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3) and D7 preflight PR #449 (develop 0b862eb595f1bf8c72151c348cd4c18e7468c1af); rc13 cannot validate those newer changes. No owner-reported physical rc13 installation, in-place continuity or functional acceptance exists. Rc12/10011 was reported installed on 2026-10-14; rc11/10010 remains the last build with recorded full physical owner acceptance."
   },
   "completed": [
     "Phase 6 physical acceptance and production signing enrollment",
@@ -635,7 +635,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "develop",
-    "checkpoint": "W6.2 visual parity and Android companion UI correction integrated by merged PR #448, develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3. Exact PR head 67aeed4223b894d41bfd656669853dda86122e10 passed all four required gates: Project Tracking, Android CI, screenshot regression of 29 real Compose goldens and hosted S24 two-shard instrumentation (180 + 177 tests). Source includes three Web-matching primary Home account charts, minimal three-tab mobile UI, Quick Entry and native Android Settings. W6.4 owner physical S24 acceptance remains pending; Web parity remains 5/6 implementations and 23/24 subtasks.",
+    "checkpoint": "W6.2 and streamlined native companion UI merged through PR #448, develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3 (exact-head Project Tracking, Android CI, screenshots and hosted S24 tests 180+177 passed). D7 read-only preflight PR #449 merged develop 0b862eb595f1bf8c72151c348cd4c18e7468c1af. Signed rc13/10012 published from older PR #446 source before #448/#449; release does NOT include latest develop UI. Only W6.4 real owner S24 acceptance/release isolation remains unfinished. Web parity 5/6 implementations, 23/24 subtasks; deploy 6/8.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1224,15 +1224,15 @@
         ]
       }
     ],
-    "next_action": "Proceed only with D7 actual Galaxy S24 Ultra in-place same-signer acceptance using a separately authorized candidate from merged develop, preserving existing installed app data and signing identity. Rc12 predates this source. D8 protected production publication is a separate owner-authorized gate; no physical check or release has been performed.",
+    "next_action": "Reconcile verified rc13 release metadata and the safe optional S24 version-name/code-only preflight in active PR #447. No real device action or release. For post-#448 native UI acceptance require a separately approved next same-signer candidate built from current develop, in-place installed and explicitly accepted on owner's actual S24 Ultra; keep D8 separately gated.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 448,
+    "pr": null,
     "current_subtask": "W6.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 physical owner acceptance pending: installed rc12/10011 predates newer merged develop, and cannot prove its behavior. Only an explicitly authorized newer same-signer protected-published candidate, installed in place without uninstall or data clearing, can validate real S24 Ultra session/PIN/biometric/finance/card-vault continuity and native journeys. No new candidate was built or published here. D8 separate final protected promotion/release approval required; no CI result counts as owner acceptance.",
+    "next_action": "D7 pending: latest published protected signed candidate is rc13/10012 (run #42790602178, source #446), but it predates accepted Android PRs #448/#449 and has not been reported installed or physically accepted. Current develop UI requires a separately owner-authorized newer same-signer candidate, in-place upgrade on real S24 Ultra with unchanged app data, and explicit session/PIN/biometric/vault/finance/native UI acceptance. D8 stable release/main promotion requires separate owner authorization. No new production release is initiated.",
     "stages": [
       {
         "id": "D1",

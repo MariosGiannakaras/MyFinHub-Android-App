@@ -58,9 +58,7 @@ enforce that the installed package matches that candidate, for example:
 python3 scripts/s24_physical_preflight.py --json --expected-version-code 10012
 ```
 
-The number **10012 is illustrative only**, not a published version or release authorization.
-Supply the real code from the protected publisher; rc12/10011 or older values are rejected
-in this mode. A missing/mismatched installed candidate exits nonzero without exposing
+**10012 is the published rc13 versionCode** (protected run #42790602178, immutable GitHub release v1.0.0-rc13, 2026-11-10), not an illustrative number. The published rc13 source PR #446 predates merged UI PRs #448/#449, so this version cannot validate the current develop UI. A newer acceptance candidate needs a separate explicit owner release authorization. Rc12/10011 or older codes are rejected in this mode. A missing/mismatched installed candidate exits nonzero without exposing
 package paths or raw ADB diagnostics. A matching code **does not verify the signing
 certificate, source provenance, that the update happened in place, account/session
 continuity, or owner acceptance**. Those remain separate D7 checks.
@@ -69,4 +67,4 @@ This is an optional, reproducible **read-only inspection**, not an installation 
 
 Installed-version checks fail closed unless `pm path` returns an empty absent-result or valid APK paths and `dumpsys package` contains exactly one matching `Package [app.myfinhub.android]` section with a single valid version code and name. Unrelated package version records, duplicate records and malformed package output are never treated as the target build; raw output remains private.
 
-A reported `older_or_equal_to_rc12` build is insufficient for post-D6 acceptance. A higher version code still requires independent release-source and **same-signer** verification, an in-place installation/continuity check and explicit owner acceptance of the real user journeys. The script always reports `physical_acceptance: not_assessed`. Never expose account details, PAN/CVV or unmasked balances in issue screenshots or logs. The current required checklist and blocked release-source gate remain in issue #149; owner authorization is required for a new signed candidate.
+A reported `older_than_published_rc13` build is insufficient for post-D6 acceptance. Even a `published_rc13_version_only_requires_signer_and_owner_verification` result is only a metadata match, never proof of the installed signer or physical acceptance of post-#448 UI. A higher version code still requires independent release-source and **same-signer** verification, an in-place installation/continuity check and explicit owner acceptance of the real user journeys. For the known rc13 code, mismatched versionName fails an explicit expected-code check. A matching name/code can still be spoofed; only independently verified package signer, source and owner observations can establish continuity. The script always reports `physical_acceptance: not_assessed`. Never expose account details, PAN/CVV or unmasked balances in issue screenshots or logs. The current required checklist and blocked release-source gate remain in issue #149; owner authorization is required for a new signed candidate.

@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] D7: prepare the post-merge same-signer S24 Ultra acceptance source from develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3. The existing rc12/10011 cannot validate these changes. Do not publish, sign, install or promote a new production build without the owner's explicit authorization and all protected release gates.
-- [ ] After an explicitly authorized newer same-signer candidate is installed IN PLACE on the owner's actual Galaxy S24 Ultra (no uninstall or data clearing), record session/PIN/biometric/card-vault/offline/Quick Entry continuity and visual acceptance from the physical phone. Only then may D7 complete; D8 requires a separate authorized protected production-release promotion.
+- [ ] Validate and integrate the active rc13 record/S24 read-only preflight PR #447 against latest develop, preserving PR #449 optional expected-version checks and exact-head CI. No extra release is authorized by this checkpoint. The published rc13/10012 predates UI PR #448 and cannot itself prove acceptance of the latest develop.
+- [ ] For D7 acceptance of the current native UI, require separately owner-authorized same-signer protected publication from the post-#448 develop source, followed by an IN-PLACE upgrade on the owner's actual S24 Ultra (no uninstall/data clearing) and explicit observed session, PIN/biometric, owner+AAL2 vault, finance, Quick Entry, offline/reconnect, privacy and UI continuity. W6.4/D7 remain pending until then; D8 stable promotion is separately owner-gated.
 
 ## Completed foundations
 
@@ -73,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 physical owner acceptance pending: installed rc12/10011 predates newer merged develop, and cannot prove its behavior. Only an explicitly authorized newer same-signer protected-published candidate, installed in place without uninstall or data clearing, can validate real S24 Ultra session/PIN/biometric/finance/card-vault continuity and native journeys. No new candidate was built or published here. D8 separate final protected promotion/release approval required; no CI result counts as owner acceptance.
+Next: D7 pending: latest published protected signed candidate is rc13/10012 (run #42790602178, source #446), but it predates accepted Android PRs #448/#449 and has not been reported installed or physically accepted. Current develop UI requires a separately owner-authorized newer same-signer candidate, in-place upgrade on real S24 Ultra with unchanged app data, and explicit session/PIN/biometric/vault/finance/native UI acceptance. D8 stable release/main promotion requires separate owner authorization. No new production release is initiated.
 
 
 ## Active Web parity progress
@@ -82,10 +82,10 @@ Next: D7 physical owner acceptance pending: installed rc12/10011 predates newer 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #448, branch develop
-Current W6.4: W6.2 visual parity and Android companion UI correction integrated by merged PR #448, develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3. Exact PR head 67aeed4223b894d41bfd656669853dda86122e10 passed all four required gates: Project Tracking, Android CI, screenshot regression of 29 real Compose goldens and hosted S24 two-shard instrumentation (180 + 177 tests). Source includes three Web-matching primary Home account charts, minimal three-tab mobile UI, Quick Entry and native Android Settings. W6.4 owner physical S24 acceptance remains pending; Web parity remains 5/6 implementations and 23/24 subtasks.
+Issue #155, no open PR, branch develop
+Current W6.4: W6.2 and streamlined native companion UI merged through PR #448, develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3 (exact-head Project Tracking, Android CI, screenshots and hosted S24 tests 180+177 passed). D7 read-only preflight PR #449 merged develop 0b862eb595f1bf8c72151c348cd4c18e7468c1af. Signed rc13/10012 published from older PR #446 source before #448/#449; release does NOT include latest develop UI. Only W6.4 real owner S24 acceptance/release isolation remains unfinished. Web parity 5/6 implementations, 23/24 subtasks; deploy 6/8.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Proceed only with D7 actual Galaxy S24 Ultra in-place same-signer acceptance using a separately authorized candidate from merged develop, preserving existing installed app data and signing identity. Rc12 predates this source. D8 protected production publication is a separate owner-authorized gate; no physical check or release has been performed.
+Next Reconcile verified rc13 release metadata and the safe optional S24 version-name/code-only preflight in active PR #447. No real device action or release. For post-#448 native UI acceptance require a separately approved next same-signer candidate built from current develop, in-place installed and explicitly accepted on owner's actual S24 Ultra; keep D8 separately gated.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

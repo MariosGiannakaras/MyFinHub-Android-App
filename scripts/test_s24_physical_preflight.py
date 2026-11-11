@@ -61,7 +61,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
     def test_old_rc12_reports_insufficient_build_and_never_claims_acceptance(self):
         result = self.check()
         self.assertEqual(result["version_code"], 10011)
-        self.assertEqual(result["candidate_check"], "older_or_equal_to_rc12")
+        self.assertEqual(result["candidate_check"], "older_than_published_rc13")
         self.assertEqual(result["physical_acceptance"], "not_assessed")
         exported = json.dumps(result)
         self.assertNotIn("SECRET", exported)
@@ -75,7 +75,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         self.version_name = "1.0.0-rc13"
         result = self.check()
         self.assertEqual(
-            result["candidate_check"], "newer_build_requires_source_and_signer_verification",
+            result["candidate_check"], "published_rc13_version_only_requires_signer_and_owner_verification",
         )
         self.assertEqual(result["physical_acceptance"], "not_assessed")
 
@@ -87,7 +87,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         self.assertIs(result["candidate_version_matches_expected"], True)
         self.assertEqual(
             result["candidate_check"],
-            "newer_build_requires_source_and_signer_verification",
+            "published_rc13_version_only_requires_signer_and_owner_verification",
         )
         self.assertEqual(result["physical_acceptance"], "not_assessed")
         self.assertNotIn("signer_verified", result)
@@ -98,6 +98,31 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         self.assertEqual(result["version_code"], 10013)
         self.assertIs(result["candidate_version_matches_expected"], False)
         self.assertEqual(result["physical_acceptance"], "not_assessed")
+
+    def test_spoofed_rc13_name_fails_exact_expected_code_match(self):
+        self.version_code = 10012
+        self.version_name = "1.0.0-rc13-fake"
+        result = self.check(expected_version_code=10012)
+        self.assertEqual(result["candidate_check"], "unrecognized_build_requires_source_and_signer_verification")
+        self.assertIs(result["candidate_version_matches_expected"], False)
+        self.assertEqual(result["physical_acceptance"], "not_assessed")
+
+    def test_unknown_future_version_requires_independent_release_verification(self):
+        self.version_code = 10013
+        self.version_name = "1.0.0-rc14"
+        result = self.check()
+        self.assertEqual(result["candidate_check"], "newer_build_requires_source_and_signer_verification")
+        self.assertEqual(result["physical_acceptance"], "not_assessed")
+
+    def test_expected_rc13_spoofed_name_exits_nonzero(self):
+        self.version_code = 10012
+        self.version_name = "1.0.0-rc13-fake"
+        result = self.check(expected_version_code=10012)
+        with patch.object(preflight, "inspect", return_value=result):
+            with contextlib.redirect_stdout(io.StringIO()) as stdout, contextlib.redirect_stderr(io.StringIO()) as stderr:
+                self.assertEqual(preflight.main(["--json", "--expected-version-code", "10012"]), 2)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertNotIn("1.0.0-rc13-fake", stderr.getvalue())
 
     def test_uninstalled_expected_candidate_is_explicitly_not_a_match(self):
         self.installed = False
@@ -148,7 +173,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         result = self.check()
         self.assertEqual(result["version_code"], 10012)
         self.assertEqual(
-            result["candidate_check"], "newer_build_requires_source_and_signer_verification",
+            result["candidate_check"], "published_rc13_version_only_requires_signer_and_owner_verification",
         )
 
     def test_missing_exact_package_section_fails_closed(self):
