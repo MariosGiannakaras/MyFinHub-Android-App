@@ -9,7 +9,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.designsystem.MyFinHubTheme
-import androidx.test.espresso.Espresso
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalFocusManager
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -22,7 +23,10 @@ class WebSuggestedExpenseSplitComposeTest {
             kind=QuickEntryKind.SPLIT,amountText="27.50",
             category="Τρόφιμα",note="Κρέας 12,50 €\nΛαχανικά 15 €",
         ))
-        rule.setContent { MyFinHubTheme {
+        lateinit var focusManager: FocusManager
+        rule.setContent {
+            focusManager = LocalFocusManager.current
+            MyFinHubTheme {
             ProductionQuickEntryScreen(
                 state=state,
                 onAction={ action -> state=reduceQuickEntry(state,action) },
@@ -34,7 +38,7 @@ class WebSuggestedExpenseSplitComposeTest {
         // Keep the actual visibility/tap assertion: this must be a reachable action.
         rule.waitForIdle()
         rule.onNodeWithTag("quick_entry_split_suggest").assertExists()
-        Espresso.closeSoftKeyboard()
+        rule.runOnIdle { focusManager.clearFocus(force = true) }
         rule.waitForIdle()
         rule.onNodeWithTag("quick_entry_split_suggest")
             .performScrollTo().assertIsDisplayed().performClick()

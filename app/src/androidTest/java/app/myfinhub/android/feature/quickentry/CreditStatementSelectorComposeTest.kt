@@ -6,7 +6,8 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.test.espresso.Espresso
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.app.projectQuickEntryState
@@ -34,7 +35,9 @@ class CreditStatementSelectorComposeTest {
 
     @Test fun selectedStatementIsVisibleAndUserCanChooseUnlinkedPayment() {
         var action: QuickEntryAction? = null
+        lateinit var focusManager: FocusManager
         rule.setContent {
+            focusManager = LocalFocusManager.current
             MyFinHubTheme {
                 ProductionQuickEntryScreen(
                     state = QuickEntryUiState(
@@ -55,7 +58,7 @@ class CreditStatementSelectorComposeTest {
         // Close it as a user would, then tap the accessible selector itself:
         // tapping the selected statement's text does not reliably open its sheet.
         rule.waitForIdle()
-        Espresso.closeSoftKeyboard()
+        rule.runOnIdle { focusManager.clearFocus(force = true) }
         rule.waitForIdle()
         rule.onNode(
             hasContentDescription("Δήλωση πιστωτικής (προαιρετικά): ${statement.label}. Αλλαγή επιλογής"),
