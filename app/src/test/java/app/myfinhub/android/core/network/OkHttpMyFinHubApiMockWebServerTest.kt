@@ -200,6 +200,46 @@ class OkHttpMyFinHubApiMockWebServerTest {
     }
 
     @Test
+    fun financeInvalidData_retainsOnlyValidatedCorrelationFields() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            val secret = "PAN 4242424242424242 CVV 999"
+            val id = "123e4567-e89b-42d3-a456-426614174000"
+            server.enqueue(MockResponse.Builder().code(400).body(
+                """{"code":"INVALID_DATA","requestId":"$id","error":"$secret"}""",
+            ).build())
+            val failure = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+                .loadFinanceData(session) as ApiResult.Failure
+            assertEquals(ApiFailureKind.INVALID_DATA, failure.kind)
+            assertEquals(400, failure.statusCode)
+            assertEquals("INVALID_DATA", failure.serverCode)
+            assertEquals(id, failure.requestId)
+            assertFalse(failure.toString().contains(secret))
+        }
+    }
+
+    @Test
+    fun financeInvalidData_discardsUntrustedAndMalformedErrorMetadata() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse.Builder().code(422).body(
+                """{"code":"TOKEN_SECRET_123","requestId":"token=user@example.com","error":"secret"}""",
+            ).build())
+            server.enqueue(MockResponse.Builder().code(400).body("not-json").build())
+            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+            for (expectedStatus in listOf(422, 400)) {
+                val failure = api.loadFinanceData(session) as ApiResult.Failure
+                assertEquals(ApiFailureKind.INVALID_DATA, failure.kind)
+                assertEquals(expectedStatus, failure.statusCode)
+                assertEquals(null, failure.serverCode)
+                assertEquals(null, failure.requestId)
+                assertFalse(failure.toString().contains("secret"))
+                assertFalse(failure.toString().contains("user@example.com"))
+            }
+        }
+    }
+
+    @Test
     fun malformedSuccessfulResponses_failClosedWithHttpStatus() = runBlocking {
         MockWebServer().use { server ->
             server.start()
