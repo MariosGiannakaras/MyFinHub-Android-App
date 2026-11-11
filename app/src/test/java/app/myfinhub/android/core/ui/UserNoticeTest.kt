@@ -25,6 +25,20 @@ class UserNoticeTest {
     }
 
     @Test
+    fun apiFailure_showsSafeServerCorrelationInDetails() {
+        val id = "123e4567-e89b-42d3-a456-426614174000"
+        val notice = ApiResult.Failure(
+            kind = ApiFailureKind.INVALID_DATA,
+            statusCode = 400,
+            serverCode = "INVALID_DATA",
+            requestId = id,
+        ).toUserNotice("Φόρτωση οικονομικών δεδομένων")
+        assertTrue(notice.details.contains("Κωδικός server: INVALID_DATA"))
+        assertTrue(notice.details.contains("Αναγνωριστικό αιτήματος: $id"))
+        assertEquals("MFH-API-INVALID_DATA-400", notice.diagnosticCode)
+    }
+
+    @Test
     fun authFailure_doesNotExposeGatewayMessage() {
         val secretGatewayMessage = "token=secret-token user@example.com"
         val notice = AuthResult.Failure(
