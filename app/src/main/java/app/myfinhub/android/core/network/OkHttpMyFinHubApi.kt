@@ -451,7 +451,15 @@ class OkHttpMyFinHubApi(
                     status == 404 && notFoundKind != null -> ApiResult.Failure(notFoundKind, statusCode = status)
                     status == 409 -> ApiResult.Failure(ApiFailureKind.REVISION_CONFLICT, statusCode = status)
                     status == 428 -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED, statusCode = status)
-                    status == 400 || status == 422 -> ApiResult.Failure(ApiFailureKind.INVALID_DATA, statusCode = status)
+                    status == 400 || status == 422 -> {
+                        val (serverCode, requestId) = safeFinanceErrorMetadata(body)
+                        ApiResult.Failure(
+                            ApiFailureKind.INVALID_DATA,
+                            statusCode = status,
+                            serverCode = serverCode,
+                            requestId = requestId,
+                        )
+                    }
                     status == 429 -> ApiResult.Failure(ApiFailureKind.RATE_LIMITED, retryable = true, statusCode = status)
                     status in 500..599 -> ApiResult.Failure(ApiFailureKind.SERVER, retryable = true, statusCode = status)
                     else -> ApiResult.Failure(ApiFailureKind.SERVER, statusCode = status)
@@ -464,6 +472,18 @@ class OkHttpMyFinHubApi(
         } catch (_: Exception) {
             ApiResult.Failure(ApiFailureKind.SERVER, retryable = true)
         }
+    }
+
+    /** Bounded response metadata only; never display the raw server error or finance payload. */
+    private fun safeFinanceErrorMetadata(body: String): Pair<String?, String?> {
+        if (body.length > 2_048) return null to null
+        val payload = runCatching { json.parseToJsonElement(body) as? JsonObject }.getOrNull()
+            ?: return null to null
+        val code = (payload["code"] as? JsonPrimitive)?.contentOrNull
+            ?.takeIf { it in SAFE_FINANCE_ERROR_CODES }
+        val requestId = (payload["requestId"] as? JsonPrimitive)?.contentOrNull
+            ?.takeIf { SAFE_REQUEST_ID_REGEX.matches(it) }
+        return code to requestId
     }
 
     private fun <T> safeParse(
@@ -488,5 +508,7 @@ class OkHttpMyFinHubApi(
             RegexOption.IGNORE_CASE,
         )
         const val HISTORY_GENERATION_HEADER = "x-rheomiq-history-generation"
+        val SAFE_FINANCE_ERROR_CODES = setOf("INVALID_DATA", "INVALID_SCHEMA_VERSION", "INVALID_REVISION")
+        val SAFE_REQUEST_ID_REGEX = Regex("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
     }
 }
