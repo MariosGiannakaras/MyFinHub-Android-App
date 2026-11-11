@@ -896,13 +896,14 @@ private fun ReferenceSecretLine(
             maxLines = 1,
             modifier = Modifier.weight(1f),
         )
-        ReferenceActionButton(
-            label = copyLabel,
-            enabled = copyEnabled,
-            compactVisual = true,
-            onClick = onCopy,
-        ) {
-            ReferenceCopyGlyph(color.copy(alpha = if (copyEnabled) 1f else .45f))
+        if (copyEnabled) {
+            ReferenceActionButton(
+                label = copyLabel,
+                compactVisual = true,
+                onClick = onCopy,
+            ) {
+                ReferenceCopyGlyph(color)
+            }
         }
     }
 }
@@ -928,13 +929,14 @@ private fun ReferenceSecretField(
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp,
             )
-            ReferenceActionButton(
-                label = copyLabel,
-                enabled = copyEnabled,
-                compactVisual = true,
-                onClick = onCopy,
-            ) {
-                ReferenceCopyGlyph(color.copy(alpha = if (copyEnabled) 1f else .45f))
+            if (copyEnabled) {
+                ReferenceActionButton(
+                    label = copyLabel,
+                    compactVisual = true,
+                    onClick = onCopy,
+                ) {
+                    ReferenceCopyGlyph(color)
+                }
             }
         }
     }

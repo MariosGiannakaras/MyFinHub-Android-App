@@ -121,6 +121,14 @@ fun ProductionQuickEntryScreen(
     val amountFocus = remember { FocusRequester() }
     val savedLocally = state.awaitingSync
     val declaredAmount = state.amount
+    val validRequiredAmount = if (state.kind == QuickEntryKind.RECONCILIATION) {
+        state.actualBalanceText.toCurrencyCentsOrNull() != null
+    } else {
+        declaredAmount != null && declaredAmount > 0.0 && declaredAmount.isFinite()
+    }
+    val requiredPersonReady = state.kind !in setOf(
+        QuickEntryKind.LENDING, QuickEntryKind.REPAYMENT
+    ) || state.person.isNotBlank()
     val splitAllocationReady = state.kind != QuickEntryKind.SPLIT || (
         declaredAmount != null &&
             declaredAmount > 0.0 &&
@@ -167,12 +175,13 @@ fun ProductionQuickEntryScreen(
             ) {
                 MyFinHubPrimaryAction(
                     label = when {
-                        mutationInFlight -> "Αποθήκευση…"
-                        state.persisted -> "Αποθηκεύτηκε"
-                        savedLocally -> "Αποθηκεύτηκε στη συσκευή"
-                        else -> "Αποθήκευση ${state.kind.label.lowercase()}"
+                        mutationInFlight -> "Καταχώριση…"
+                        state.persisted -> "Καταχωρίστηκε"
+                        savedLocally -> "Καταχωρίστηκε στη συσκευή"
+                        else -> "Καταχώριση"
                     },
-                    enabled = splitAllocationReady && !mutationInFlight && !state.persisted && !savedLocally,
+                    enabled = validRequiredAmount && requiredPersonReady && splitAllocationReady &&
+                        !mutationInFlight && !state.persisted && !savedLocally,
                     onClick = {
                         if (!mutationInFlight) onAction(QuickEntryAction.Save)
                     },
@@ -207,31 +216,30 @@ fun ProductionQuickEntryScreen(
                 )
             }
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-            ) {
-                FastKinds.forEach { kind ->
-                    FilterChip(
-                        selected = state.kind == kind,
-                        onClick = { onAction(QuickEntryAction.SelectKind(kind)) },
-                        label = { Text(kind.label) },
-                    )
-                }
-            }
-
             if (state.kind in FastKinds) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                ) {
+                    FastKinds.forEach { kind ->
+                        FilterChip(
+                            selected = state.kind == kind,
+                            onClick = { onAction(QuickEntryAction.SelectKind(kind)) },
+                            label = { Text(kind.label) },
+                        )
+                    }
+                }
                 TextButton(onClick = { advancedMenuOpen = true }) {
                     Text("Περισσότεροι τύποι")
                 }
             } else {
-                // A special accounting operation must remain visibly selected outside the picker.
-                FilterChip(
-                    selected = true,
+                // One visible selection, with all kinds available in the same picker.
+                OutlinedButton(
                     onClick = { advancedMenuOpen = true },
-                    label = { Text("${state.kind.label} · Αλλαγή τύπου") },
                     modifier = Modifier.testTag("quick_entry_selected_special_kind"),
-                )
+                ) {
+                    Text("${state.kind.label} · Αλλαγή τύπου")
+                }
             }
 
             if (state.kind == QuickEntryKind.SPLIT) {

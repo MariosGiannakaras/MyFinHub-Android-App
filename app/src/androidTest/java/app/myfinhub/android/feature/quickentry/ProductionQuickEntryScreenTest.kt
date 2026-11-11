@@ -3,6 +3,8 @@ package app.myfinhub.android.feature.quickentry
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -86,7 +88,42 @@ class ProductionQuickEntryScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Αποθήκευση…").assertIsNotEnabled()
+        composeRule.onNodeWithText("Καταχώριση…").assertIsNotEnabled()
+    }
+
+    @Test
+    fun requiredAmountsAndLendingPersonGateSubmissionButValidZeroReconciliationIsAccepted() {
+        var state by mutableStateOf(validState(QuickEntryKind.EXPENSE).copy(amountText = ""))
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(state = state, onAction = {}, onBack = {})
+            }
+        }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        composeRule.runOnIdle { state = state.copy(amountText = "0") }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        composeRule.runOnIdle { state = state.copy(amountText = "15,00") }
+        composeRule.onNodeWithText("Καταχώριση").assertIsEnabled()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.LENDING).copy(person = "") }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.RECONCILIATION).copy(actualBalanceText = "") }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        composeRule.runOnIdle { state = state.copy(actualBalanceText = "0") }
+        composeRule.onNodeWithText("Καταχώριση").assertIsEnabled()
+    }
+
+    @Test
+    fun specialKindShowsOneActiveChoiceAndKeepsTheFullPickerAvailable() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(
+                    state = validState(QuickEntryKind.CARD_PURCHASE),
+                    onAction = {}, onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Αγορά με κάρτα · Αλλαγή τύπου").assertIsEnabled()
+        composeRule.onNodeWithText("Έξοδο").assertDoesNotExist()
     }
 
     private fun validState(kind: QuickEntryKind): QuickEntryUiState = QuickEntryUiState(
