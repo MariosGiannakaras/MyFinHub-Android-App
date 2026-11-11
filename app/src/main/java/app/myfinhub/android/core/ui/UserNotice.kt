@@ -22,6 +22,8 @@ fun ApiResult.Failure.toUserNotice(operation: String): UserNotice = UserNotice(
         kind = kind.name,
         statusCode = statusCode,
         retryable = retryable,
+        serverCode = serverCode,
+        requestId = requestId,
     ),
     diagnosticCode = diagnosticCode("API", kind.name, statusCode),
 )
@@ -105,6 +107,8 @@ private fun buildSafeDetails(
     kind: String,
     statusCode: Int?,
     retryable: Boolean,
+    serverCode: String? = null,
+    requestId: String? = null,
 ): String = buildString {
     append("Ενέργεια: ")
     append(operation)
@@ -112,6 +116,14 @@ private fun buildSafeDetails(
     append(kind)
     statusCode?.let {
         append("\nHTTP: ")
+        append(it)
+    }
+    serverCode?.let {
+        append("\nΚωδικός server: ")
+        append(it)
+    }
+    requestId?.let {
+        append("\nΑναγνωριστικό αιτήματος: ")
         append(it)
     }
     append("\nΕπανάληψη: ")
