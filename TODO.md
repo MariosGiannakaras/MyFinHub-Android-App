@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] D7/W6.4: owner install signed rc14/10013 IN PLACE on actual Galaxy S24 Ultra without uninstall or clearing app data. Verify app signature/version and preservation of finance state, session/PIN/biometric, Card Vault, Quick Entry, offline/reconnect and new three-tab visuals. Explicit real-device acceptance is required; no installation/acceptance reported yet.
-- [ ] If owner finance GET /api/data still returns HTTP400 INVALID_DATA, correlate only safe rc14 server error code/request UUID with backend diagnostics. Do not expose secret payloads or bypass validation/change production finance records. D7 stays open until resolved and owner-accepted; D8 stable/main promotion is separately gated.
+- [ ] Validate the cohesive 2026-11-12 Android UI/UX+semantics batch on its exact PR head: tracking, Android unit/lint/assembly, screenshot regression, BOTH hosted S24 emulator shards and aggregate. Investigate any real test/screenshot failure in the SAME PR, preserve transaction identity, operational flow and locked cash+payroll Home definition, then merge only if all checks pass. No release is implied by implementation or CI.
+- [ ] Separately investigate protected/black screen transitions in owner video as possible intended secure capture, and verify historical 'Πλήρωσα για άλλον' positive/neutral appearance against canonical kind and signed legs before any finance classification change. D7/W6.4 still require owner real S24 in-place signed build acceptance with finance GET, session/PIN/biometrics, card vault, Quick Entry and offline; D8 stable/main release separately gated.
 
 ## Completed foundations
 
@@ -73,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 PENDING real owner S24 acceptance despite successful protected signed rc14/10013 production publication (run #43103969989, source PR #451). Install in place, never uninstall/clear data. Explicitly verify version/signer, session/PIN/biometrics, vault, finance GET, native UI, Quick Entry, offline and privacy. Previous HTTP400 INVALID_DATA remains unproven fixed; use bounded diagnostic request UUID to investigate if reproduced. D8 separate stable promotion needs owner approval.
+Next: D7 remains open (6/8): signed rc14/10013 is current last published candidate, not physical owner accepted. A 2026-11-12 Android-only UI/UX and Activity reporting remediation batch is being validated but is not yet signed/released. Home available = cash+payroll only. Real S24 in-place install without data clearing, preservation of PIN/biometrics/session/vault/Quick Entry/offline, finance GET and owner signoff required. Prior GET400 INVALID_DATA remains unproven fixed; D8 stable/main separate.
 
 
 ## Active Web parity progress
@@ -83,9 +83,9 @@ Next: D7 PENDING real owner S24 acceptance despite successful protected signed r
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, no open PR, branch develop
-Current W6.4: All-changes rc14 signed APK published 2026-11-11 from exact-head green PR #451 (5d59b27679d064408bca51a6c714dd77e625eb46), protected workflow #43103969989 PASS; APK versionCode10013 SHA256 0ce9c8b0dab15ad653588a9c4725092fb7089f4a50ca7dc7f1a83cbc5a1bada6. PR #451 merged develop a57247c9789cad113f782ced5140a84b85a5b194. Actual S24 in-place installation/finance loading/owner acceptance not established; earlier HTTP400 remains an open investigation. W6.4 parity 5/6, 23/24; deploy 6/8 D7; separate D8 stable pending.
+Current W6.4: 2026-11-12 owner approved UI audit batch, with available Home balance locked to cash+payroll and primary Home charts/actions retained. Android-only Activity/Quick Entry/Card/Home implementation and tests authored for exact-head CI (no merge or new signed artifact asserted); neutral credit repayments remain excluded from spending while purchases appear in native Activity. Previously verified rc14/10013 latest signed. Owner S24 physical D7 and finance GET400 diagnosis pending. W6.4 remains 5/6, 23/24; deploy 6/8; D8 distinct.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate owner in-place S24 install of published rc14/10013. Check finance GET, session/PIN/biometric, vault, Quick Entry, UI and offline continuity. Use safe request UUID if GET400 persists; do not claim physical acceptance or bypass finance validation. D8 stable release separate.
+Next Complete Android audit-remediation batch exact-head CI and merge if all gates green; do not change Web finance data or Home headline semantics. Investigate unknown black capture frames and lending rows with source evidence before modifying finance classification. Obtain explicit owner S24 signed in-place acceptance after next release, diagnose GET400 separately; D8 stable separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
