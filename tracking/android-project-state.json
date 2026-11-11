@@ -12,10 +12,10 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Owner-approved three-tab Android companion and primary Cash/Payroll/Savings history/action cards were merged into develop via PR #448; native settings, Quick Entry, card stack and complete source remain intact. PR #449 added S24 read-only physical preflight. PR #447 then reconciled the already-published rc13 record and exact-version preflight; immutable head dbba73f51c5cd9e028ed984b93aa82a8a9e7dcba passed tracking, Android CI, screenshot, S24 emulator shard 0 and shard 1 and aggregate and was squash-merged as develop 4097451c89c107f6469706d5077b437adb057f90. The published rc13/10012 came from older PR #446 and DOES NOT contain the merged UI. Owner-provided screenshots dated 2026-11-11 report a physical Android finance-load HTTP 400 / INVALID_DATA (MFH-API-INVALID-DATA-400), installed build version not verified; no confirmed root cause or backend fix. Read-only data structure, card/statement, account reference and event ledger checks have not reproduced a violation; never bypass validation or mutate production finance data to silence this report. D7 actual S24 acceptance, W6.4 and separate D8 final protected promotion remain open. Web parity remains 5/6 implementations, 23/24 subtasks; deploy remains 6/8.",
+    "summary": "All post-UI changes through merged PR #450 are integrated in develop 12158d6eabec7c3ff9cbe55b72c29c90bb659d2e; published rc13/10012 predates them. Owner's physical Galaxy S24 Ultra screenshots show finance GET /api/data HTTP400 INVALID_DATA on an unverified installed version. Root cause remains unknown. Read-only effective-document checks found no event ledger imbalance, invalid account/card/statement reference, missing required recurring anchor or ambiguous category alias; none of these rule out the server's strict validation error. This D7 Android-only diagnostic checkpoint adds bounded, allowlisted HTTP400/422 server error code and validated UUID request ID to owner-visible details while discarding raw server messages, tokens and financial payloads. Diagnostic correlation is NOT the backend fix or owner physical acceptance. W6.4/D7 and D8 remain separate pending gates; Web parity 5/6 implementations and 23/24 subtasks; deploy 6/8.",
     "next": [
-      "D7: review the post-#447 develop release-source PR android/d7-post-ui-release-source-20261111 and require exact-head Android CI, screenshot regression, tracking and both S24 emulator shards before any candidate can be built/published. This no-functional-change source checkpoint includes all code merged through develop 4097451c89c107f6469706d5077b437adb057f90; the old rc13/10012 does not.",
-      "Owner requested a final APK containing all merged changes. A newer same-enrolled-production-signer protected release candidate may be published only after green release-source gates using the guarded pipeline; version must come from the publisher. The witnessed HTTP 400 / INVALID_DATA finance GET remains a D7 blocker pending proven server/client diagnosis. Never uninstall/clear application data; require owner in-place S24 session/PIN/biometric/vault/finance/Quick Entry/offline/visual acceptance. D8 stable/main promotion remains a separate owner-accepted gate."
+      "D7: finish safe finance HTTP400/422 correlation, with fail-closed unit tests, exact-head Android CI, Project Tracking, screenshot regression and both S24 emulator shards. Root cause of server INVALID_DATA is NOT established; do not bypass finance validation or mutate production financial data.",
+      "After merged tested source, create a new exact-head green release-source PR and publish an expressly authorized newer candidate from ALL merged Android changes using the enrolled production signer, never stale rc13. Actual D7/W6.4 requires a real in-place S24 Ultra update without data clearing and explicit owner acceptance of finance load, session/PIN/biometric/card-vault/Quick Entry/offline/visual continuity. D8 protected stable promotion is separate."
     ]
   },
   "latest_production_candidate": {
@@ -635,7 +635,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "develop",
-    "checkpoint": "W6.2 complete: PR #448 native three-tab Home/Activity/Cards and preserved Web-primary account presentation merged. S24 read-only preflight PR #449 and rc13 release-tracking PR #447 also merged; #447 passed exact-head CI/screenshots/S24 shard0+1+aggregate and merged develop 4097451c89c107f6469706d5077b437adb057f90. Signed rc13/10012 was published from older PR #446 before all these merges. Latest evidence includes owner screenshots of a finance load 400/INVALID_DATA on an unidentified installed app version; this is not yet proven corrected. W6.4/D7 device acceptance remains pending. Web parity 5/6, 23/24, deploy 6/8.",
+    "checkpoint": "PR #450 merged the complete post-UI develop baseline 12158d6eabec7c3ff9cbe55b72c29c90bb659d2e. The rc13 signed APK predates it. Owner's actual device GET /api/data HTTP400 INVALID_DATA remains unresolved; read-only SQL checks did not identify an invalid finance record. Android-only safe diagnostic in progress accepts fixed server error codes and validated request UUIDs for correlation only. W6.4 and D7 remain open (5/6 implementations, 23/24 subtasks; deploy 6/8), separate D8 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1224,7 +1224,7 @@
         ]
       }
     ],
-    "next_action": "Validate one release-source PR from current develop containing all accepted Android changes, without changing product behavior or financial data; require green exact-head gates. Then use the protected production-signing workflow for an explicitly owner-requested newer APK candidate, never the older rc13. Diagnose HTTP400 safely; only physical in-place S24 test and explicit owner confirmation may complete W6.4/D7, and D8 requires a separate stable promotion gate.",
+    "next_action": "Verify safe HTTP400 diagnostic PR using all exact-head CI checks and merge before building a fresh signed all-changes source. Correlate genuine API failure by validated request UUID without exposing data, then require in-place owner S24 physical acceptance. Do not mark server issue fixed, W6.4/D7 complete or D8 promoted.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": null,
     "current_subtask": "W6.4",
@@ -1232,7 +1232,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 open: post-#448/#449/#447 Android source is integrated in develop 4097451c89c107f6469706d5077b437adb057f90, but latest signed public rc13/10012 predates these changes. Prepare one reviewed, exact-head CI-green release source and separately owner-authorized same-production-signer candidate. Preserve installed data via in-place upgrade. Owner screenshots report finance GET HTTP400/INVALID_DATA on an unverified installed version; reproduce and fix root cause without unsafe data or validation bypass. Require actual S24 user acceptance of finance, PIN, biometric, card vault, Quick Entry, offline, privacy, and design before D7 completion. D8 final stable release/main promotion remains separately gated.",
+    "next_action": "D7 still open: PR #450 integrated all post-UI changes on develop; published rc13/10012 is stale. Owner physical finance GET400 INVALID_DATA remains unresolved. Android safe error correlation is diagnostic only. A later exact-head green release-source PR and enrolled production signer must produce a fresh all-changes candidate, installed IN PLACE on actual S24 without data loss. Owner must explicitly accept finance, session, PIN/biometric, card vault, Quick Entry, offline, privacy and design before D7 closes; D8 separate.",
     "stages": [
       {
         "id": "D1",

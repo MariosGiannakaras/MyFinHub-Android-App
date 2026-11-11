@@ -119,6 +119,10 @@ sealed interface ApiResult<out T> {
         val kind: ApiFailureKind,
         val retryable: Boolean = false,
         val statusCode: Int? = null,
+        /** Allowlisted server error code; never raw error body. */
+        val serverCode: String? = null,
+        /** Strict UUID server request ID for safe support correlation. */
+        val requestId: String? = null,
     ) : ApiResult<Nothing>
 }
 
