@@ -237,6 +237,27 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun lendingAndRepaymentShowCashDirectionButRemainOutsideOperatingExpenseAndIncome() {
+        fun row(kind: String, amount: Double) = ActivityItem(
+            id = kind, dateLabel = "28 Οκτ", kind = if (kind == "repayment")
+                ActivityKind.INCOME else ActivityKind.EXPENSE,
+            title = kind, subtitle = kind, amount = amount,
+            accountLabel = "Μισθοδοσία", category = "Δανεικά",
+            rawDate = "2026-10-28", canonicalKind = kind,
+            canonicalSourceOrdinal = 0,
+            financeIncomeContribution = 0.0,
+            financeExpenseContribution = 0.0,
+        )
+        val lent = row("lending", -545.0)
+        val repaid = row("repayment", 100.0)
+        assertTrue(formatActivityFlowEuro(lent).startsWith("−"))
+        assertTrue(formatActivityFlowEuro(repaid).startsWith("+"))
+        val state = ActivityUiState(items = listOf(lent, repaid))
+        assertEquals(0.0, state.visibleExpense, 0.001)
+        assertEquals(0.0, state.visibleIncome, 0.001)
+    }
+
+    @Test
     fun splitDetailsRetainCanonicallyNamedPartsAndWebCategoryPaths() {
         val parts = listOf(
             ActivitySplitPart("Πρωινός καφές", "Τρόφιμα", "Καφές", 4.80),
