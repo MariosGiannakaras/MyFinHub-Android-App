@@ -235,6 +235,7 @@ fun CreditCardStack(
     onOpenCard: (String) -> Unit,
     onDeleteCard: (String) -> Unit,
     modifier: Modifier = Modifier,
+    allowArchive: Boolean = true,
 ) {
     val ids = cards.map(MoneyCard::id)
     // Retain the active card and physical stack order across activity recreation.
@@ -544,13 +545,16 @@ fun CreditCardStack(
                         deleteProgress = deleteProgress,
                         deleting = deletingId == card.id,
                         reducedMotion = reducedMotion,
+                        allowArchive = allowArchive,
                         onCopyNumber = { copySecret("Ο αριθμός", revealed?.pan) },
                         onCopyExpiry = { copySecret("Η λήξη", revealed?.expiry) },
                         onCopyCvv = { copySecret("Το CVV", revealed?.cvv) },
                         onOpen = { onOpenCard(card.id) },
                         onDeleteRequested = {
-                            deleteArmedId = card.id
-                            deleteProgress = 0f
+                            if (allowArchive) {
+                                deleteArmedId = card.id
+                                deleteProgress = 0f
+                            }
                         },
                         onDeleteCancelled = {
                             deleteArmedId = null
@@ -658,6 +662,7 @@ private fun ReferenceCardFace(
     deleteProgress: Float,
     deleting: Boolean,
     reducedMotion: Boolean,
+    allowArchive: Boolean,
     onCopyNumber: () -> Unit,
     onCopyExpiry: () -> Unit,
     onCopyCvv: () -> Unit,
@@ -721,7 +726,7 @@ private fun ReferenceCardFace(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                if (isTop) {
+                if (isTop && allowArchive) {
                     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         ReferenceActionButton(label = "Αρχειοθέτηση κάρτας", onClick = onDeleteRequested) {
                             ReferenceTrashGlyph(visual.text)
@@ -1023,9 +1028,9 @@ private fun ReferenceDeleteConfirmation(
             Column(modifier = Modifier.weight(1f)) {
                 Text("Αρχειοθέτηση κάρτας;", color = Color.White, fontWeight = FontWeight.Bold)
                 Text(
-                    "Σύρε δεξιά για αρχειοθέτηση. Η κάρτα επανέρχεται, ενώ το ιστορικό και τα κρυπτογραφημένα στοιχεία διατηρούνται.",
+                    "Σύρε δεξιά για αφαίρεση από τις ενεργές κάρτες. Οι κινήσεις και οι οφειλές διατηρούνται. Δεν ακυρώνεται η τραπεζική κάρτα.",
                     color = Color.White.copy(alpha = .76f),
-                    fontSize = 9.sp,
+                    fontSize = 12.sp,
                 )
             }
             ReferenceActionButton(label = "Ακύρωση", onClick = onCancel) {

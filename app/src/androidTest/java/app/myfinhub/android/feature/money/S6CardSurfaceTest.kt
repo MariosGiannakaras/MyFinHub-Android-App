@@ -64,6 +64,32 @@ class S6CardSurfaceTest {
     )
 
     @Test
+    fun companionCreditDetail_keepsPaymentsAndSecureCardAccessWithoutWebManagement() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalCardDetailScreen(
+                    card = credit,
+                    onBack = {},
+                    companionMode = true,
+                    onSaveCardProfile = {},
+                    onSaveCreditBillingSettings = {},
+                    onAddCreditRateVersion = {},
+                    onRemoveCard = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("card_detail_payment_action").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Καταχώριση αγοράς").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("card_credit_tools_toggle").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_credit_terms").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_edit_profile").assertDoesNotExist()
+        composeRule.onNodeWithText("Αφαίρεση από το MyFinHub").assertDoesNotExist()
+        composeRule.onNodeWithText("Διαχείριση κάρτας").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_secure_details").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
     fun walletCards_useStackedPresentation_andRouteByStableId() {
         var opened: String? = null
         composeRule.setContent {
@@ -314,7 +340,7 @@ class S6CardSurfaceTest {
 
         composeRule.onNodeWithTag("card_secure_details").performScrollTo().performClick()
         composeRule.runOnIdle { assertEquals("credit", secureCardId) }
-        composeRule.onNodeWithText("Αρχειοθέτηση κάρτας").performScrollTo().performClick()
+        composeRule.onNodeWithText("Αφαίρεση από το MyFinHub").performScrollTo().performClick()
         composeRule.onNodeWithText("Δεν ακυρώνεται στην τράπεζα.", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("μπορεί να επανέλθει", substring = true).assertIsDisplayed()
         composeRule.onNodeWithTag("confirm_remove_card").performClick()

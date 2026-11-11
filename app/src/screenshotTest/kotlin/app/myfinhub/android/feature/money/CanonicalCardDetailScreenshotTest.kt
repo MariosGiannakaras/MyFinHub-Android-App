@@ -65,7 +65,11 @@ fun CanonicalCardSecureHiddenLargeFontScreenshot() = CardSecureFixture(darkTheme
 @Composable
 private fun CardDetailFixture(darkTheme: Boolean) {
     MyFinHubTheme(darkTheme = darkTheme) {
-        CanonicalCardDetailScreen(card = canonicalCardDetailPreviewCard, onBack = {})
+        CanonicalCardDetailScreen(
+            card = canonicalCardDetailPreviewCard,
+            companionMode = true,
+            onBack = {},
+        )
     }
 }
 

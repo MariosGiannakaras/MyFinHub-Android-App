@@ -46,7 +46,6 @@ class NativeRecurringManagementJourneyComposeTest {
         scheduledAccounts = listOf(ScheduledAccountOption("cash", "Μετρητά")),
     )
     private fun enterManagement() {
-        rule.onNodeWithContentDescription("Πλάνο", useUnmergedTree = true).performClick()
         rule.onNodeWithTag("s7_plan_root")
             .performScrollToNode(hasTestTag("s7_recurring_management_link"))
         rule.onNodeWithTag("s7_recurring_management_link").performClick()
@@ -60,6 +59,7 @@ class NativeRecurringManagementJourneyComposeTest {
         val edits = mutableListOf<Pair<String,RecurringCreateRequest>>()
         rule.setContent { MyFinHubTheme {
             MyFinHubAppContent(
+                legacyTestInitialDestination = TopLevelDestination.PLAN,
                 homeState = syntheticHomeUiState(), onHomeAction = {},
                 planState = plan(),
                 quickEntryState = QuickEntryUiState(accounts = listOf(cash)),
@@ -89,6 +89,7 @@ class NativeRecurringManagementJourneyComposeTest {
         val actions = mutableListOf<QuickEntryAction>()
         rule.setContent { MyFinHubTheme {
             MyFinHubAppContent(
+                legacyTestInitialDestination = TopLevelDestination.PLAN,
                 homeState = syntheticHomeUiState(), onHomeAction = {},
                 planState = plan(), quickEntryState = quick,
                 onQuickEntryAction = { action ->
@@ -115,6 +116,7 @@ class NativeRecurringManagementJourneyComposeTest {
     @Test fun missingOrAmbiguousPayerDisablesLiveFinancialAction() {
         rule.setContent { MyFinHubTheme {
             MyFinHubAppContent(
+                legacyTestInitialDestination = TopLevelDestination.PLAN,
                 homeState = syntheticHomeUiState(), onHomeAction = {},
                 planState = plan(bill.copy(accountId = "deleted-account")),
                 quickEntryState = QuickEntryUiState(accounts = listOf(cash)),
@@ -129,6 +131,7 @@ class NativeRecurringManagementJourneyComposeTest {
         val created = mutableListOf<RecurringCreateRequest>()
         rule.setContent { MyFinHubTheme {
             MyFinHubAppContent(
+                legacyTestInitialDestination = TopLevelDestination.PLAN,
                 homeState = syntheticHomeUiState(), onHomeAction = {},
                 planState = plan(), quickEntryState = QuickEntryUiState(accounts = listOf(cash)),
                 onCreateRecurring = { created += it },
@@ -179,6 +182,7 @@ class NativeRecurringManagementJourneyComposeTest {
         val changes = mutableListOf<QuickEntryAction>()
         rule.setContent { MyFinHubTheme {
             MyFinHubAppContent(
+                legacyTestInitialDestination = TopLevelDestination.PLAN,
                 homeState = syntheticHomeUiState(), onHomeAction = {},
                 planState = ui, quickEntryState = quick,
                 onQuickEntryAction = { action ->
@@ -187,7 +191,6 @@ class NativeRecurringManagementJourneyComposeTest {
                 },
             )
         } }
-        rule.onNodeWithContentDescription("Πλάνο", useUnmergedTree = true).performClick()
         rule.onNodeWithTag("s7_plan_root")
             .performScrollToNode(hasTestTag("s7_forecast_link"))
         rule.onNodeWithTag("s7_forecast_link").performClick()
@@ -218,13 +221,13 @@ class NativeRecurringManagementJourneyComposeTest {
         )
         rule.setContent { MyFinHubTheme {
             MyFinHubAppContent(
+                legacyTestInitialDestination = TopLevelDestination.PLAN,
                 homeState = syntheticHomeUiState(), onHomeAction = {},
                 planState = ui,
                 quickEntryState = QuickEntryUiState(accounts = listOf(cash)),
                 onQuickEntryAction = { error("Orphaned recurring Forecast payer must never post") },
             )
         } }
-        rule.onNodeWithContentDescription("Πλάνο", useUnmergedTree = true).performClick()
         rule.onNodeWithTag("s7_plan_root")
             .performScrollToNode(hasTestTag("s7_forecast_link"))
         rule.onNodeWithTag("s7_forecast_link").performClick()

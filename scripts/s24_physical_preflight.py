@@ -15,8 +15,9 @@ import subprocess
 import sys
 
 PACKAGE = "app.myfinhub.android"
-LATEST_PUBLISHED_VERSION_CODE = 10012  # rc13, published 2026-11-10
+LATEST_PUBLISHED_VERSION_CODE = 10012  # rc13, protected release 2026-11-10
 LATEST_PUBLISHED_VERSION_NAME = "1.0.0-rc13"
+LAST_KNOWN_SIGNED_VERSION_CODE = 10011  # previous rc12; lower bound for --expected-version-code
 MODEL_PATTERN = re.compile(r"SM-S928[A-Z0-9]*\Z")
 VERSION_PATTERN = re.compile(r"[A-Za-z0-9._+-]{1,64}\Z")
 ANDROID_PATTERN = re.compile(r"[A-Za-z0-9.]{1,32}\Z")
@@ -68,7 +69,15 @@ def _installed_version(info: str) -> tuple[int, str]:
     return code, name
 
 
-def inspect() -> dict[str, object]:
+def inspect(expected_version_code: int | None = None) -> dict[str, object]:
+    if expected_version_code is not None and (
+        isinstance(expected_version_code, bool)
+        or not isinstance(expected_version_code, int)
+        or expected_version_code <= LAST_KNOWN_SIGNED_VERSION_CODE
+        or len(str(expected_version_code)) > 18
+    ):
+        raise PreflightError("Expected candidate version code must be newer than rc12.")
+
     if shutil.which("adb") is None:
         raise PreflightError("Android platform-tools (adb) are not installed.")
 
@@ -94,7 +103,7 @@ def inspect() -> dict[str, object]:
 
     installed_path = _adb("shell", "pm", "path", PACKAGE)
     if not installed_path:
-        return {
+        result: dict[str, object] = {
             "supported_device": "Samsung Galaxy S24 Ultra (SM-S928 family)",
             "android_release": release,
             "font_scale": font_scale,
@@ -103,6 +112,10 @@ def inspect() -> dict[str, object]:
             "candidate_check": "not_installed",
             "physical_acceptance": "not_assessed",
         }
+        if expected_version_code is not None:
+            result["expected_version_code"] = expected_version_code
+            result["candidate_version_matches_expected"] = False
+        return result
 
     if not all(re.fullmatch(r"package:/[^\s]+\.apk", line) for line in installed_path.splitlines()):
         raise PreflightError("Installed package path was not readable.")
@@ -112,19 +125,17 @@ def inspect() -> dict[str, object]:
 
     # A newer code alone does NOT establish trusted signer, source provenance,
     # safe in-place upgrade, or product/owner acceptance.
-    # An exact version code/name match is only a metadata observation: a
-    # spoofed or incorrectly signed build may report the same strings.
     if version_code < LATEST_PUBLISHED_VERSION_CODE:
         freshness = "older_than_published_rc13"
     elif version_code == LATEST_PUBLISHED_VERSION_CODE:
         freshness = (
-            "rc13_version_only_requires_signer_and_owner_verification"
+            "published_rc13_version_only_requires_signer_and_owner_verification"
             if version_name == LATEST_PUBLISHED_VERSION_NAME
             else "unrecognized_build_requires_source_and_signer_verification"
         )
     else:
         freshness = "newer_build_requires_source_and_signer_verification"
-    return {
+    result: dict[str, object] = {
         "supported_device": "Samsung Galaxy S24 Ultra (SM-S928 family)",
         "android_release": release,
         "font_scale": font_scale,
@@ -135,17 +146,53 @@ def inspect() -> dict[str, object]:
         "candidate_check": freshness,
         "physical_acceptance": "not_assessed",
     }
+    if expected_version_code is not None:
+        result["expected_version_code"] = expected_version_code
+        result["candidate_version_matches_expected"] = (
+            version_code == expected_version_code
+            and (
+                version_code != LATEST_PUBLISHED_VERSION_CODE
+                or version_name == LATEST_PUBLISHED_VERSION_NAME
+            )
+        )
+    return result
+
+
+def _expected_code_arg(raw: str) -> int:
+    if re.fullmatch(r"[0-9]{1,18}", raw) is None:
+        raise argparse.ArgumentTypeError("Expected version code must be numeric.")
+    code = int(raw)
+    if code <= LAST_KNOWN_SIGNED_VERSION_CODE:
+        raise argparse.ArgumentTypeError(
+            "D7 candidate must be newer than the already published rc12."
+        )
+    return code
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", help="Print only privacy-safe JSON")
+    parser.add_argument(
+        "--expected-version-code",
+        type=_expected_code_arg,
+        metavar="CODE",
+        help="Fail closed unless the installed package matches a newer signed candidate code.",
+    )
     args = parser.parse_args(argv)
 
     try:
-        result = inspect()
+        result = inspect(expected_version_code=args.expected_version_code)
     except PreflightError as exc:
         print(f"D7 preflight blocked: {exc}", file=sys.stderr)
+        return 2
+
+    if args.expected_version_code is not None and not result.get(
+        "candidate_version_matches_expected", False
+    ):
+        print(
+            "D7 preflight blocked: installed package does not match the expected candidate.",
+            file=sys.stderr,
+        )
         return 2
 
     if args.json:

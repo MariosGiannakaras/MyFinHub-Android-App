@@ -46,7 +46,7 @@ class S5HomeWalletTest {
     }
 
     @Test
-    fun homeCardChartsRemainVisibleWhenAmountsAreHidden() {
+    fun homePrimaryAccounts_keepWebChartsAndSavingsTargetWhileAmountsAreHidden() {
         composeRule.setContent {
             MyFinHubTheme {
                 ProductionHomeScreen(
@@ -59,12 +59,23 @@ class S5HomeWalletTest {
                 )
             }
         }
+        // All three primary roles must retain their real Web-equivalent trends,
+        // even when numerical balances and the 30-day delta are masked.
+        listOf("cash", "piraeus-payroll", "piraeus-savings").forEach { id ->
+            composeRule.onNodeWithTag("home_list")
+                .performScrollToNode(hasTestTag("home_account_history_$id"))
+            composeRule.onNodeWithTag("home_account_history_$id").assertIsDisplayed()
+            composeRule.onNodeWithTag("home_list")
+                .performScrollToNode(hasTestTag("home_account_delta_$id"))
+            composeRule.onNodeWithTag("home_account_delta_$id").assertIsDisplayed()
+            composeRule.onNodeWithTag("home_list")
+                .performScrollToNode(hasTestTag("home_account_quick_entry_$id"))
+            composeRule.onNodeWithTag("home_account_quick_entry_$id").assertIsDisplayed()
+        }
         composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("home_account_history_cash"))
-        composeRule.onNodeWithTag("home_account_history_cash").assertIsDisplayed()
-        composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasTestTag("home_account_delta_cash"))
-        composeRule.onNodeWithTag("home_account_delta_cash").assertIsDisplayed()
+            .performScrollToNode(hasText("Τρέχων μήνας · Προηγ. μήνας · Στόχος"))
+        composeRule.onNodeWithText("Τρέχων μήνας · Προηγ. μήνας · Στόχος")
+            .assertIsDisplayed()
         composeRule.onNodeWithText("Η εξέλιξη υπολοίπου είναι κρυφή").assertDoesNotExist()
     }
 
@@ -72,8 +83,7 @@ class S5HomeWalletTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun compactHome_limitsAttentionAndKeepsPrimaryRoutesReachable() {
-        val openedAccounts = AtomicBoolean(false)
+    fun compactHome_limitsAttentionAndShowsAccountsWithoutAdminShortcut() {
         val thirdAttention = HomeAttentionItem(
             id = "third",
             title = "Δεν πρέπει να εμφανίζεται",
@@ -91,7 +101,6 @@ class S5HomeWalletTest {
                     onOpenAttention = {},
                     onOpenSettings = {},
                     onOpenQuickEntry = {},
-                    onOpenAllAccounts = { openedAccounts.set(true) },
                     amountsVisibleOverride = true,
                 )
             }
@@ -101,9 +110,31 @@ class S5HomeWalletTest {
         composeRule.onNodeWithTag("home_global_quick_entry").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
         composeRule.onNodeWithText("Δεν πρέπει να εμφανίζεται").assertDoesNotExist()
-        composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Όλοι οι λογαριασμοί"))
-        composeRule.onNodeWithText("Όλοι οι λογαριασμοί").performClick()
-        assertTrue(openedAccounts.get())
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasText("Λοιποί λογαριασμοί"))
+        composeRule.onNodeWithText("Λοιποί λογαριασμοί").assertIsDisplayed()
+        composeRule.onNodeWithText("Όλοι οι λογαριασμοί").assertDoesNotExist()
+    }
+
+    @Test
+    fun companionHome_opensAndroidSettingsShortcut() {
+        val settingsOpened = AtomicBoolean(false)
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionHomeScreen(
+                    state = syntheticHomeUiState(),
+                    onAction = {},
+                    onOpenAttention = {},
+                    onOpenQuickEntry = {},
+                    onOpenSettings = { settingsOpened.set(true) },
+                    amountsVisibleOverride = false,
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_settings").performClick()
+        assertTrue(settingsOpened.get())
     }
 
     @Test

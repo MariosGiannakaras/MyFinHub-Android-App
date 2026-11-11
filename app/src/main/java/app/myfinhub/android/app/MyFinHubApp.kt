@@ -214,6 +214,9 @@ internal fun MyFinHubAppContent(
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistory: List<PrivacySafeNoticeRecord> = emptyList(),
     onLogout: (() -> Unit)? = null,
+    // Internal test-only entry for exercising retained Plan/Insights routes without
+    // exposing them as mobile tabs or weakening installed-state migration.
+    legacyTestInitialDestination: TopLevelDestination? = null,
 ) {
     // Display server-owned provider names only for exact canonical provider IDs.
     // Never use a matching label as a surrogate owner ID or load an unverified URL.
@@ -232,7 +235,19 @@ internal fun MyFinHubAppContent(
         })
     }
 
-    var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
+    var currentDestination by rememberSaveable {
+        mutableStateOf(legacyTestInitialDestination ?: TopLevelDestination.HOME)
+    }
+    // Older installed versions persisted the five-tab selection. Safely restore
+    // a visible primary destination. The optional internal test-only entry lets
+    // regression tests exercise hidden legacy screens without adding tabs.
+    LaunchedEffect(currentDestination, legacyTestInitialDestination) {
+        if (legacyTestInitialDestination == null &&
+            currentDestination !in primaryMobileDestinations
+        ) {
+            currentDestination = TopLevelDestination.HOME
+        }
+    }
     var walletAccountsRequest by rememberSaveable { mutableStateOf(0) }
     var insightsPeriodId by rememberSaveable { mutableStateOf(insightsState.defaultPeriodId) }
     var frontendUtilitiesState by remember { mutableStateOf(FrontendUtilitiesUiState()) }
@@ -317,6 +332,7 @@ internal fun MyFinHubAppContent(
                         },
                         onOpenAccount = { accountId -> homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                         onOpenAllAccounts = { homeBackStack.pushIfNew(AppRoute.Accounts) },
+                        canOpenRecent = activityState::isUniqueMutationTarget,
                         onOpenRecent = { eventId ->
                             if (activityState.isUniqueMutationTarget(eventId)) {
                                 homeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId))
@@ -341,8 +357,8 @@ internal fun MyFinHubAppContent(
                                 currentDestination = TopLevelDestination.ACTIVITY
                                 activityBackStack.popToRoot()
                             } else {
-                                currentDestination = TopLevelDestination.PLAN
-                                planBackStack.popToRoot()
+                                // A contextual scheduled-item action does not need a Plan tab.
+                                homeBackStack.pushIfNew(AppRoute.PlanScheduled)
                             }
                         },
                     )
@@ -508,6 +524,8 @@ internal fun MyFinHubAppContent(
                     CanonicalWalletScreen(
                         state = moneyProviderState,
                         cardsOnly = true,
+                        companionMode = true,
+                        onOpenQuickEntry = { openFastExpense(moneyBackStack) },
                         onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
@@ -610,6 +628,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.CardDetail> { route ->
                     val card = moneyState.cards.firstOrNull { it.id == route.cardId }
                     CanonicalCardDetailScreen(
+                        companionMode = true,
                         cardId = route.cardId,
                         card = card,
                         cards = moneyState.cards,
@@ -807,7 +826,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.PlanScheduled> {
                     CanonicalScheduledManagementScreen(
                         state = planState,
-                        onBack = { planBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                         onCreate = onCreateScheduled,
                         onComplete = onCompleteScheduled,
                         onClose = onCloseScheduled,
@@ -899,7 +918,7 @@ internal fun MyFinHubAppContent(
     if (activeRoute?.showsGlobalNavigation == true) {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
-                TopLevelDestination.entries.forEach { destination ->
+                primaryMobileDestinations.forEach { destination ->
                     item(
                         selected = currentDestination == destination,
                         onClick = {

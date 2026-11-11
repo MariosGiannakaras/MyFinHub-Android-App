@@ -130,6 +130,8 @@ fun CanonicalWalletScreen(
     accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
     accountMetadataLoaded: Boolean = false,
     fullActivityIdCounts: Map<String, Int>? = null,
+    companionMode: Boolean = false,
+    onOpenQuickEntry: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -218,6 +220,8 @@ fun CanonicalWalletScreen(
                     onAddCard = onAddCard,
                     onDeleteCard = onDeleteCard,
                     onRestoreCard = onRestoreCard,
+                    companionMode = companionMode,
+                    onOpenQuickEntry = onOpenQuickEntry,
                 )
                 WalletSection.DEBTS -> walletDebtsContent(
                     state = state,
@@ -514,12 +518,14 @@ private fun LazyListScope.walletCardsContent(
     onAddCard: () -> Unit,
     onDeleteCard: (String) -> Unit,
     onRestoreCard: (String) -> Unit,
+    companionMode: Boolean,
+    onOpenQuickEntry: () -> Unit,
 ) {
     item("cards-action") {
         MyFinHubPrimaryAction(
-            label = "Νέα κάρτα",
-            onClick = onAddCard,
-            modifier = Modifier.fillMaxWidth(),
+            label = if (companionMode) "Νέα κίνηση" else "Νέα κάρτα",
+            onClick = if (companionMode) onOpenQuickEntry else onAddCard,
+            modifier = Modifier.fillMaxWidth().testTag("cards_primary_action"),
         )
     }
     if (state.cards.isEmpty()) {
@@ -537,8 +543,47 @@ private fun LazyListScope.walletCardsContent(
                 onOpenCard = onOpenCard,
                 onDeleteCard = onDeleteCard,
                 modifier = Modifier.fillMaxWidth(),
+                allowArchive = !companionMode,
             )
         }
+        if (companionMode) {
+            item("card-companion-summary") {
+                val active = state.cards.firstOrNull { it.id == selectedCardId } ?: state.cards.first()
+                val isCredit = canUseCreditCardActions(active)
+                val creditSnapshot = if (isCredit) creditWorkspaceFinancialSnapshot(active) else null
+                MyFinHubSectionCard(
+                    modifier = Modifier.fillMaxWidth().testTag("card_companion_summary"),
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                        Text(active.nickname, style = MaterialTheme.typography.titleMedium)
+                        if (isCredit) {
+                            Text("Τρέχουσα οφειλή", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                creditSnapshot?.outstanding?.let { walletAmountText(it, amountsVisible) }
+                                    ?: "Μη διαθέσιμο ποσό",
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            OutlinedButton(
+                                onClick = { onAddCreditPurchase(active.id) },
+                                enabled = canOpenCreditCardQuickEntry(active, payment = false),
+                                modifier = Modifier.fillMaxWidth().testTag("card_companion_purchase"),
+                            ) { Text("Αγορά με πιστωτική") }
+                            OutlinedButton(
+                                onClick = { onPayCreditCard(active.id) },
+                                enabled = canOpenCreditCardQuickEntry(active, payment = true) &&
+                                    (creditSnapshot?.outstanding ?: 0.0) > 0.005,
+                                modifier = Modifier.fillMaxWidth().testTag("card_companion_payment"),
+                            ) { Text("Εξόφληση πιστωτικής") }
+                        } else {
+                            Text(
+                                "Οι αγορές χρεωστικής ή προπληρωμένης καταχωρίζονται ως κινήσεις λογαριασμού.",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
         item("card-workspace") {
             val active = state.cards.firstOrNull { it.id == selectedCardId } ?: state.cards.first()
             InlineCreditCardWorkspace(
@@ -558,8 +603,9 @@ private fun LazyListScope.walletCardsContent(
                 onOpenDetails = { onOpenCard(active.id) },
             )
         }
+        }
     }
-    if (state.archivedCards.isNotEmpty()) {
+    if (!companionMode && state.archivedCards.isNotEmpty()) {
         item("archived-card-heading") {
             Text(
                 "Αρχειοθετημένες κάρτες",

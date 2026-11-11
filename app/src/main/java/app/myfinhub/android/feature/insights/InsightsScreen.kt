@@ -518,6 +518,9 @@ private fun SpendingComparisonCard(scope: InsightPeriodScope, largeFont: Boolean
         expenseChange == null && kotlin.math.abs(comparison.previousExpense) > 0.005 ->
             "Μη έγκυρη σύγκριση εξόδων"
         expenseChange == null -> "Δεν υπάρχει προηγούμενη βάση εξόδων"
+        // A tiny but nonzero comparison base yields enormous percentages without practical meaning.
+        // Preserve the real period totals directly below instead of presenting e.g. 34,000%.
+        abs(expenseChange) >= 1_000.0 -> "Μεγάλη μεταβολή εξόδων · σύγκρινε τα ποσά"
         expenseChange < -0.5 -> "${abs(expenseChange).roundToInt()}% λιγότερα έξοδα"
         expenseChange > 0.5 -> "${expenseChange.roundToInt()}% περισσότερα έξοδα"
         else -> "Σχεδόν ίδια έξοδα"
@@ -585,7 +588,7 @@ private fun MonthlyReportSignalsCard(
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
             Text("Δείκτες μήνα", style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold)
-            Text("Web Reports · ο τρέχων μήνας μπορεί να είναι μερικός",
+            Text("Ο τρέχων μήνας μπορεί να μην έχει ολοκληρωθεί.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             ComparisonFact(
@@ -594,14 +597,14 @@ private fun MonthlyReportSignalsCard(
                 Modifier.testTag("insights_report_net_flow"),
             )
             ComparisonFact(
-                "Ρυθμός αποταμίευσης · προηγούμενος",
+                "Ρυθμός αποταμίευσης (τρέχων · προηγούμενος)",
                 percentage(signals.savingsRate) + " · " + percentage(signals.previousSavingsRate),
                 Modifier.testTag("insights_report_savings_rate"),
             )
             ComparisonFact(
-                "Μεταβολή εσόδων / εξόδων / αποταμίευσης",
-                percentage(signals.incomeChange) + " / " +
-                    percentage(signals.expenseChange) + " / " +
+                "Μεταβολή: έσοδα · έξοδα · αποταμίευση",
+                percentage(signals.incomeChange) + " · " +
+                    percentage(signals.expenseChange) + " · " +
                     percentage(signals.savingChange),
             )
             ComparisonFact(

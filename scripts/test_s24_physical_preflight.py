@@ -53,10 +53,10 @@ class PhysicalS24PreflightTests(unittest.TestCase):
             args=args, returncode=0, stdout=safe_queries[tuple(args[2:])], stderr="",
         )
 
-    def check(self):
+    def check(self, expected_version_code=None):
         with patch.object(preflight.shutil, "which", return_value="/usr/bin/adb"):
             with patch.object(preflight.subprocess, "run", side_effect=self.run_adb):
-                return preflight.inspect()
+                return preflight.inspect(expected_version_code=expected_version_code)
 
     def test_old_rc12_reports_insufficient_build_and_never_claims_acceptance(self):
         result = self.check()
@@ -70,34 +70,74 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         self.assertTrue(all(cmd[:2] == ["adb", "-d"] for cmd in self.commands))
         self.assertFalse(any("install" in cmd or "pull" in cmd or "put" in cmd for cmd in self.commands))
 
-    def test_published_rc13_version_alone_cannot_claim_signer_or_owner_acceptance(self):
+    def test_newer_version_still_requires_source_and_signer_verification(self):
         self.version_code = 10012
         self.version_name = "1.0.0-rc13"
         result = self.check()
         self.assertEqual(
-            result["candidate_check"],
-            "rc13_version_only_requires_signer_and_owner_verification",
+            result["candidate_check"], "published_rc13_version_only_requires_signer_and_owner_verification",
         )
         self.assertEqual(result["physical_acceptance"], "not_assessed")
 
-    def test_unrecognized_same_code_name_is_not_trusted_as_rc13(self):
+    def test_expected_candidate_exact_version_matches_without_claiming_acceptance(self):
         self.version_code = 10012
-        self.version_name = "1.0.0-rc12"
-        result = self.check()
+        self.version_name = "1.0.0-rc13"
+        result = self.check(expected_version_code=10012)
+        self.assertEqual(result["expected_version_code"], 10012)
+        self.assertIs(result["candidate_version_matches_expected"], True)
         self.assertEqual(
             result["candidate_check"],
-            "unrecognized_build_requires_source_and_signer_verification",
+            "published_rc13_version_only_requires_signer_and_owner_verification",
         )
         self.assertEqual(result["physical_acceptance"], "not_assessed")
+        self.assertNotIn("signer_verified", result)
 
-    def test_future_version_still_requires_source_and_signer_verification(self):
+    def test_expected_candidate_mismatch_does_not_claim_acceptance(self):
+        self.version_code = 10013
+        result = self.check(expected_version_code=10012)
+        self.assertEqual(result["version_code"], 10013)
+        self.assertIs(result["candidate_version_matches_expected"], False)
+        self.assertEqual(result["physical_acceptance"], "not_assessed")
+
+    def test_spoofed_rc13_name_fails_exact_expected_code_match(self):
+        self.version_code = 10012
+        self.version_name = "1.0.0-rc13-fake"
+        result = self.check(expected_version_code=10012)
+        self.assertEqual(result["candidate_check"], "unrecognized_build_requires_source_and_signer_verification")
+        self.assertIs(result["candidate_version_matches_expected"], False)
+        self.assertEqual(result["physical_acceptance"], "not_assessed")
+
+    def test_unknown_future_version_requires_independent_release_verification(self):
         self.version_code = 10013
         self.version_name = "1.0.0-rc14"
         result = self.check()
-        self.assertEqual(
-            result["candidate_check"], "newer_build_requires_source_and_signer_verification",
-        )
+        self.assertEqual(result["candidate_check"], "newer_build_requires_source_and_signer_verification")
         self.assertEqual(result["physical_acceptance"], "not_assessed")
+
+    def test_expected_rc13_spoofed_name_exits_nonzero(self):
+        self.version_code = 10012
+        self.version_name = "1.0.0-rc13-fake"
+        result = self.check(expected_version_code=10012)
+        with patch.object(preflight, "inspect", return_value=result):
+            with contextlib.redirect_stdout(io.StringIO()) as stdout, contextlib.redirect_stderr(io.StringIO()) as stderr:
+                self.assertEqual(preflight.main(["--json", "--expected-version-code", "10012"]), 2)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertNotIn("1.0.0-rc13-fake", stderr.getvalue())
+
+    def test_uninstalled_expected_candidate_is_explicitly_not_a_match(self):
+        self.installed = False
+        result = self.check(expected_version_code=10012)
+        self.assertEqual(result["installation"], "not_found")
+        self.assertEqual(result["expected_version_code"], 10012)
+        self.assertIs(result["candidate_version_matches_expected"], False)
+        self.assertNotIn("version_code", result)
+
+    def test_invalid_expected_candidate_fails_without_running_adb(self):
+        for invalid in (10011, 0, -1, True, "10012", 10**19):
+            with self.subTest(value=invalid):
+                with self.assertRaisesRegex(preflight.PreflightError, "newer than rc12"):
+                    self.check(expected_version_code=invalid)
+        self.assertEqual(self.commands, [])
 
     def test_different_physical_phone_is_rejected_before_app_inspection(self):
         self.model = "SM-S926B"
@@ -133,8 +173,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         result = self.check()
         self.assertEqual(result["version_code"], 10012)
         self.assertEqual(
-            result["candidate_check"],
-            "rc13_version_only_requires_signer_and_owner_verification",
+            result["candidate_check"], "published_rc13_version_only_requires_signer_and_owner_verification",
         )
 
     def test_missing_exact_package_section_fails_closed(self):
@@ -180,10 +219,33 @@ class PhysicalS24PreflightTests(unittest.TestCase):
             with self.assertRaisesRegex(preflight.PreflightError, "not installed"):
                 preflight.inspect()
 
+    def test_cli_exact_candidate_mismatch_is_nonzero_and_emits_no_data(self):
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with patch.object(preflight, "inspect", return_value={
+            "candidate_version_matches_expected": False,
+            "version_name": "synthetic-SECRET",
+        }) as inspected:
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                self.assertEqual(
+                    preflight.main(["--json", "--expected-version-code", "10012"]), 2
+                )
+        inspected.assert_called_once_with(expected_version_code=10012)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertNotIn("SECRET", stderr.getvalue())
+
+    def test_cli_rejects_old_or_malformed_expected_version(self):
+        for invalid in ("10011", "0", "-12", "+10012", "abc", "9" * 19):
+            with self.subTest(value=invalid):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit) as ctx:
+                        preflight.main(["--expected-version-code", invalid])
+                    self.assertEqual(ctx.exception.code, 2)
+
     def test_cli_json_output_only_contains_whitelisted_fields(self):
         sink = io.StringIO()
         with patch.object(preflight, "inspect", return_value={
-            "version_name": "1.0.0-rc13",
+            "version_name": "1.0.0-rc12",
             "physical_acceptance": "not_assessed",
         }):
             with contextlib.redirect_stdout(sink):

@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import androidx.test.espresso.Espresso
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -28,6 +29,13 @@ class WebSuggestedExpenseSplitComposeTest {
                 onBack={},
             )
         } }
+        // Quick Entry intentionally focuses Amount on entry, bringing up the soft keyboard.
+        // Dismiss it as a user would before scrolling to the lower split suggestion.
+        // Keep the actual visibility/tap assertion: this must be a reachable action.
+        rule.waitForIdle()
+        rule.onNodeWithTag("quick_entry_split_suggest").assertExists()
+        Espresso.closeSoftKeyboard()
+        rule.waitForIdle()
         rule.onNodeWithTag("quick_entry_split_suggest")
             .performScrollTo().assertIsDisplayed().performClick()
         rule.runOnIdle {

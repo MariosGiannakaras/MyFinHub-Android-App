@@ -38,7 +38,7 @@ import org.junit.Test
 class NativeFinanceJourneysComposeTest {
     @get:Rule val rule = createComposeRule()
 
-    @Test fun cardsWalletPaySelectedStatementOpensActualQuickEntryWithExactCanonicalPrefill() {
+    @Test fun companionCreditPaymentOpensSafeQuickEntryWithoutInventingStatementOrAmount() {
         val credit = syntheticMoneyCards().last().copy(canonicalKind = "credit")
         val statement = CanonicalCreditStatementView(
             id = "statement-real", cardId = credit.id,
@@ -74,13 +74,15 @@ class NativeFinanceJourneysComposeTest {
 
         rule.onNodeWithContentDescription("Κάρτες", useUnmergedTree = true).performClick()
         rule.onNodeWithTag("wallet_list")
-            .performScrollToNode(hasTestTag("inline_credit_card_workspace"))
-        rule.onNodeWithTag("inline_credit_pay_statement_0").performScrollTo().performClick()
+            .performScrollToNode(hasTestTag("card_companion_payment"))
+        rule.onNodeWithTag("card_companion_payment").performScrollTo().performClick()
         rule.runOnIdle {
             assertEquals(QuickEntryKind.CARD_PAYMENT, entry.kind)
             assertEquals(credit.id, entry.cardId)
-            assertEquals(statement.id, entry.statementId)
-            assertEquals(80.0, entry.amount ?: -1.0, 0.001)
+            // The compact Android action is card-level, not a particular Web statement.
+            // Never silently prefill an arbitrary historical statement or amount.
+            assertEquals("", entry.statementId)
+            assertEquals("", entry.amountText)
         }
         rule.onNodeWithText("Πιστωτική κάρτα").assertExists()
     }

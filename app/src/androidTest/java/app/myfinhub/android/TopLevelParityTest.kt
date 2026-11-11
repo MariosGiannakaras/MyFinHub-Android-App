@@ -1,8 +1,6 @@
 package app.myfinhub.android
 
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
@@ -15,18 +13,15 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
-import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.test.pressKey
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
+/** Tests the simplified daily-use navigation; domain details have independent screen tests. */
 class TopLevelParityTest {
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ProductTestActivity>()
+    @get:Rule val composeRule = createAndroidComposeRule<ProductTestActivity>()
 
     private fun selectDestination(label: String) {
         composeRule.onNode(
@@ -34,142 +29,85 @@ class TopLevelParityTest {
         ).performClick()
     }
 
-    private fun selectAnalysis() {
-        selectDestination("Αναφορές")
-    }
-
     private fun assertGlobalNavigationHidden() {
-        val globalDestinationMissing = runCatching {
-            composeRule.onNodeWithText("Κάρτες").fetchSemanticsNode()
-        }.isFailure
-        assertTrue("Secondary routes must hide the global navigation suite", globalDestinationMissing)
+        assertTrue(
+            "Secondary routes must hide the global navigation suite",
+            runCatching { composeRule.onNodeWithText("Κάρτες").fetchSemanticsNode() }.isFailure,
+        )
     }
 
     @Test
-    fun fiveRoots_cardsPlanAndReports_haveRealMobileContent() {
+    fun onlyThreeDailyUseRoots_andCardDetailsRemainReachable() {
+        composeRule.onNodeWithTag("home_list").assertIsDisplayed()
+        composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
+        composeRule.onNodeWithText("Πλάνο").assertDoesNotExist()
+        composeRule.onNodeWithText("Αναφορές").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
+
+        selectDestination("Κινήσεις")
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true)
+            .assertIsDisplayed()
         selectDestination("Κάρτες")
         composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
+        composeRule.onNodeWithTag("cards_primary_action").assertIsDisplayed()
+        composeRule.onNodeWithText("Νέα κάρτα").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Αρχειοθέτηση κάρτας").assertDoesNotExist()
         composeRule.onNode(hasScrollAction())
             .performScrollToNode(hasTestTag("credit_card_stack"))
         composeRule.onNodeWithTag("credit_card_card-1")
-            .assertIsDisplayed()
-            .performClick()
+            .assertIsDisplayed().performClick()
+        // Account administration and interest simulators are Web-only in the companion.
+        composeRule.onNodeWithTag("card_credit_tools_toggle").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_edit_profile").assertDoesNotExist()
+        composeRule.onNodeWithText("Αφαίρεση από το MyFinHub").assertDoesNotExist()
         composeRule.onNodeWithTag("card_secure_details")
-            .assertIsDisplayed()
-            .performClick()
+            .assertIsDisplayed().performClick()
         composeRule.onNodeWithText(
             "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στο κοινό card vault και συγχρονίζονται στις εγκεκριμένες εφαρμογές.",
         ).assertIsDisplayed()
-        assertTrue(
-            "Card details must not expose a reveal gate",
-            runCatching { composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode() }.isFailure,
-        )
+        assertTrue(runCatching {
+            composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode()
+        }.isFailure)
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithTag("card_secure_details").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
-
-        selectDestination("Πλάνο")
-        composeRule.onNodeWithTag("s7_plan_root").assertIsDisplayed()
-        composeRule.onNodeWithTag("s7_forecast_link").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("s7_budget_link").performScrollTo().assertIsDisplayed()
-
-        selectAnalysis()
-        composeRule.onNodeWithTag("insights_list")
-            .performScrollToNode(hasTestTag("insights_details"))
-        composeRule.onNodeWithText("Έσοδα, καθαρό & πορεία").assertIsDisplayed()
-        composeRule.onNodeWithTag("insights_list")
-            .performScrollToNode(hasText("Πού πηγαίνουν τα έξοδα"))
-        composeRule.onNodeWithText("Πού πηγαίνουν τα έξοδα").assertIsDisplayed()
     }
 
     @Test
-    fun netPositionIsReachedFromReportsAndBackReturnsToReports() {
-        selectDestination("Αναφορές")
-        composeRule.onNodeWithTag("insights_list")
-            .performScrollToNode(hasTestTag("insights_net_position"))
-        composeRule.onNodeWithTag("insights_net_position").assertIsDisplayed().performClick()
-        composeRule.onNodeWithText("Καθαρή θέση").assertIsDisplayed()
+    fun quickEntryRemainsOneActionAwayFromHome() {
+        composeRule.onNodeWithTag("home_global_quick_entry").performClick()
+        composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
         assertGlobalNavigationHidden()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
-        composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_list").assertIsDisplayed()
+        selectDestination("Κινήσεις")
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true)
+            .assertIsDisplayed()
     }
 
     @Test
-    fun plan_drillsIntoForecastAndBudgetWorkflows() {
-        selectDestination("Πλάνο")
-
-        composeRule.onNodeWithTag("s7_forecast_link").performScrollTo().performClick()
-        composeRule.onNodeWithTag("s7_forecast_root").assertIsDisplayed()
-        composeRule.onNodeWithText("Κινήσεις που υπολογίζονται").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Πίσω").performClick()
-
-        composeRule.onNodeWithTag("s7_budget_link").performScrollTo().performClick()
-        composeRule.onNodeWithTag("s7_budget_root").assertIsDisplayed()
-        composeRule.onNodeWithTag("s7_budget_root")
-            .performScrollToNode(hasTestTag("s7_budget_limit"))
-        composeRule.onNodeWithTag("s7_budget_limit").assertIsDisplayed()
-        composeRule.onNodeWithTag("s7_budget_save").assertIsDisplayed()
-    }
-
-    @Test
-    fun mobileRecurringOverviewIsReachableWithEmptySourceFromPlanAndBackRestoresPlan() {
-        selectDestination("Πλάνο")
-        composeRule.onNodeWithTag("s7_plan_root")
-            .performScrollToNode(hasTestTag("s7_recurring_management_link"))
-        composeRule.onNodeWithTag("s7_recurring_management_link").performClick()
-        composeRule.onNodeWithTag("mobile_recurring_overview").assertIsDisplayed()
-        composeRule.onNodeWithText("Ιστορικό · διαχείριση στην εφαρμογή").assertIsDisplayed()
-        composeRule.onNodeWithTag("mobile_recurring_manage_open").assertIsDisplayed()
-        assertGlobalNavigationHidden()
-        composeRule.onNodeWithContentDescription("Πίσω").performClick()
-        composeRule.onNodeWithTag("s7_plan_root").assertIsDisplayed()
-    }
-
-    @Test
-    fun scheduledManagementIsReachableDirectlyFromPlan() {
-        selectDestination("Πλάνο")
-        composeRule.onNodeWithTag("s7_plan_root")
-            .performScrollToNode(hasTestTag("s7_scheduled_management_link"))
-        composeRule.onNodeWithTag("s7_scheduled_management_link").performClick()
-        composeRule.onNodeWithTag("scheduled_management_root").assertIsDisplayed()
-        assertGlobalNavigationHidden()
-        composeRule.onNodeWithContentDescription("Πίσω").performClick()
-        composeRule.onNodeWithTag("s7_plan_root").assertIsDisplayed()
-    }
-
-    @Test
-    fun secondaryRoute_hidesGlobalNavigation_andBackRestoresOrigin() {
+    fun activityDetail_hidesNavigation_andBackRestoresHistory() {
         selectDestination("Κινήσεις")
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())
-            .performScrollTo()
-            .performClick()
+            .performScrollTo().performClick()
         composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
         assertGlobalNavigationHidden()
-
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
-        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true)
+            .assertIsDisplayed()
         composeRule.onNodeWithText("Κάρτες").assertIsDisplayed()
     }
 
     @Test
-    fun analysis_categoryDeepLink_preservesOrigin_andSiblingAcrossTabSwitches() {
-        selectAnalysis()
-        composeRule.onNodeWithTag("insights_list")
-            .performScrollToNode(hasTestTag("insights_category_Τρόφιμα"))
-        composeRule.onNodeWithTag("insights_category_Τρόφιμα")
-            .performClick()
-
-        composeRule.onNodeWithText("Τρόφιμα").assertIsDisplayed()
-        composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
-        assertGlobalNavigationHidden()
-        composeRule.onNodeWithContentDescription("Πίσω").performClick()
-        composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
-
-        selectDestination("Πλάνο")
-        selectDestination("Αναφορές")
-        composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
+    fun switchingTabs_keepsHistoryAvailable() {
         selectDestination("Κινήσεις")
-        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true)
+            .assertIsDisplayed()
+        selectDestination("Κάρτες")
+        composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
+        selectDestination("Κινήσεις")
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true)
+            .assertIsDisplayed()
     }
 }

@@ -124,6 +124,12 @@ internal fun formatSignedEuro(amount: Double): String {
     }
 }
 
+/** A labeled income/expense total is an absolute quantity, not an account credit.
+ * Preserve the minus sign if reversals make the aggregate negative.
+ */
+internal fun formatActivityTotalEuro(amount: Double): String =
+    formatSignedEuro(amount).removePrefix("+")
+
 /**
  * Web TransactionsPage amountPrefix/amountClass derive from flowImpact, not
  * the original legacy bank type. Reviewed historic expenses can become refunds
@@ -167,6 +173,7 @@ fun ActivityLedgerScreen(
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var monthOverviewExpanded by rememberSaveable { mutableStateOf(false) }
     val analyticsScope = state.isAnalyticsScope
 
     Scaffold(
@@ -222,24 +229,7 @@ fun ActivityLedgerScreen(
                         }
                     }
                 }
-                state.monthOverview?.let { overview ->
-                    item(key = "monthly-overview") {
-                        ActivityMonthlyOverviewSurface(
-                            overview = overview,
-                            amountsVisible = amountsVisible,
-                            showingMonth = state.showingOverviewMonth,
-                            onToggleMonth = {
-                                onAction(
-                                    if (state.showingOverviewMonth) ActivityAction.ClearSearchAndFilters
-                                    else ActivityAction.ShowOverviewMonth,
-                                )
-                            },
-                            onNavigateMonth = { delta ->
-                                onAction(ActivityAction.NavigateOverviewMonth(delta))
-                            },
-                        )
-                    }
-                }
+
                 item(key = "search") {
                     MyFinHubSearchField(
                         value = state.query,
@@ -271,6 +261,36 @@ fun ActivityLedgerScreen(
                         }
                     }
                 }
+                // Month analysis is secondary to search and the transaction list.
+                // Keep it available without occupying the top half of a compact phone.
+                state.monthOverview?.let { overview ->
+                    item(key = "month-summary-toggle") {
+                        TextButton(
+                            onClick = { monthOverviewExpanded = !monthOverviewExpanded },
+                            modifier = Modifier.testTag("activity_month_summary_toggle"),
+                        ) {
+                            Text(if (monthOverviewExpanded) "Απόκρυψη σύνοψης μήνα" else "Σύνοψη μήνα")
+                        }
+                    }
+                    if (monthOverviewExpanded) {
+                        item(key = "monthly-overview") {
+                            ActivityMonthlyOverviewSurface(
+                                overview = overview,
+                                amountsVisible = amountsVisible,
+                                showingMonth = state.showingOverviewMonth,
+                                onToggleMonth = {
+                                    onAction(
+                                        if (state.showingOverviewMonth) ActivityAction.ClearSearchAndFilters
+                                        else ActivityAction.ShowOverviewMonth,
+                                    )
+                                },
+                                onNavigateMonth = { delta ->
+                                    onAction(ActivityAction.NavigateOverviewMonth(delta))
+                                },
+                            )
+                        }
+                    }
+                }
                 // Keep short histories visually compact; expose Web-style date
                 // sorting and total/filtered counts for large real-bank ledgers.
                 if (state.scopeSourceItems.size > 20) {
@@ -280,11 +300,13 @@ fun ActivityLedgerScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                "Εμφανίζονται ${state.visibleItems.size} από ${state.scopeSourceItems.size} κινήσεις",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            if (!state.hasActiveListScope) {
+                                Text(
+                                    "Εμφανίζονται ${state.visibleItems.size} από ${state.scopeSourceItems.size} κινήσεις",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             TextButton(
                                 onClick = { onAction(ActivityAction.ToggleSortDirection) },
                                 modifier = Modifier.testTag("activity_sort_toggle"),
@@ -315,8 +337,8 @@ fun ActivityLedgerScreen(
                                 )
                             } else {
                                 Text(
-                                    "Έσοδα: ${amountVisibilityText(formatSignedEuro(state.visibleIncome), amountsVisible)}" +
-                                        " · Έξοδα: ${amountVisibilityText(formatSignedEuro(state.visibleExpense), amountsVisible)}",
+                                    "Έσοδα: ${amountVisibilityText(formatActivityTotalEuro(state.visibleIncome), amountsVisible)}" +
+                                        " · Έξοδα: ${amountVisibilityText(formatActivityTotalEuro(state.visibleExpense), amountsVisible)}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -449,6 +471,7 @@ private fun ActivityMonthlyOverviewSurface(
         YearMonth.parse(overview.month).atDay(1)
             .format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("el-GR")))
     }.getOrDefault(overview.month)
+    var comparisonsExpanded by rememberSaveable(overview.month) { mutableStateOf(false) }
     fun trend(current: Double, previous: Double): String {
         val change = activityMonthPercentChange(current, previous)
             ?: return "— έναντι προηγ. μήνα"
@@ -456,6 +479,10 @@ private fun ActivityMonthlyOverviewSurface(
             change > 0 -> "↑"
             change < 0 -> "↓"
             else -> "→"
+        }
+        // Extreme ratios against a tiny previous base are more useful as actual amounts.
+        if (kotlin.math.abs(change) >= 1_000) {
+            return "$arrow ${formatActivityTotalEuro(previous)} → ${formatActivityTotalEuro(current)}"
         }
         return "$arrow ${kotlin.math.abs(change)}% από προηγ. μήνα"
     }
@@ -493,28 +520,41 @@ private fun ActivityMonthlyOverviewSurface(
                 }
             }
             Text(
-                "Έσοδα: ${amountVisibilityText(formatSignedEuro(overview.income), amountsVisible)}" +
-                    " · Έξοδα: ${amountVisibilityText(formatSignedEuro(overview.expense), amountsVisible)}",
+                "Έσοδα: ${amountVisibilityText(formatActivityTotalEuro(overview.income), amountsVisible)}" +
+                    " · Έξοδα: ${amountVisibilityText(formatActivityTotalEuro(overview.expense), amountsVisible)}",
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
                 "Καθαρό αποτέλεσμα: ${amountVisibilityText(formatSignedEuro(overview.net), amountsVisible)}",
                 style = MaterialTheme.typography.bodyMedium,
             )
-            if (amountsVisible) {
+            Text(
+                "Συναλλαγές μήνα: ${overview.transactionCount}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (comparisonsExpanded) {
+                if (amountsVisible) {
+                    Text(
+                        "Έσοδα: ${trend(overview.income, overview.previousIncome)}" +
+                            " · Έξοδα: ${trend(overview.expense, overview.previousExpense)}" +
+                            " · Καθαρό: ${trend(overview.net, overview.previousNet)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 Text(
-                    "Έσοδα: ${trend(overview.income, overview.previousIncome)}" +
-                        " · Έξοδα: ${trend(overview.expense, overview.previousExpense)}" +
-                        " · Καθαρό: ${trend(overview.net, overview.previousNet)}",
+                    countComparison,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Text(
-                "Συναλλαγές μήνα: ${overview.transactionCount} · $countComparison",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            TextButton(
+                onClick = { comparisonsExpanded = !comparisonsExpanded },
+                modifier = Modifier.testTag("activity_month_comparison_toggle"),
+            ) {
+                Text(if (comparisonsExpanded) "Απόκρυψη σύγκρισης" else "Σύγκριση με προηγ. μήνα")
+            }
             TextButton(
                 onClick = onToggleMonth,
                 modifier = Modifier.testTag("activity_month_scope_toggle"),

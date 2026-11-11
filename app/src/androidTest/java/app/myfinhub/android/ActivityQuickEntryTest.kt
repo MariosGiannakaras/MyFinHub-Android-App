@@ -1,7 +1,5 @@
 package app.myfinhub.android
 
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -12,7 +10,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -41,7 +38,7 @@ class ActivityQuickEntryTest {
 
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
-        composeRule.onNodeWithText("Περισσότερα").assertIsDisplayed()
+        composeRule.onNodeWithText("Περισσότεροι τύποι").assertIsDisplayed()
         composeRule.onNodeWithText("Ημερομηνία").assertIsDisplayed()
 
         composeRule.onNodeWithText("Μεταφορά").performClick()
@@ -49,7 +46,7 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Προς λογαριασμό").assertIsDisplayed()
         composeRule.onNodeWithText(
             "Η εσωτερική μεταφορά αλλάζει υπόλοιπα, όχι έσοδα ή έξοδα.",
-        ).assertIsDisplayed()
+        ).performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -57,19 +54,15 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
 
-        composeRule.onNodeWithText("Περισσότερα").performClick()
+        composeRule.onNodeWithText("Περισσότεροι τύποι").performClick()
         composeRule.onNodeWithTag("quick_entry_kind_list")
             .performScrollToNode(hasText("Σύνθετη αγορά"))
         composeRule.onNodeWithText("Σύνθετη αγορά").performClick()
 
-        val splitAmountHeadings = composeRule
-            .onAllNodes(hasText("Συνολικό ποσό"))
-            .fetchSemanticsNodes()
-        assertTrue(
-            splitAmountHeadings.any { node ->
-                node.config.getOrNull(SemanticsProperties.Heading) != null
-            },
-        )
+        // The split total is a labeled editable input, not a navigation heading.
+        // Verify the accessible field label and actual accounting-part editor.
+        composeRule.onNodeWithText("Συνολικό ποσό")
+            .performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Κατανομή ποσού").assertIsDisplayed()
         composeRule.onNodeWithText("Ποσό μέρους 1").assertIsDisplayed()
         composeRule.onNodeWithText("+ Προσθήκη μέρους")
@@ -86,7 +79,7 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
 
         composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
-        composeRule.onNodeWithText("Συνέχεια").assertIsDisplayed()
-        composeRule.onNodeWithText("Απόρριψη").assertIsDisplayed()
+        composeRule.onNodeWithText("Παραμονή στην επεξεργασία").assertIsDisplayed()
+        composeRule.onNodeWithText("Απόρριψη αλλαγών").assertIsDisplayed()
     }
 }
