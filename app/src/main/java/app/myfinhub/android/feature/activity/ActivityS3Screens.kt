@@ -152,6 +152,10 @@ internal fun formatActivityFlowEuro(item: ActivityItem): String {
         .format(kotlin.math.abs(item.amount))
     return when {
         item.canonicalKind == "transfer" || item.canonicalKind == "card_payment" -> "↔ $money"
+        // Lending changes cash and receivables, not operating income/expense.
+        // Show the cash direction without reclassifying financial flow.
+        item.canonicalKind == "lending" -> "−$money"
+        item.canonicalKind == "repayment" -> "+$money"
         income > 0.0 || expense < 0.0 -> "+$money"
         expense > 0.0 -> "−$money"
         else -> money
