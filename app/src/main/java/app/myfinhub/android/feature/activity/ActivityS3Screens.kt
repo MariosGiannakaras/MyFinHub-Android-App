@@ -151,7 +151,7 @@ internal fun formatActivityFlowEuro(item: ActivityItem): String {
     val money = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
         .format(kotlin.math.abs(item.amount))
     return when {
-        item.canonicalKind == "transfer" -> "↔ $money"
+        item.canonicalKind == "transfer" || item.canonicalKind == "card_payment" -> "↔ $money"
         income > 0.0 || expense < 0.0 -> "+$money"
         expense > 0.0 -> "−$money"
         else -> money
@@ -487,8 +487,11 @@ private fun ActivityMonthlyOverviewSurface(
         return "$arrow ${kotlin.math.abs(change)}% από προηγ. μήνα"
     }
     val countChange = overview.transactionCount - overview.previousTransactionCount
-    val countComparison = if (countChange == 0) "→ ίδιο με προηγ. μήνα"
-        else "${if (countChange > 0) "↑" else "↓"} ${kotlin.math.abs(countChange)} από προηγ. μήνα"
+    val countComparison = when {
+        countChange == 0 -> "Κινήσεις: ίδιο πλήθος με τον προηγούμενο μήνα"
+        countChange > 0 -> "Κινήσεις: $countChange περισσότερες από τον προηγούμενο μήνα"
+        else -> "Κινήσεις: ${-countChange} λιγότερες από τον προηγούμενο μήνα"
+    }
     Surface(
         modifier = Modifier.fillMaxWidth()
             .padding(bottom = MyFinHubSpacing.md)
@@ -519,15 +522,25 @@ private fun ActivityMonthlyOverviewSurface(
                     ) { Text("›") }
                 }
             }
-            Text(
-                "Έσοδα: ${amountVisibilityText(formatActivityTotalEuro(overview.income), amountsVisible)}" +
-                    " · Έξοδα: ${amountVisibilityText(formatActivityTotalEuro(overview.expense), amountsVisible)}",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(
-                "Καθαρό αποτέλεσμα: ${amountVisibilityText(formatSignedEuro(overview.net), amountsVisible)}",
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            // A compact three-part summary keeps the numbers scannable on S24.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
+                listOf(
+                    "Έσοδα" to formatActivityTotalEuro(overview.income),
+                    "Έξοδα" to formatActivityTotalEuro(overview.expense),
+                    "Καθαρό" to formatSignedEuro(overview.net),
+                ).forEach { (label, amount) ->
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(label, style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(amountVisibilityText(amount, amountsVisible),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
             Text(
                 "Συναλλαγές μήνα: ${overview.transactionCount}",
                 style = MaterialTheme.typography.bodySmall,
@@ -689,7 +702,11 @@ private fun ActivityFlatLedgerRow(
         item.isInternalTransfer() -> if (realWebRow)
             "${item.typeLabel} · ${item.accountLabel}" else "Εσωτερική μεταφορά"
         item.canonicalKind == "card_purchase" || item.canonicalKind == "card_payment" ->
-            "${item.typeLabel} · ${item.accountLabel}"
+            listOfNotNull(
+                item.typeLabel,
+                item.cardLabel?.takeIf(String::isNotBlank),
+                item.accountLabel.takeIf { it != "—" && it.isNotBlank() },
+            ).joinToString(" · ")
         item.isLegacyTransaction ->
             "${item.accountLabel} · ${item.legacyHistoryLabel()}"
         else -> item.accountLabel

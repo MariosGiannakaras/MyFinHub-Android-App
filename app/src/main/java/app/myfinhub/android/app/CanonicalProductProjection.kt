@@ -174,8 +174,7 @@ internal fun projectCanonicalActivityMonthOverview(
     val prior = document.canonicalOperationalMonthlyFlow(previous)
     fun sourceCount(month: String): Int =
         legacy.count { it.date.startsWith("$month-") } +
-            events.count { it.date.startsWith("$month-") &&
-                it.kind != "card_purchase" && it.kind != "card_payment" }
+            events.count { it.date.startsWith("$month-") }
     return ActivityMonthlyOverview(
         month = selected, income = flow.income, expense = flow.expense, net = flow.net,
         transactionCount = sourceCount(selected),

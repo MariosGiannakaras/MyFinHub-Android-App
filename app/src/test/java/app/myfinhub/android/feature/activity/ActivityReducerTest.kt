@@ -204,6 +204,39 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun canonicalLedgerShowsCardPurchasesAndRepaymentsOnceWithoutTreatingPaymentsAsExpenses() {
+        fun card(id: String, kind: String, amount: Double, expense: Double) = ActivityItem(
+            id = id, dateLabel = "20 Οκτ", kind = if (kind == "card_payment")
+                ActivityKind.CARD_PAYMENT else ActivityKind.EXPENSE,
+            title = kind, subtitle = kind, amount = amount, accountLabel = "Μισθοδοσία",
+            category = "Τρόφιμα", rawDate = "2026-10-20", canonicalKind = kind,
+            canonicalSourceOrdinal = if (kind == "card_purchase") 0 else 1,
+            financeIncomeContribution = 0.0, financeExpenseContribution = expense,
+        )
+        val state = ActivityUiState(items = listOf(
+            card("purchase", "card_purchase", -40.0, 40.0),
+            card("payment", "card_payment", -20.0, 0.0),
+        ))
+        assertEquals(listOf("purchase", "payment"), state.visibleItems.map { it.id })
+        assertEquals(40.0, state.visibleExpense, 0.001)
+        assertEquals(-40.0, state.visibleNet, 0.001)
+        assertEquals(listOf("card_purchase", "card_payment"), state.typeOptions.map { it.id })
+    }
+
+    @Test
+    fun canonicalMissingNoteUsesMeaningfulCategoryWithoutReplacingExplicitDescription() {
+        val base = ActivityItem(
+            id = "e", dateLabel = "20 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "Έξοδο", subtitle = "", amount = -5.0, accountLabel = "Μετρητά",
+            category = "Τρόφιμα", rawDate = "2026-10-20", canonicalKind = "expense",
+            canonicalSourceOrdinal = 0,
+        )
+        assertEquals("Τρόφιμα", base.webLedgerDisplayTitle())
+        assertEquals("Λαχανικά", base.copy(note = "Λαχανικά").webLedgerDisplayTitle())
+        assertEquals("Τρόφιμα", base.copy(note = "Έξοδο").webLedgerDisplayTitle())
+    }
+
+    @Test
     fun splitDetailsRetainCanonicallyNamedPartsAndWebCategoryPaths() {
         val parts = listOf(
             ActivitySplitPart("Πρωινός καφές", "Τρόφιμα", "Καφές", 4.80),
@@ -625,7 +658,7 @@ class ActivityReducerTest {
     fun monthSummaryDrillDownLimitsOnlyLedgerAndRestoresAllHistory() {
         val overview = ActivityMonthlyOverview(
             month = "2026-10", income = 100.0, expense = 40.0, net = 60.0,
-            transactionCount = 2, previousIncome = 10.0, previousExpense = 5.0,
+            transactionCount = 3, previousIncome = 10.0, previousExpense = 5.0,
             previousNet = 5.0, previousTransactionCount = 1,
         )
         fun item(id: String, day: String, kind: String = "expense") = ActivityItem(
@@ -657,14 +690,14 @@ class ActivityReducerTest {
         assertEquals(null, scoped.ledgerCategoryFilter)
         assertEquals(null, scoped.selectedId)
         assertTrue(scoped.sortOldestFirst)
-        assertEquals(listOf("october-early", "october"),
+        assertEquals(listOf("october-early", "october-card", "october"),
             scoped.visibleItems.map { it.id })
         assertEquals(overview.transactionCount, scoped.visibleItems.size)
         assertEquals(overview, scoped.monthOverview)
         assertEquals(original.items, scoped.items)
         val reset = reduceActivity(scoped, ActivityAction.ClearSearchAndFilters)
         assertFalse(reset.showingOverviewMonth)
-        assertEquals(listOf("september", "october-early", "october", "november"),
+        assertEquals(listOf("september", "october-early", "october-card", "october", "november"),
             reset.visibleItems.map { it.id })
         assertEquals(overview, reset.monthOverview)
         assertTrue(reset.sortOldestFirst)
@@ -720,7 +753,7 @@ class ActivityReducerTest {
         val month = reduceActivity(original, ActivityAction.ShowOverviewMonth)
         assertTrue(month.showingOverviewMonth)
         // Month-scoped selector membership must not reorder canonical source rows.
-        assertEquals(listOf("oct-food", "oct-refund"), month.visibleItems.map { it.id })
+        assertEquals(listOf("oct-food", "oct-refund", "oct-card"), month.visibleItems.map { it.id })
         assertTrue("Current month's real category missing", "Τρόφιμα" in month.availableCategories)
         assertTrue("Saved taxonomy must survive even without source rows",
             "Πάγια › Ενέργεια" in month.availableCategories)
@@ -728,8 +761,8 @@ class ActivityReducerTest {
             "Ιστορική παλιά" in month.availableCategories)
         assertFalse("Other month's category leaked into month",
             "Μεταφορές" in month.availableCategories)
-        assertEquals(setOf("expense", "refund"), month.typeOptions.map { it.id }.toSet())
-        assertFalse(month.typeOptions.any { it.id == "card_purchase" })
+        assertEquals(setOf("expense", "refund", "card_purchase"), month.typeOptions.map { it.id }.toSet())
+        assertTrue(month.typeOptions.any { it.id == "card_purchase" })
         val combined = month.copy(query = "irrelevant", accountFilterId = "cash",
             ledgerCategoryFilter = "Τρόφιμα", typeFilterId = "expense")
         assertTrue("Month selector scope should survive other filters", combined.showingOverviewMonth)

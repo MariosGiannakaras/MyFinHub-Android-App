@@ -90,8 +90,13 @@ internal fun ActivityItem.webNoteParts(): ActivityNoteParts {
  */
 internal fun ActivityItem.webLedgerDisplayTitle(): String {
     val noteTitle = webNoteParts().title
+    // A generic imported description must not hide the user's actual category.
+    // Keep all meaningful notes intact and never change the canonical transaction.
+    val displayNote = if ((noteTitle == "Χωρίς περιγραφή" || noteTitle == typeLabel) &&
+        !category.isNullOrBlank()
+    ) webLedgerCategoryLabel() else noteTitle
     return if (isLegacyTransaction || canonicalSourceOrdinal >= 0 ||
-        webNoteParts().comment.isNotEmpty()) noteTitle else title
+        webNoteParts().comment.isNotEmpty()) displayNote else title
 }
 
 /** Distinguish actual imported rows and their saved review overrides from events. */
@@ -315,16 +320,12 @@ data class ActivityUiState(
         !mutationBlocked && uniqueItem(id)?.pendingSync == false
 
     /**
-     * Web TransactionsPage sourceRows deliberately excludes canonical card_purchase
-     * and card_payment events. Both remain in the canonical document and the
-     * dedicated card activity, and category Analytics must still be able to
-     * drill into purchase contributions. Hand-authored preview rows with no
-     * source ordinal remain visible only as illustrative screen fixtures.
+     * The native all-activity ledger includes credit purchases and credit repayments.
+     * They are displayed once as canonical source rows, not synthesized a second time.
+     * Accounting is unchanged: a purchase is spending; repayment is a debt transfer,
+     * not another expense. Keep the historical property name for call-site stability.
      */
-    val webLedgerItems: List<ActivityItem> = items.filter { item ->
-        item.isLegacyTransaction || item.canonicalSourceOrdinal < 0 ||
-            item.canonicalKind !in setOf("card_purchase", "card_payment")
-    }
+    val webLedgerItems: List<ActivityItem> = items
     /** An explicit month source must survive partial/cleared date-range filters
      * and network reprojections. Inferring mode from exact date boundaries
      * silently leaked other months as soon as a date filter was edited.
