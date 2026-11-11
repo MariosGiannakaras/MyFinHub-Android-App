@@ -20,17 +20,17 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #155 — Reconcile Android finance contracts and restore web-parity Home and cards.
 - Workstream state: `in_progress`.
-- Latest private production candidate: `1.0.0-rc13` / `10012` — `published_pending_physical_installation_and_acceptance`.
+- Latest private production candidate: `1.0.0-rc14` / `10013` — `published_pending_owner_physical_installation_and_acceptance`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-All post-UI changes through merged PR #450 are integrated in develop 12158d6eabec7c3ff9cbe55b72c29c90bb659d2e; published rc13/10012 predates them. Owner's physical Galaxy S24 Ultra screenshots show finance GET /api/data HTTP400 INVALID_DATA on an unverified installed version. Root cause remains unknown. Read-only effective-document checks found no event ledger imbalance, invalid account/card/statement reference, missing required recurring anchor or ambiguous category alias; none of these rule out the server's strict validation error. This D7 Android-only diagnostic checkpoint adds bounded, allowlisted HTTP400/422 server error code and validated UUID request ID to owner-visible details while discarding raw server messages, tokens and financial payloads. Diagnostic correlation is NOT the backend fix or owner physical acceptance. W6.4/D7 and D8 remain separate pending gates; Web parity 5/6 implementations and 23/24 subtasks; deploy 6/8.
+Production-signed rc14/10013 is now published successfully from source PR #451 head 5d59b27679d064408bca51a6c714dd77e625eb46, including the three-tab native Android UI/Home Web-parity graphs/actions, Settings, Quick Entry and safe finance GET400 diagnostics. All six source CI checks passed; guarded release #43103969989 finished request, source, plan, build, protected signing, certificate verification and publish successfully on 2026-11-11. GitHub release v1.0.0-rc14 signed APK SHA256 0ce9c8b0dab15ad653588a9c4725092fb7089f4a50ca7dc7f1a83cbc5a1bada6. Source PR #451 merged develop a57247c9789cad113f782ced5140a84b85a5b194. This is a D7 signed TEST CANDIDATE, not owner-accepted stable final product. No actual S24 in-place rc14 installation or finance GET success established; earlier HTTP400 INVALID_DATA remains unproven fixed. W6.4/D7 and D8 remain pending; parity 5/6, 23/24; deploy 6/8.
 
 ## Immediate work
 
-- D7: finish safe finance HTTP400/422 correlation, with fail-closed unit tests, exact-head Android CI, Project Tracking, screenshot regression and both S24 emulator shards. Root cause of server INVALID_DATA is NOT established; do not bypass finance validation or mutate production financial data.
-- After merged tested source, create a new exact-head green release-source PR and publish an expressly authorized newer candidate from ALL merged Android changes using the enrolled production signer, never stale rc13. Actual D7/W6.4 requires a real in-place S24 Ultra update without data clearing and explicit owner acceptance of finance load, session/PIN/biometric/card-vault/Quick Entry/offline/visual continuity. D8 protected stable promotion is separate.
+- D7/W6.4: owner install signed rc14/10013 IN PLACE on actual Galaxy S24 Ultra without uninstall or clearing app data. Verify app signature/version and preservation of finance state, session/PIN/biometric, Card Vault, Quick Entry, offline/reconnect and new three-tab visuals. Explicit real-device acceptance is required; no installation/acceptance reported yet.
+- If owner finance GET /api/data still returns HTTP400 INVALID_DATA, correlate only safe rc14 server error code/request UUID with backend diagnostics. Do not expose secret payloads or bypass validation/change production finance records. D7 stays open until resolved and owner-accepted; D8 stable/main promotion is separately gated.
 
 ## Constraints
 

@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] D7: finish safe finance HTTP400/422 correlation, with fail-closed unit tests, exact-head Android CI, Project Tracking, screenshot regression and both S24 emulator shards. Root cause of server INVALID_DATA is NOT established; do not bypass finance validation or mutate production financial data.
-- [ ] After merged tested source, create a new exact-head green release-source PR and publish an expressly authorized newer candidate from ALL merged Android changes using the enrolled production signer, never stale rc13. Actual D7/W6.4 requires a real in-place S24 Ultra update without data clearing and explicit owner acceptance of finance load, session/PIN/biometric/card-vault/Quick Entry/offline/visual continuity. D8 protected stable promotion is separate.
+- [ ] D7/W6.4: owner install signed rc14/10013 IN PLACE on actual Galaxy S24 Ultra without uninstall or clearing app data. Verify app signature/version and preservation of finance state, session/PIN/biometric, Card Vault, Quick Entry, offline/reconnect and new three-tab visuals. Explicit real-device acceptance is required; no installation/acceptance reported yet.
+- [ ] If owner finance GET /api/data still returns HTTP400 INVALID_DATA, correlate only safe rc14 server error code/request UUID with backend diagnostics. Do not expose secret payloads or bypass validation/change production finance records. D7 stays open until resolved and owner-accepted; D8 stable/main promotion is separately gated.
 
 ## Completed foundations
 
@@ -73,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 still open: PR #450 integrated all post-UI changes on develop; published rc13/10012 is stale. Owner physical finance GET400 INVALID_DATA remains unresolved. Android safe error correlation is diagnostic only. A later exact-head green release-source PR and enrolled production signer must produce a fresh all-changes candidate, installed IN PLACE on actual S24 without data loss. Owner must explicitly accept finance, session, PIN/biometric, card vault, Quick Entry, offline, privacy and design before D7 closes; D8 separate.
+Next: D7 PENDING real owner S24 acceptance despite successful protected signed rc14/10013 production publication (run #43103969989, source PR #451). Install in place, never uninstall/clear data. Explicitly verify version/signer, session/PIN/biometrics, vault, finance GET, native UI, Quick Entry, offline and privacy. Previous HTTP400 INVALID_DATA remains unproven fixed; use bounded diagnostic request UUID to investigate if reproduced. D8 separate stable promotion needs owner approval.
 
 
 ## Active Web parity progress
@@ -83,9 +83,9 @@ Next: D7 still open: PR #450 integrated all post-UI changes on develop; publishe
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, no open PR, branch develop
-Current W6.4: PR #450 merged the complete post-UI develop baseline 12158d6eabec7c3ff9cbe55b72c29c90bb659d2e. The rc13 signed APK predates it. Owner's actual device GET /api/data HTTP400 INVALID_DATA remains unresolved; read-only SQL checks did not identify an invalid finance record. Android-only safe diagnostic in progress accepts fixed server error codes and validated request UUIDs for correlation only. W6.4 and D7 remain open (5/6 implementations, 23/24 subtasks; deploy 6/8), separate D8 pending.
+Current W6.4: All-changes rc14 signed APK published 2026-11-11 from exact-head green PR #451 (5d59b27679d064408bca51a6c714dd77e625eb46), protected workflow #43103969989 PASS; APK versionCode10013 SHA256 0ce9c8b0dab15ad653588a9c4725092fb7089f4a50ca7dc7f1a83cbc5a1bada6. PR #451 merged develop a57247c9789cad113f782ced5140a84b85a5b194. Actual S24 in-place installation/finance loading/owner acceptance not established; earlier HTTP400 remains an open investigation. W6.4 parity 5/6, 23/24; deploy 6/8 D7; separate D8 stable pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify safe HTTP400 diagnostic PR using all exact-head CI checks and merge before building a fresh signed all-changes source. Correlate genuine API failure by validated request UUID without exposing data, then require in-place owner S24 physical acceptance. Do not mark server issue fixed, W6.4/D7 complete or D8 promoted.
+Next Validate owner in-place S24 install of published rc14/10013. Check finance GET, session/PIN/biometric, vault, Quick Entry, UI and offline continuity. Use safe request UUID if GET400 persists; do not claim physical acceptance or bypass finance validation. D8 stable release separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
