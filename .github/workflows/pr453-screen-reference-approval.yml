@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: android/d7-uiux-semantics-batch-20261112
+          fetch-depth: 0
           persist-credentials: true
 
       - name: Promote only the 21 inspected failed baseline images from official renderer
