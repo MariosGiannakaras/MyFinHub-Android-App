@@ -126,6 +126,13 @@ fun MyFinHubRoot(
         appearancePreferences.registerOnSharedPreferenceChangeListener(listener)
         onDispose { appearancePreferences.unregisterOnSharedPreferenceChangeListener(listener) }
     }
+    DisposableEffect(lifecycleOwner, authViewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) authViewModel.lockForBackground()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     DisposableEffect(lifecycleOwner, updateViewModel) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) updateViewModel.onAppResumed()
@@ -773,7 +780,8 @@ private fun FinanceProductSurface(
                         modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).statusBarsPadding(),
                     )
                 }
-                if (state.latestPendingChange != null || state.issue != null) {
+                if (state.latestPendingChange != null || state.issue != null ||
+                    state.serverReadUnavailable) {
                     Column(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
@@ -781,6 +789,27 @@ private fun FinanceProductSurface(
                             .padding(horizontal = MyFinHubSpacing.md, vertical = MyFinHubSpacing.xs),
                         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
+                        if (state.serverReadUnavailable) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                shape = MaterialTheme.shapes.medium,
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(MyFinHubSpacing.sm),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        "Η σύνδεση με τα οικονομικά δεδομένα απέτυχε. " +
+                                            "Βλέπεις το αποθηκευμένο αντίγραφο. " +
+                                            "Νέες κινήσεις μένουν προσωρινά στη συσκευή.",
+                                        modifier = Modifier.weight(1f),
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                    TextButton(onClick = onRetryLoad) { Text("Ανανέωση") }
+                                }
+                            }
+                        }
                         state.latestPendingChange?.let { latest ->
                             PendingChangesBanner(
                                 changeCount = state.pendingChangeCount,

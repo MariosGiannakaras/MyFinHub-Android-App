@@ -108,6 +108,14 @@ internal fun mayFinishPinEnrollment(
 ): Boolean = startedEpoch == currentEpoch &&
     (state as? AuthShellUiState.PinEnrollment)?.session == expectedSession
 
+/** Never create a session or unlock when there was no authenticated Ready state. */
+internal fun backgroundLockedState(
+    state: AuthShellUiState,
+    throttle: PinAttemptStatus,
+): AuthShellUiState = if (state is AuthShellUiState.Ready) {
+    AuthShellUiState.Locked(state.session, showPin = false, pinStatus = throttle)
+} else state
+
 class AuthShellViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
@@ -330,6 +338,32 @@ class AuthShellViewModel(
             } finally {
                 codeCopy.fill('\u0000')
                 if (authTransitionEpoch == epoch) authenticationJob = null
+            }
+        }
+    }
+
+    /** Re-lock immediately when the activity goes to the background.
+     * Existing session, encrypted finance cache and durable pending work survive.
+     */
+    fun lockForBackground() {
+        val ready = mutableState.value as? AuthShellUiState.Ready ?: return
+        invalidateOfflineRevalidation()
+        val epoch = authTransitionEpoch
+        mutableState.value = backgroundLockedState(
+            ready, PinAttemptStatus(allowed = false, attemptsRemaining = 0, retryAfterMillis = 60_000),
+        )
+        viewModelScope.launch {
+            try {
+                val status = pinLimiter.status(System.currentTimeMillis())
+                val current = mutableState.value as? AuthShellUiState.Locked
+                if (epoch == authTransitionEpoch && current?.session == ready.session) {
+                    mutableState.value = current.copy(pinStatus = status)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Fail closed: the screen remains locked. PIN verification always
+                // consults the persistent throttle again before accepting a PIN.
             }
         }
     }
