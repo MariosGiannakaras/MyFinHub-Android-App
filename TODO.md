@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate the cohesive 2026-11-12 Android UI/UX+semantics batch on its exact PR head: tracking, Android unit/lint/assembly, screenshot regression, BOTH hosted S24 emulator shards and aggregate. Investigate any real test/screenshot failure in the SAME PR, preserve transaction identity, operational flow and locked cash+payroll Home definition, then merge only if all checks pass. No release is implied by implementation or CI.
-- [ ] Separately investigate protected/black screen transitions in owner video as possible intended secure capture, and verify historical 'Πλήρωσα για άλλον' positive/neutral appearance against canonical kind and signed legs before any finance classification change. D7/W6.4 still require owner real S24 in-place signed build acceptance with finance GET, session/PIN/biometrics, card vault, Quick Entry and offline; D8 stable/main release separately gated.
+- [ ] Validate the small D7 release-source PR carrying regression protection for the locked cash+payroll-only headline, without changing its implementation. Require tracking-verify, android-verify, screenshot-regression and BOTH S24 emulator shards/aggregate on its immutable head. Keep that source PR OPEN until guarded signing/publishing of the next strictly increasing rc15 APK; never fabricate a versionCode or signing identity.
+- [ ] After successful protected rc15 publication and verified digest/private update channel, update canonical tracking with exact release evidence and close/merge the temporary source PR as appropriate. Owner must install in place on actual S24 Ultra without clearing data and confirm finance GET, session/PIN/biometrics, Card Vault, Quick Entry, offline/reconnect, visible Activity/card semantics and accessibility. Investigate any finance GET400 INVALID_DATA with safe request UUID. D7/W6.4 remain pending until owner acceptance; D8 stable/main promotion separate.
 
 ## Completed foundations
 
@@ -73,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 remains open (6/8): signed rc14/10013 is current last published candidate, not physical owner accepted. A 2026-11-12 Android-only UI/UX and Activity reporting remediation batch is being validated but is not yet signed/released. Home available = cash+payroll only. Real S24 in-place install without data clearing, preservation of PIN/biometrics/session/vault/Quick Entry/offline, finance GET and owner signoff required. Prior GET400 INVALID_DATA remains unproven fixed; D8 stable/main separate.
+Next: D7 6/8 remains OPEN: PR #453 Android UI/UX remediation is verified and merged to develop, not yet signed in a newer candidate. Current last signed APK rc14/10013. Prepare guarded rc15 candidate using the existing signer, no data clearing; owner physical S24 in-place install and finance GET/session/PIN/biometric/Card Vault/Quick Entry/offline acceptance required. Prior GET400 INVALID_DATA unresolved without device evidence. D8 main/stable separate.
 
 
 ## Active Web parity progress
@@ -83,9 +83,9 @@ Next: D7 remains open (6/8): signed rc14/10013 is current last published candida
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, no open PR, branch develop
-Current W6.4: 2026-11-12 owner approved UI audit batch, with available Home balance locked to cash+payroll and primary Home charts/actions retained. Android-only Activity/Quick Entry/Card/Home implementation and tests authored for exact-head CI (no merge or new signed artifact asserted); neutral credit repayments remain excluded from spending while purchases appear in native Activity. Previously verified rc14/10013 latest signed. Owner S24 physical D7 and finance GET400 diagnosis pending. W6.4 remains 5/6, 23/24; deploy 6/8; D8 distinct.
+Current W6.4: 2026-11-12 PR #453 all six exact-head gates successful (source 201f2a43) and squash merged develop 4043031d; user-approved native UI/UX/Activity fixes integrated with cash+payroll Home balance frozen and three Web-style primary charts/actions preserved. Preparing independent guarded rc15 release-source PR. Last signed candidate rc14/10013. No physical S24 acceptance or backend GET400 fix claimed; D7 6/8, W6.4 5/6 23/24, D8 separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete Android audit-remediation batch exact-head CI and merge if all gates green; do not change Web finance data or Home headline semantics. Investigate unknown black capture frames and lending rows with source evidence before modifying finance classification. Obtain explicit owner S24 signed in-place acceptance after next release, diagnose GET400 separately; D8 stable separate.
+Next Complete small owner headline regression release-source PR under four exact-head gates, then protected rc15 signing/private publication via guarded request while source PR remains open. Update immutable release evidence after publisher success. Owner actual S24 in-place validation and finance GET diagnostics remain separate D7; D8 stable/main independently gated.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

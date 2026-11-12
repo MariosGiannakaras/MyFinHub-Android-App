@@ -39,7 +39,9 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
         composeRule.onNodeWithText("Περισσότεροι τύποι").assertIsDisplayed()
-        composeRule.onNodeWithText("Ημερομηνία").assertIsDisplayed()
+        // The date selector is below the initial compact-device viewport.
+        // Exercise the real scrollable form instead of assuming it starts visible.
+        composeRule.onNodeWithText("Ημερομηνία").performScrollTo().assertIsDisplayed()
 
         composeRule.onNodeWithText("Μεταφορά").performClick()
         composeRule.onNodeWithText("Από λογαριασμό").assertIsDisplayed()
