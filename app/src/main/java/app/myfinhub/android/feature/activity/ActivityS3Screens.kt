@@ -744,7 +744,7 @@ private fun ActivityFlatLedgerRow(
         ),
         categoryAccent = selectedColor,
         iconDescription = null,
-        title = item.webLedgerDisplayTitle(),
+        title = item.nativeLedgerDisplayTitle(),
         subtitle = secondary,
         meta = meta,
         amountText = amountVisibilityText(formatActivityFlowEuro(item), amountsVisible),

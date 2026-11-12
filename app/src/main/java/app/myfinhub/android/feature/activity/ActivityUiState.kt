@@ -90,13 +90,17 @@ internal fun ActivityItem.webNoteParts(): ActivityNoteParts {
  */
 internal fun ActivityItem.webLedgerDisplayTitle(): String {
     val noteTitle = webNoteParts().title
-    // A generic imported description must not hide the user's actual category.
-    // Keep all meaningful notes intact and never change the canonical transaction.
-    val displayNote = if ((noteTitle == "Χωρίς περιγραφή" || noteTitle == typeLabel) &&
-        !category.isNullOrBlank()
-    ) webLedgerCategoryLabel() else noteTitle
     return if (isLegacyTransaction || canonicalSourceOrdinal >= 0 ||
-        webNoteParts().comment.isNotEmpty()) displayNote else title
+        webNoteParts().comment.isNotEmpty()) noteTitle else title
+}
+
+/** Mobile-only title enhancement: never redefine Web's persisted-note contract. */
+internal fun ActivityItem.nativeLedgerDisplayTitle(): String {
+    val originalTitle = webLedgerDisplayTitle()
+    if (!isLegacyTransaction && canonicalSourceOrdinal < 0) return originalTitle
+    return if ((originalTitle == "Χωρίς περιγραφή" || originalTitle == typeLabel) &&
+        !category.isNullOrBlank()
+    ) webLedgerCategoryLabel() else originalTitle
 }
 
 /** Distinguish actual imported rows and their saved review overrides from events. */
@@ -320,12 +324,18 @@ data class ActivityUiState(
         !mutationBlocked && uniqueItem(id)?.pendingSync == false
 
     /**
-     * The native all-activity ledger includes credit purchases and credit repayments.
-     * They are displayed once as canonical source rows, not synthesized a second time.
-     * Accounting is unchanged: a purchase is spending; repayment is a debt transfer,
-     * not another expense. Keep the historical property name for call-site stability.
+     * Preserve the exact Web TransactionsPage source contract independently from
+     * the native all-activity companion. Web still excludes credit card events.
      */
-    val webLedgerItems: List<ActivityItem> = items
+    val webLedgerItems: List<ActivityItem> = items.filter { item ->
+        item.isLegacyTransaction || item.canonicalSourceOrdinal < 0 ||
+            item.canonicalKind !in setOf("card_purchase", "card_payment")
+    }
+
+    /** Native-only all-source ledger. Card purchases and repayments appear once,
+     * without changing their canonical cash/credit legs or operating flow.
+     */
+    val mobileLedgerItems: List<ActivityItem> = items
     /** An explicit month source must survive partial/cleared date-range filters
      * and network reprojections. Inferring mode from exact date boundaries
      * silently leaked other months as soon as a date filter was edited.
@@ -339,16 +349,16 @@ data class ActivityUiState(
         isAnalyticsScope -> items
         showingOverviewMonth -> {
             val month = monthOverview!!.month
-            webLedgerItems.filter { it.rawDate.startsWith("$month-") }
+            mobileLedgerItems.filter { it.rawDate.startsWith("$month-") }
         }
-        else -> webLedgerItems
+        else -> mobileLedgerItems
     }
 
     /** Web month selector catalogs are based on its original month source,
      * never the current account/category/query/date filtered visible rows.
      */
     private val sourceRowsForFilterChoices: List<ActivityItem> =
-        if (showingOverviewMonth) scopeSourceItems else webLedgerItems
+        if (showingOverviewMonth) scopeSourceItems else mobileLedgerItems
 
     private val greekLabelOrder = greekActivityLabelOrder()
 
@@ -408,9 +418,10 @@ data class ActivityUiState(
         val matching = scopeSourceItems.filter { item ->
             val matchesFilter = typeFilterId?.let { item.canonicalKind == it } ?: when (filter) {
                 ActivityFilter.ALL -> true
-                ActivityFilter.EXPENSE -> item.kind == ActivityKind.EXPENSE || item.kind == ActivityKind.CARD_PAYMENT
+                ActivityFilter.EXPENSE -> item.kind == ActivityKind.EXPENSE
                 ActivityFilter.INCOME -> item.kind == ActivityKind.INCOME
-                ActivityFilter.TRANSFER -> item.kind == ActivityKind.TRANSFER
+                ActivityFilter.TRANSFER -> item.kind == ActivityKind.TRANSFER ||
+                    item.kind == ActivityKind.CARD_PAYMENT
             }
             // Web TransactionsPage: an imported row filters on its persisted
             // account endpoints; a canonical event filters EXCLUSIVELY on
