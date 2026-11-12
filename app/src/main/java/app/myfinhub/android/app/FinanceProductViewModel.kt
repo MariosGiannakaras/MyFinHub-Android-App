@@ -156,6 +156,7 @@ sealed interface FinanceProductState {
         val saving: Boolean = false,
         val issue: FinanceSyncIssue? = null,
         val offline: Boolean = false,
+        val serverReadUnavailable: Boolean = false,
         val pendingTransactionCount: Int = 0,
         val pendingChangeCount: Int = 0,
         val latestPendingChange: PendingChangeUi? = null,
@@ -260,6 +261,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var lastServerDocument: CanonicalFinanceDocument? = null
     private var pendingMutations: List<PendingCanonicalMutationIntent> = emptyList()
     private var reloadWhenOnline = false
+    /** Explicit read degraded mode: never direct-write/replay on stale revision. */
+    private var financeReadUnavailable = false
     private var mutationLaunchInFlight = false
     private var loadJob: Job? = null
     private var mutationJob: Job? = null
@@ -348,6 +351,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         lastServerDocument = null
         pendingMutations = emptyList()
         reloadWhenOnline = false
+        financeReadUnavailable = false
         mutableLastSuccessfulSync.value = null
         repository.clear()
         mutableState.value = FinanceProductState.Idle
@@ -355,7 +359,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     fun retryLoad() {
         if (currentSession == null || loadJob?.isActive == true) return
-        loadFresh(preserveUi = false)
+        loadFresh(preserveUi = mutableState.value is FinanceProductState.Ready)
     }
 
     /** Explicit recovery for ambiguous queued work. A fresh server load always happens first. */
@@ -378,7 +382,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     fun undoLatestPendingMutation() {
-        if (canUseServer()) {
+        if (canUseServer() && !financeReadUnavailable) {
             mutableNotices.tryEmit(
                 UserNotice(
                     message = "Η αναίρεση εκκρεμούς αλλαγής είναι διαθέσιμη μόνο για αλλαγές που αποθηκεύτηκαν offline.",
@@ -407,7 +411,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             persistLocalSnapshot()
             renderLocalState(
                 previous = previous,
-                offline = !canUseServer(),
+                offline = !canUseServer() || financeReadUnavailable,
                 issue = reviewIssueOrNull(),
             )
             mutableNotices.emit(
@@ -1667,13 +1671,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 }
             }
             is FinanceSyncState.Error -> {
-                if (loaded.failure.kind == ApiFailureKind.NETWORK && lastServerDocument != null) {
-                    reloadWhenOnline = true
-                    renderLocalState(previous = previousProjection, offline = true)
-                    mutableNotices.emit(offlineUserNotice("Ανανέωση οικονομικών δεδομένων"))
-                } else {
-                    handleLoadFailure(loaded.failure, "Φόρτωση οικονομικών δεδομένων")
-                }
+                // All non-auth finance read failures can fall back to the owner-scoped
+                // encrypted last-good snapshot, not only unreachable network errors.
+                handleLoadFailure(loaded.failure, "Φόρτωση οικονομικών δεδομένων")
             }
             else -> failLoad("Δεν ήταν δυνατή η φόρτωση των οικονομικών δεδομένων.")
         }
@@ -1780,7 +1780,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             try {
                 when (
                     mutationDeliveryMode(
-                        serverAvailable = canUseServer(),
+                        serverAvailable = canUseServer() && !financeReadUnavailable,
                         repositoryReady = repository.state.value is FinanceSyncState.Ready,
                         hasPendingMutations = pendingMutations.isNotEmpty(),
                     )
@@ -1801,7 +1801,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                             mutation = mutation,
                             previousProjection = ready.projection,
                         )
-                        if (queued && canUseServer()) {
+                        if (queued && canUseServer() && !financeReadUnavailable) {
                             synchronizePendingFromServer(
                                 session = session,
                                 previousProjection = (mutableState.value as? FinanceProductState.Ready)?.projection
@@ -2031,10 +2031,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutableState.value = readyForProjection(
             projection = projection,
             saving = false,
-            offline = !canUseServer(),
+            offline = !canUseServer() || financeReadUnavailable,
         )
 
-        if (!canUseServer()) {
+        if (!canUseServer() || financeReadUnavailable) {
             reloadWhenOnline = true
             mutableNotices.emit(
                 UserNotice(
@@ -2087,6 +2087,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             saving = saving,
             issue = issue,
             offline = offline,
+            serverReadUnavailable = financeReadUnavailable,
             pendingTransactionCount = if (exposePending) pendingTransactionIds().size else 0,
             pendingChangeCount = counts.visibleChangeCount,
             latestPendingChange = if (exposePending) latestPendingChangeUi() else null,
@@ -2112,6 +2113,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             saving = saving,
             issue = issue,
             offline = offline,
+            serverReadUnavailable = financeReadUnavailable,
             pendingTransactionCount = if (exposePending) pendingTransactionIds().size else 0,
             pendingChangeCount = counts.visibleChangeCount,
             latestPendingChange = if (exposePending) latestPendingChangeUi() else null,
@@ -2188,7 +2190,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             } else {
                 "Αναμονή επιβεβαίωσης από τον server"
             },
-            canUndo = !canUseServer() && pending.syncState == PendingMutationSyncState.NEVER_SENT,
+            canUndo = (!canUseServer() || financeReadUnavailable) &&
+                pending.syncState == PendingMutationSyncState.NEVER_SENT,
         )
     }
 
@@ -2216,18 +2219,24 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     private suspend fun handleLoadFailure(failure: ApiResult.Failure, operation: String) {
-        if (failure.kind == ApiFailureKind.NETWORK) reloadWhenOnline = true
         mutableNotices.emit(failure.toUserNotice(operation))
         if (failure.kind.isAuthRejection()) {
             repository.clear()
             mutableState.value = FinanceProductState.AuthRejected
-        } else if (lastServerDocument != null && failure.kind == ApiFailureKind.NETWORK) {
+        } else if (canFallbackToEncryptedFinanceCache(
+                failure.kind, lastServerDocument != null,
+            )) {
+            financeReadUnavailable = true
+            reloadWhenOnline = true
             renderLocalState(
                 previous = (mutableState.value as? FinanceProductState.Ready)?.projection,
                 offline = true,
             )
         } else {
-            mutableState.value = FinanceProductState.Failure(apiFailureMessage(failure.kind), failure.retryable)
+            if (failure.kind == ApiFailureKind.NETWORK) reloadWhenOnline = true
+            mutableState.value = FinanceProductState.Failure(
+                apiFailureMessage(failure.kind), true,
+            )
         }
     }
 
@@ -2277,6 +2286,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private fun recordSuccessfulSync(serverTimestamp: String) {
         mutableLastSuccessfulSync.value = serverTimestamp.takeIf(String::isNotBlank) ?: Instant.now().toString()
         reloadWhenOnline = false
+        financeReadUnavailable = false
     }
 
     private fun updateReady(transform: (FinanceProductState.Ready) -> FinanceProductState.Ready) {

@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Present verified production-signed v1.0.0-rc15/10014 as the newest physical D7 candidate. Owner installs IN PLACE on their authorized Galaxy S24 Ultra, without uninstall/data clearing, then validates same package/signer/version, preserved session/PIN/biometrics, private Card Vault, Quick Entry financial mutations, offline-to-online, native Activity credit purchase/repayment semantics, cash+payroll Home available headline, and light/dark/large-font accessibility; record owner observations and explicit approval before closing D7.
-- [ ] If GET /api/data still returns HTTP 400 INVALID_DATA on actual S24, capture only bounded safe error code/status/request UUID for correlation, never log finance payload or tokens; investigate against canonical server contract only with approved scope. The release publisher and hosted tests do not establish this server issue is resolved. Keep Web parity W6.4 and D8 stable/main pending their separate evidence and explicit owner acceptance.
+- [ ] Validate Android D7 recovery PR on immutable head: tracking-verify, Android CI (unit/lint/assembly), screenshot regression, BOTH hosted S24 shards and s24-ultra-target-instrumented. Check real GET400 fallback uses owner-encrypted last-good snapshot, treats fresh database status as unavailable, queues NEVER_SENT local writes and safe Undo without server PUT, blocks replay until successful GET, and keeps safe error details. Fix real failures in same PR before merge; do not claim physical acceptance from hosted tests.
+- [ ] After verified integration, protected publish a strictly higher existing-signer physical candidate using the normal open Android source PR gate, then owner in-place S24 test for background biometric/PIN, cold relaunch, cached Activity and missing credit transactions, local pending/sync and request UUID. Server request UUID correlation must be read-only; do not modify actual finance data or relax server validations without evidence. D7 remains open until explicit owner signoff; D8 stable/main separate.
 
 ## Completed foundations
 
@@ -73,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 6/8 OPEN: production-signed rc15/10014 published by protected workflow run #43211830180 from validated PR #454; signer continuity and private channel SHA verified by publisher. No actual S24 owner in-place installation/functional acceptance yet. Owner must upgrade without uninstall/clear data, verify finance GET and HTTP400 safe UUID if recurring, session/PIN/biometrics, Card Vault, Quick Entry, offline and new UI semantics; D8 stable/main promotion separate.
+Next: D7 6/8 OPEN: installed rc15/10014 on real S24 reports finance GET400 INVALID_DATA; owner missing two credit-card transactions with unresolved server-vs-local source. Android recovery branch addresses encrypted cache on 400, durable local queue and biometric on background but is not yet validated/merged/signed. Never clear installed data; diagnose request UUID read-only; produce higher signed candidate only under protected gates and require real S24 in-place acceptance. D8 stable/main separate.
 
 
 ## Active Web parity progress
@@ -83,9 +83,9 @@ Next: D7 6/8 OPEN: production-signed rc15/10014 published by protected workflow 
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, no open PR, branch develop
-Current W6.4: 2026-11-12 PR #453 merged 4043031d; PR #454 six required exact-head gates PASS at 1a2ef619, protected rc15 production run #43211830180 SUCCESS with immutable GitHub prerelease and private signed APK v1.0.0-rc15/10014 SHA-256 aacd39325407879bfaf5de086de8eaf79d9e18c5195748d4714683bdb29478b6, PR #454 then merged develop 81ffd440. Owner cash+payroll headline regression and three Web-style Home graphs/cards/actions preserved. Real S24 in-place installation, owner acceptance and previous finance GET400 resolution unverified; D7 6/8, W6.4 5/6 23/24; D8 separate.
+Current W6.4: 2026-11-12 owner physical rc15/10014 evidence: GET /api/data HTTP400 INVALID_DATA request UUID a953c405-fa80-4ae1-9762-c1c3b214321e. Root cause of all-screen blockage in Android: non-network 400 bypassed encrypted cache fallback. D7 Android recovery code and tests authored but no CI, merge or new APK yet. Two card transactions' true persisted state unknown; backend GET routes to Supabase read RPC. Mandatory background biometric relock added. D7 6/8; W6.4 5/6 23/24; D8 separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next D7 physical acceptance of now-published same-signer rc15/10014 is next: owner must install in place on real S24 Ultra without data clearing and check finance GET (including any safe diagnostic UUID for HTTP400), cards/vault, Quick Entry, Android privacy/session, activity/card counts, offline and accessibility. Do not assert GET400 fixed, owner acceptance or D8/main from CI or publication. W6.4 remains 5/6, 23/24 until verified acceptance.
+Next Validate/merge D7 Android recovery PR exact-head all gates; if green, guarded higher signed release with existing signer then actual S24 in-place verification. Request UUID diagnosis remains read-only. Cached data and queued offline writes must survive API 400 and background biometric. No premature D7/W6.4/D8 completion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
