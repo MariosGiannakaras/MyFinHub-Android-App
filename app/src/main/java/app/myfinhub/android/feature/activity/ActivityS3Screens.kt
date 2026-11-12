@@ -705,6 +705,8 @@ private fun ActivityFlatLedgerRow(
         item.pendingSync -> item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
         item.isInternalTransfer() -> if (realWebRow)
             "${item.typeLabel} · ${item.accountLabel}" else "Εσωτερική μεταφορά"
+        item.canonicalKind == "lending" || item.canonicalKind == "repayment" ->
+            "${item.typeLabel} · ${item.accountLabel}"
         item.canonicalKind == "card_purchase" || item.canonicalKind == "card_payment" ->
             listOfNotNull(
                 item.typeLabel,
