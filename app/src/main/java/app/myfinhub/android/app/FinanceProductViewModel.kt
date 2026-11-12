@@ -382,7 +382,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     fun undoLatestPendingMutation() {
-        if (canUseServer()) {
+        if (canUseServer() && !financeReadUnavailable) {
             mutableNotices.tryEmit(
                 UserNotice(
                     message = "Η αναίρεση εκκρεμούς αλλαγής είναι διαθέσιμη μόνο για αλλαγές που αποθηκεύτηκαν offline.",
@@ -411,7 +411,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             persistLocalSnapshot()
             renderLocalState(
                 previous = previous,
-                offline = !canUseServer(),
+                offline = !canUseServer() || financeReadUnavailable,
                 issue = reviewIssueOrNull(),
             )
             mutableNotices.emit(
