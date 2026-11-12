@@ -1,0 +1,61 @@
+name: Temporary D7 Quick Entry screenshot reference refresh
+on:
+  push:
+    branches:
+      - android/d7-recents-privacy-quickentry-activity-20261112
+    paths:
+      - '.github/workflows/temporary-d7-quickentry-reference-refresh.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  import-inspected-goldens:
+    if: github.repository == 'MariosGiannakaras/MyFinHub-Android-App'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: true
+          fetch-depth: 2
+      - name: Copy three visually inspected exact-head renderer outputs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          baseline='130771a251709885dd5c36d0e51f347fcfda1158'
+          test "$(git rev-parse HEAD^)" = "$baseline" || {
+            echo 'Unexpected PR source parent; refusing screenshot update' >&2
+            exit 1
+          }
+          test "$(gh run view 43314131185 --json headSha --jq .headSha)" = "$baseline" || {
+            echo 'Screenshot artifact is not tied to the audited source head' >&2
+            exit 1
+          }
+          gh run download 43314131185 -n android-ui-screenshots-43314131185 -D "$RUNNER_TEMP/goldens"
+          src="$RUNNER_TEMP/goldens/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt"
+          dst="app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt"
+          names=(
+            ProductionQuickEntryCompactLightScreenshot_production_quick_entry_compact_light_5e5d5329_0.png
+            ProductionQuickEntryCompactDarkScreenshot_production_quick_entry_compact_dark_e7f0ce82_0.png
+            ProductionQuickEntryCompactLargeFontScreenshot_production_quick_entry_compact_large_font_f2f26a3e_0.png
+          )
+          for name in "${names[@]}"; do
+            test -s "$src/$name" && test -s "$dst/$name" || {
+              echo "Missing source or existing golden: $name" >&2
+              exit 1
+            }
+            cp "$src/$name" "$dst/$name"
+            git add -- "$dst/$name"
+          done
+          if git diff --cached --quiet; then
+            echo 'No screenshot reference delta'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test(ui): accept visually reviewed Quick Entry credit shortcut goldens'
+          git push origin "HEAD:refs/heads/android/d7-recents-privacy-quickentry-activity-20261112"
