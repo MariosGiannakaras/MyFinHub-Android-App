@@ -441,7 +441,7 @@ private fun HomePrimaryAccountCard(
         else -> Color(0xFF31C77B)
     }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             val deltaLabel = delta?.let { change ->
                 val arrow = if (change > .005) "↑" else if (change < -.005) "↓" else "→"
                 val prefix = if (change > .005) "+" else if (change < -.005) "−" else ""
@@ -490,7 +490,7 @@ private fun HomePrimaryAccountCard(
             // Desktop Web uses a shared amount/chart zone; on compact screens
             // the amount overlays the left while the chart fills the right.
             // Monetary privacy never removes the chart or exposes EUR via semantics.
-            Box(modifier = Modifier.fillMaxWidth().height(90.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().height(82.dp)) {
                 HomeAccountTrendChart(
                     account = account,
                     modifier = Modifier.fillMaxWidth(.67f).align(Alignment.BottomEnd),

@@ -26,17 +26,19 @@ class ActivityRepeatedDateGroupKeysComposeTest {
             ActivityItem("payment", "21 Οκτ", ActivityKind.CARD_PAYMENT,
                 "Καρτοπληρωμή μόνο στην κάρτα", "", -15.0, "Μισθοδοσία", "Κάρτες",
                 rawDate = "2026-10-21", canonicalKind = "card_payment",
-                canonicalSourceOrdinal = 0),
+                canonicalSourceOrdinal = 0, note = "Καρτοπληρωμή μόνο στην κάρτα"),
             ActivityItem("purchase", "20 Οκτ", ActivityKind.EXPENSE,
                 "Καρτοαγορά μόνο στην κάρτα", "", -20.0, "Πιστωτική", "Τρόφιμα",
                 rawDate = "2026-10-20", canonicalKind = "card_purchase",
-                canonicalSourceOrdinal = 1),
+                canonicalSourceOrdinal = 1, note = "Καρτοαγορά μόνο στην κάρτα"),
             ActivityItem("expense", "19 Οκτ", ActivityKind.EXPENSE,
                 "Κανονική κίνηση μετρητών", "", -9.0, "Μετρητά", "Τρόφιμα",
                 rawDate = "2026-10-19", canonicalSourceOrdinal = 2,
                 note = "Κανονική κίνηση μετρητών"),
         ))
-        assertEquals(listOf("expense"), source.visibleItems.map { it.id })
+        assertEquals(listOf("payment", "purchase", "expense"), source.visibleItems.map { it.id })
+        assertEquals(1, source.visibleItems.count { it.id == "payment" })
+        assertEquals(1, source.visibleItems.count { it.id == "purchase" })
         rule.setContent {
             MyFinHubTheme {
                 ActivityLedgerScreen(state = source, onAction = {},
@@ -46,8 +48,12 @@ class ActivityRepeatedDateGroupKeysComposeTest {
         rule.onNodeWithTag("activity_list")
             .performScrollToNode(hasText("Κανονική κίνηση μετρητών"))
         rule.onNodeWithText("Κανονική κίνηση μετρητών").assertIsDisplayed()
-        rule.onNodeWithText("Καρτοπληρωμή μόνο στην κάρτα").assertDoesNotExist()
-        rule.onNodeWithText("Καρτοαγορά μόνο στην κάρτα").assertDoesNotExist()
+        rule.onNodeWithTag("activity_list")
+            .performScrollToNode(hasText("Καρτοπληρωμή μόνο στην κάρτα"))
+        rule.onNodeWithText("Καρτοπληρωμή μόνο στην κάρτα").assertIsDisplayed()
+        rule.onNodeWithTag("activity_list")
+            .performScrollToNode(hasText("Καρτοαγορά μόνο στην κάρτα"))
+        rule.onNodeWithText("Καρτοαγορά μόνο στην κάρτα").assertIsDisplayed()
     }
 
     @Test fun productionLedgerQueryNeverSearchesPrivateAccountOrDateDisplayFields() {

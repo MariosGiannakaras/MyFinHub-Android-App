@@ -236,7 +236,7 @@ class CanonicalProductProjectionTest {
         val retainedPurchase = afterProjection.activityState.items.first { it.id == "old-purchase" }
         assertEquals("card_purchase", retainedPurchase.canonicalKind)
         assertEquals("Αγορά με πιστωτική", retainedPurchase.typeLabel)
-        assertTrue(afterProjection.activityState.visibleItems.none {
+        assertEquals(4, afterProjection.activityState.visibleItems.count {
             it.canonicalKind == "card_purchase" || it.canonicalKind == "card_payment"
         })
         assertTrue(after.cards.any { card -> card.activity.any { it.id == "new-purchase" } })
@@ -292,7 +292,7 @@ class CanonicalProductProjectionTest {
         assertEquals("Μετρητά → Μισθοδοσία", transfer.accountLabel)
         assertEquals(listOf("leg-transfer"),
             ledger.copy(accountFilterId = "cash").visibleItems.map { it.id })
-        assertEquals(listOf("explicit-route", "leg-transfer"),
+        assertEquals(listOf("explicit-route", "card-pay", "leg-transfer"),
             ledger.copy(accountFilterId = "payroll").visibleItems.map { it.id })
         assertEquals(3, ledger.items.size)
         assertEquals(2, ledger.webLedgerItems.size)
@@ -413,7 +413,7 @@ class CanonicalProductProjectionTest {
     }
 
     @Test
-    fun fullMonthWebTransactionOverviewUsesOperationalTotalsAndCardExcludedSourceCounts() {
+    fun fullMonthNativeActivityIncludesCardEventsWithoutDoubleCountingOperationalTotals() {
         val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
             {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
               "transactions":[
@@ -448,7 +448,7 @@ class CanonicalProductProjectionTest {
         assertEquals(previousFlow.income, overview.previousIncome, 0.001)
         assertEquals(previousFlow.expense, overview.previousExpense, 0.001)
         assertEquals(previousFlow.net, overview.previousNet, 0.001)
-        assertEquals(4, overview.transactionCount) // 3 imported + 1 non-card event
+        assertEquals(6, overview.transactionCount) // 3 imported + 3 canonical events, including both card types
         assertEquals(2, overview.previousTransactionCount)
         assertTrue("Full Web month includes later actual rows",
             overview.expense > throughToday.expense)
@@ -463,14 +463,15 @@ class CanonicalProductProjectionTest {
         val monthOnly = reduceActivity(filtered, ActivityAction.ShowOverviewMonth)
         assertTrue(monthOnly.showingOverviewMonth)
         assertEquals(overview.transactionCount, monthOnly.visibleItems.size)
-        assertEquals(setOf("oct-income", "oct-expense", "oct-future", "oct-event"),
-            monthOnly.visibleItems.map { it.id }.toSet())
-        assertTrue(monthOnly.visibleItems.none {
-            it.canonicalKind == "card_purchase" || it.canonicalKind == "card_payment"
-        })
+        assertEquals(setOf("oct-income", "oct-expense", "oct-future", "oct-event",
+            "credit-purchase", "credit-payment"), monthOnly.visibleItems.map { it.id }.toSet())
+        assertEquals(1, monthOnly.visibleItems.count { it.canonicalKind == "card_payment" })
+        assertEquals(1, monthOnly.visibleItems.count { it.canonicalKind == "card_purchase" })
+        assertEquals(monthFlow.expense, overview.expense, 0.001)
         assertEquals(projected.activityState.items, monthOnly.items)
         assertEquals(overview, monthOnly.monthOverview)
-        assertEquals(projected.activityState.webLedgerItems.size,
+        assertEquals(7, projected.activityState.webLedgerItems.size)
+        assertEquals(projected.activityState.mobileLedgerItems.size,
             reduceActivity(monthOnly, ActivityAction.ClearSearchAndFilters).visibleItems.size)
     }
 
@@ -502,14 +503,14 @@ class CanonicalProductProjectionTest {
         assertTrue(state.availableCategories.contains("Ανενεργή κατηγορία"))
         assertTrue(state.typeOptions.any { it.id == "transfer" })
         val month = reduceActivity(state, ActivityAction.ShowOverviewMonth)
-        assertEquals(setOf("reviewed", "refund"), month.visibleItems.map { it.id }.toSet())
-        assertEquals(2, month.monthOverview!!.transactionCount)
+        assertEquals(setOf("reviewed", "refund", "card-only"), month.visibleItems.map { it.id }.toSet())
+        assertEquals(3, month.monthOverview!!.transactionCount)
         assertTrue("Reviewed source must become the selectable label",
             month.availableCategories.contains("Ενημερωμένη κατηγορία"))
         assertFalse(month.availableCategories.contains("Παλιά ταξινόμηση"))
         assertFalse(month.availableCategories.contains("Ανενεργή κατηγορία"))
         assertFalse(month.availableCategories.contains("Διαγραμμένη κατηγορία"))
-        assertEquals(setOf("expense", "refund"), month.typeOptions.map { it.id }.toSet())
+        assertEquals(setOf("expense", "refund", "card_purchase"), month.typeOptions.map { it.id }.toSet())
         assertEquals(state.items, month.items)
         assertEquals(state.monthOverview, month.monthOverview)
         val cleared = reduceActivity(month, ActivityAction.ClearSearchAndFilters)
@@ -544,7 +545,7 @@ class CanonicalProductProjectionTest {
         )
         assertTrue(refreshed.activityState.showingOverviewMonth)
         assertEquals("2026-10-15", refreshed.activityState.ledgerDateFrom)
-        assertEquals(listOf("oct"), refreshed.activityState.visibleItems.map { it.id })
+        assertEquals(listOf("card", "oct"), refreshed.activityState.visibleItems.map { it.id })
         assertEquals(original.activityState.items, refreshed.activityState.items)
         val rolled = projectCanonicalProduct(
             document, LocalDate.of(2026, 11, 5), previous = refreshed,
@@ -557,7 +558,7 @@ class CanonicalProductProjectionTest {
         assertEquals(3, rolled.activityState.items.count { !it.canonicalKind.startsWith("card_") })
         val history = reduceActivity(rolled.activityState, ActivityAction.ClearSearchAndFilters)
         assertFalse(history.monthSourceSelected)
-        assertEquals(3, history.visibleItems.size)
+        assertEquals(4, history.visibleItems.size)
     }
 
 
@@ -585,7 +586,7 @@ class CanonicalProductProjectionTest {
         val oct = projectCanonicalActivityMonthOverview(document, YearMonth.of(2026, 10))
         assertEquals("2026-09", sept.month)
         assertEquals(2, sept.transactionCount)
-        assertEquals(1, oct.transactionCount)
+        assertEquals(2, oct.transactionCount)
         assertEquals(
             document.canonicalOperationalMonthlyFlow("2026-09").expense,
             sept.expense, 0.001,
@@ -632,15 +633,15 @@ class CanonicalProductProjectionTest {
         """.trimIndent()).jsonObject)
         val projection = projectCanonicalProduct(document, LocalDate.of(2026, 10, 22))
         val month = reduceActivity(projection.activityState, ActivityAction.ShowOverviewMonth)
-        assertEquals(3, month.monthOverview!!.transactionCount)
+        assertEquals(4, month.monthOverview!!.transactionCount)
         assertEquals(month.monthOverview!!.transactionCount, month.scopeSourceItems.size)
         assertEquals(0, month.activeFilterCount)
         assertFalse(month.hasActiveListScope)
-        assertEquals(setOf("oct1","oct2","refund"), month.visibleItems.map { it.id }.toSet())
+        assertEquals(setOf("oct1","oct2","refund","card"), month.visibleItems.map { it.id }.toSet())
         val onlyExpense = month.copy(typeFilterId = "expense")
         assertEquals(1, onlyExpense.activeFilterCount)
         assertEquals(listOf("oct1"), onlyExpense.visibleItems.map { it.id })
-        assertEquals(3, onlyExpense.scopeSourceItems.size)
+        assertEquals(4, onlyExpense.scopeSourceItems.size)
         assertEquals(month.monthOverview, onlyExpense.monthOverview)
         assertEquals(document, projection.document)
     }
@@ -670,9 +671,9 @@ class CanonicalProductProjectionTest {
         assertTrue(filtered.visibleItems.isEmpty())
         val reset = reduceActivity(filtered, ActivityAction.ClearFilters)
         assertEquals("", reset.query)
-        assertEquals(setOf("sept", "refund"), reset.visibleItems.map { it.id }.toSet())
-        assertEquals(2, reset.monthOverview!!.transactionCount)
-        assertFalse(reset.typeOptions.any { it.id == "card_purchase" })
+        assertEquals(setOf("sept", "refund", "card-only"), reset.visibleItems.map { it.id }.toSet())
+        assertEquals(3, reset.monthOverview!!.transactionCount)
+        assertTrue(reset.typeOptions.any { it.id == "card_purchase" })
         assertEquals(projected.activityState.items, reset.items)
         assertEquals(projected.document, document)
         val refreshed = projectCanonicalProduct(
@@ -711,7 +712,7 @@ class CanonicalProductProjectionTest {
         val projected = projectCanonicalProduct(document, LocalDate.of(2026, 10, 22))
         val state = reduceActivity(projected.activityState, ActivityAction.ShowOverviewMonth)
         val rows = state.visibleItems.associateBy { it.id }
-        assertEquals(4, rows.size)
+        assertEquals(5, rows.size)
         assertEquals("Πρωινός καφές", rows.getValue("hist").webLedgerDisplayTitle())
         assertEquals("Καταχώριση override", rows.getValue("hist").webNoteParts().comment)
         assertTrue(rows.getValue("hist").isLegacyOverridden)
@@ -721,8 +722,8 @@ class CanonicalProductProjectionTest {
         assertEquals("Μεταφορές", rows.getValue("event").webLedgerCategoryLabel())
         assertEquals("Διαδρομή", rows.getValue("multi").webLedgerDisplayTitle())
         assertEquals("Σχόλιο", rows.getValue("multi").webNoteParts().comment)
-        assertFalse(rows.containsKey("card-only"))
-        assertEquals(4, state.monthOverview!!.transactionCount)
+        assertTrue(rows.containsKey("card-only"))
+        assertEquals(5, state.monthOverview!!.transactionCount)
         assertEquals(projected.document, document)
     }
 

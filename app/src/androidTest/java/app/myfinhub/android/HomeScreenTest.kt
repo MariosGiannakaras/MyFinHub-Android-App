@@ -1,6 +1,7 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -39,6 +40,6 @@ class HomeScreenTest {
         composeRule.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
         composeRule.onNodeWithText("Πλήρωσα για κάτι").assertIsDisplayed()
-        composeRule.onNodeWithText("Αποθήκευση έξοδο").assertIsDisplayed()
+        composeRule.onNodeWithText("Καταχώριση").assertIsDisplayed().assertIsNotEnabled()
     }
 }

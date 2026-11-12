@@ -94,6 +94,15 @@ internal fun ActivityItem.webLedgerDisplayTitle(): String {
         webNoteParts().comment.isNotEmpty()) noteTitle else title
 }
 
+/** Mobile-only title enhancement: never redefine Web's persisted-note contract. */
+internal fun ActivityItem.nativeLedgerDisplayTitle(): String {
+    val originalTitle = webLedgerDisplayTitle()
+    if (!isLegacyTransaction && canonicalSourceOrdinal < 0) return originalTitle
+    return if ((originalTitle == "Χωρίς περιγραφή" || originalTitle == typeLabel) &&
+        !category.isNullOrBlank()
+    ) webLedgerCategoryLabel() else originalTitle
+}
+
 /** Distinguish actual imported rows and their saved review overrides from events. */
 internal fun ActivityItem.legacyHistoryLabel(): String? = when {
     !isLegacyTransaction -> null
@@ -315,16 +324,18 @@ data class ActivityUiState(
         !mutationBlocked && uniqueItem(id)?.pendingSync == false
 
     /**
-     * Web TransactionsPage sourceRows deliberately excludes canonical card_purchase
-     * and card_payment events. Both remain in the canonical document and the
-     * dedicated card activity, and category Analytics must still be able to
-     * drill into purchase contributions. Hand-authored preview rows with no
-     * source ordinal remain visible only as illustrative screen fixtures.
+     * Preserve the exact Web TransactionsPage source contract independently from
+     * the native all-activity companion. Web still excludes credit card events.
      */
     val webLedgerItems: List<ActivityItem> = items.filter { item ->
         item.isLegacyTransaction || item.canonicalSourceOrdinal < 0 ||
             item.canonicalKind !in setOf("card_purchase", "card_payment")
     }
+
+    /** Native-only all-source ledger. Card purchases and repayments appear once,
+     * without changing their canonical cash/credit legs or operating flow.
+     */
+    val mobileLedgerItems: List<ActivityItem> = items
     /** An explicit month source must survive partial/cleared date-range filters
      * and network reprojections. Inferring mode from exact date boundaries
      * silently leaked other months as soon as a date filter was edited.
@@ -338,16 +349,16 @@ data class ActivityUiState(
         isAnalyticsScope -> items
         showingOverviewMonth -> {
             val month = monthOverview!!.month
-            webLedgerItems.filter { it.rawDate.startsWith("$month-") }
+            mobileLedgerItems.filter { it.rawDate.startsWith("$month-") }
         }
-        else -> webLedgerItems
+        else -> mobileLedgerItems
     }
 
     /** Web month selector catalogs are based on its original month source,
      * never the current account/category/query/date filtered visible rows.
      */
     private val sourceRowsForFilterChoices: List<ActivityItem> =
-        if (showingOverviewMonth) scopeSourceItems else webLedgerItems
+        if (showingOverviewMonth) scopeSourceItems else mobileLedgerItems
 
     private val greekLabelOrder = greekActivityLabelOrder()
 
@@ -407,7 +418,7 @@ data class ActivityUiState(
         val matching = scopeSourceItems.filter { item ->
             val matchesFilter = typeFilterId?.let { item.canonicalKind == it } ?: when (filter) {
                 ActivityFilter.ALL -> true
-                ActivityFilter.EXPENSE -> item.kind == ActivityKind.EXPENSE || item.kind == ActivityKind.CARD_PAYMENT
+                ActivityFilter.EXPENSE -> item.kind == ActivityKind.EXPENSE
                 ActivityFilter.INCOME -> item.kind == ActivityKind.INCOME
                 ActivityFilter.TRANSFER -> item.kind == ActivityKind.TRANSFER
             }
