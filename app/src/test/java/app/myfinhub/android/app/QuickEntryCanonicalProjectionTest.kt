@@ -58,8 +58,13 @@ class QuickEntryCanonicalProjectionTest {
         val cardSelected = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
             selected, app.myfinhub.android.feature.quickentry.QuickEntryAction.CardChanged("credit-one"),
         )
+        // Reset deliberately sets the actual device date; pin the deterministic fixture date
+        // before asserting September flow. The production route keeps today's date.
+        val dated = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
+            cardSelected, app.myfinhub.android.feature.quickentry.QuickEntryAction.DateChanged(date.toString()),
+        )
         val filled = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
-            cardSelected, app.myfinhub.android.feature.quickentry.QuickEntryAction.AmountChanged("12,50"),
+            dated, app.myfinhub.android.feature.quickentry.QuickEntryAction.AmountChanged("12,50"),
         )
         val saved = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
             filled, app.myfinhub.android.feature.quickentry.QuickEntryAction.Save,

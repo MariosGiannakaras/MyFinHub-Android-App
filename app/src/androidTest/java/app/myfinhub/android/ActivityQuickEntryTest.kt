@@ -44,8 +44,10 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Ημερομηνία").performScrollTo().assertIsDisplayed()
 
         composeRule.onNodeWithText("Μεταφορά").performClick()
-        composeRule.onNodeWithText("Από λογαριασμό").assertIsDisplayed()
-        composeRule.onNodeWithText("Προς λογαριασμό").assertIsDisplayed()
+        // Fields are in a scrollable form; the destination can start offscreen
+        // after navigating through the date input on compact emulator viewports.
+        composeRule.onNodeWithText("Από λογαριασμό").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Προς λογαριασμό").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText(
             "Η εσωτερική μεταφορά αλλάζει υπόλοιπα, όχι έσοδα ή έξοδα.",
         ).performScrollTo().assertIsDisplayed()
