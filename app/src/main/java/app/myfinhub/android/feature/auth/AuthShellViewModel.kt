@@ -138,6 +138,8 @@ class AuthShellViewModel(
     private var initialUnlockJob: Job? = null
     private var authenticationJob: Job? = null
     private var authTransitionEpoch = 0L
+    private var appForeground = true
+    private var validatingUnlockSession: AuthSession? = null
 
     private fun invalidateOfflineRevalidation() {
         authTransitionEpoch += 1
@@ -334,17 +336,54 @@ class AuthShellViewModel(
         }
     }
 
+    fun onAppForegrounded() {
+        appForeground = true
+    }
+
+    /** Revoke finance access synchronously on host Activity stop; do not clear encrypted data. */
+    fun onAppBackgrounded() {
+        appForeground = false
+        val session = when (val current = mutableState.value) {
+            is AuthShellUiState.Ready -> current.session
+            is AuthShellUiState.Locked -> current.session
+            AuthShellUiState.Loading -> validatingUnlockSession
+            else -> null
+        } ?: return
+        // Invalidate any PIN/biometric completion or server revalidation racing ON_STOP.
+        invalidateOfflineRevalidation()
+        validatingUnlockSession = null
+        mutableState.value = AuthShellUiState.Locked(
+            session = session,
+            showPin = false,
+            // Provisional UI only; PIN verification consults persisted throttle.
+            pinStatus = app.myfinhub.android.core.security.PinAttemptStatus(true, 5),
+        )
+        val epoch = authTransitionEpoch
+        viewModelScope.launch {
+            val currentThrottle = pinLimiter.status(System.currentTimeMillis())
+            val locked = mutableState.value as? AuthShellUiState.Locked ?: return@launch
+            if (authTransitionEpoch == epoch && locked.session == session) {
+                mutableState.value = locked.copy(pinStatus = currentThrottle)
+            }
+        }
+    }
+
     fun requestPinFallback() {
         val current = mutableState.value as? AuthShellUiState.Locked ?: return
         mutableState.value = current.copy(showPin = true, message = null)
     }
 
     fun biometricSucceeded() {
+        if (!appForeground) return
         val current = mutableState.value as? AuthShellUiState.Locked ?: return
         validateUnlockedSession(current.session)
     }
 
     fun verifyPin(pin: CharArray) {
+        if (!appForeground) {
+            pin.fill('\u0000')
+            return
+        }
         val current = mutableState.value as? AuthShellUiState.Locked ?: run {
             pin.fill('\u0000')
             return
@@ -493,6 +532,7 @@ class AuthShellViewModel(
         // Enter Loading and invalidate prior work before a potentially long server check.
         invalidateOfflineRevalidation()
         val epoch = authTransitionEpoch
+        validatingUnlockSession = session
         mutableState.value = AuthShellUiState.Loading
         initialUnlockJob = viewModelScope.launch {
             fun stillCurrent() = mayPublishInitialUnlock(
@@ -550,7 +590,10 @@ class AuthShellViewModel(
                     )
                 }
             } finally {
-                if (authTransitionEpoch == epoch) initialUnlockJob = null
+                if (authTransitionEpoch == epoch) {
+                    initialUnlockJob = null
+                    validatingUnlockSession = null
+                }
             }
         }
     }
