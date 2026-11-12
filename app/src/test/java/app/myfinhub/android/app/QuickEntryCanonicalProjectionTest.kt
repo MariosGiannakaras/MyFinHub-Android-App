@@ -1,6 +1,7 @@
 package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.monthlyFlow
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
@@ -39,6 +40,53 @@ class QuickEntryCanonicalProjectionTest {
         assertEquals(listOf("Τρόφιμα", "Μετακίνηση"), projected.expenseCategories.map { it.name })
         assertEquals(listOf("Σούπερ μάρκετ", "Καφές"), projected.expenseCategories.first().subcategories)
         assertEquals(listOf("Μισθός"), projected.incomeCategories.map { it.name })
+    }
+
+
+    @Test
+    fun creditPurchaseQuickEntry_isNotSilentlyConvertedToPayrollExpense() {
+        val document = projectionFixture()
+        val date = LocalDate.parse("2026-09-02")
+        val projected = projectQuickEntryState(document, date, null)
+        // Reproduce card-detail route: Reset, SelectKind, CardChanged, enter amount, Save.
+        val reset = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
+            projected, app.myfinhub.android.feature.quickentry.QuickEntryAction.Reset,
+        )
+        val selected = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
+            reset, app.myfinhub.android.feature.quickentry.QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE),
+        )
+        val cardSelected = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
+            selected, app.myfinhub.android.feature.quickentry.QuickEntryAction.CardChanged("credit-one"),
+        )
+        // Reset deliberately sets the actual device date; pin the deterministic fixture date
+        // before asserting September flow. The production route keeps today's date.
+        val dated = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
+            cardSelected, app.myfinhub.android.feature.quickentry.QuickEntryAction.DateChanged(date.toString()),
+        )
+        val filled = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
+            dated, app.myfinhub.android.feature.quickentry.QuickEntryAction.AmountChanged("12,50"),
+        )
+        val saved = app.myfinhub.android.feature.quickentry.reduceQuickEntry(
+            filled, app.myfinhub.android.feature.quickentry.QuickEntryAction.Save,
+        )
+        assertEquals(QuickEntryKind.CARD_PURCHASE, saved.kind)
+        assertEquals("credit-one", saved.cardId)
+        assertEquals(null, saved.validationMessage)
+
+        val next = createQuickEntryCanonicalMutation(
+            document = document,
+            state = saved,
+            eventId = "evt-card-quickentry",
+            nowIso = "2026-09-02T10:00:00Z",
+        ).apply(document)
+        val event = next.state.array("events").last() as kotlinx.serialization.json.JsonObject
+        assertEquals("card_purchase", event.string("kind"))
+        assertEquals("credit-one", event.string("cardId"))
+        assertEquals(null, event.string("accountId"))
+        val leg = event.array("legs").single() as kotlinx.serialization.json.JsonObject
+        assertEquals("credit-card", leg.string("accountId"))
+        assertEquals(-12.50, leg["amount"]?.toString()?.toDouble() ?: Double.NaN, 0.001)
+        assertEquals(12.50, next.monthlyFlow("2026-09").expense - document.monthlyFlow("2026-09").expense, 0.001)
     }
 
     @Test

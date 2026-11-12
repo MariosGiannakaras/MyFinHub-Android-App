@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate same Android D7 cache-recovery and background-biometric batch on final PR SHA: tracking-verify, android-verify, screenshot-regression and BOTH hosted S24 emulator shards with aggregate. Repair real failures in the SAME PR; merge only all immutable-head gates pass and reviews clear. Preserve encrypted cache, owner/session generation safety and all unsent/NEEDS_REVIEW pending intents; never blind-write or overwrite live server data.
-- [ ] Separately correlate request UUID a953c405-fa80-4ae1-9762-c1c3b214321e with authorized server logs and inspect which two card purchases the owner expected; do NOT reclassify the two November expense records without canonical evidence. After Android merge, prepare separately gated next signed candidate and owner in-place real S24 validation of finance GET, offline edits, app background biometric unlock and card activity. D7/W6.4/D8 stay open until verified.
+- [ ] PR #456 is merged with all exact-head checks green. Prepare a separate Android-owned open release-source PR based on develop SHA 73961931510a8fc084e3f2a93b3b7444230e5526; require tracking-verify, android-verify, screenshot-regression, both S24 emulator shards and aggregate on its immutable head before any protected rc16 signing/publishing. This is a release-source preparation checkpoint, not user physical approval.
+- [ ] Server GET /api/data HTTP400 INVALID_DATA remains unverified; Vercel Hobby historical runtime logs were unavailable at the observed timestamp and no matching safe request UUID was found in Supabase logs. Investigate with authorized fresh server evidence, without changing production finance data. Two November 12 expenses are not verified as intended credit purchases; do not reclassify blindly. After separately gated signed rc16, owner must verify same-signer in-place update, encrypted offline cache and pending-write safety, biometric/PIN background re-lock and card history. D7/W6.4/D8 remain open.
 
 ## Completed foundations
 
@@ -73,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 remains OPEN at 6/8: real S24 running signed rc15/10014 reproduces finance GET HTTP400 INVALID_DATA. Authenticated encrypted local cache/fallback, durable queued offline mutations and background biometric re-lock fix are pending CI/merge and not signed. Investigate backend 400 and missing two credit purchases without production changes; owner in-place install/functional acceptance and D8 stable release remain separate.
+Next: D7 OPEN at 6/8: installed rc15/10014 still encounters HTTP400 INVALID_DATA. Android-only encrypted cache/offline write fence and ON_STOP biometric relock PR #456 passed exact-head CI and merged into develop 73961931510a8fc084e3f2a93b3b7444230e5526. Prepare independently validated open release-source PR and protected same-signer rc16 candidate; root-cause server GET400 and two intended card purchases remain unverified. Never edit production finance data without evidence. S24 physical acceptance and D8 stable release are separate.
 
 
 ## Active Web parity progress
@@ -83,9 +83,9 @@ Next: D7 remains OPEN at 6/8: real S24 running signed rc15/10014 reproduces fina
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, no open PR, branch develop
-Current W6.4: 2026-11-12 S24 rc15 physical owner test FAILED: HTTP400 INVALID_DATA request UUID a953c405-fa80-4ae1-9762-c1c3b214321e, native finance blocked instead of cache fallback. Live read-only Supabase: 9 card purchases/8 card payments, latest event dates September, 2 November expense rows unlinked to cards. New Android-only finance reject-to-cache + remote write block + ON_STOP biometric re-lock authored, CI/merge pending. Latest signed rc15/10014, deploy D7 6/8, Web parity W6.4 5/6 23/24; D8 separate.
+Current W6.4: 2026-11-12 S24 rc15 physical owner test FAILED: HTTP400 INVALID_DATA request UUID a953c405-fa80-4ae1-9762-c1c3b214321e, native finance blocked instead of cache fallback. Live read-only Supabase: 9 card purchases/8 card payments, latest event dates September, 2 November expense rows unlinked to cards. Android-only cache-recovery, remote write fence and ON_STOP biometric re-lock PR #456 passed all final-head checks and merged into develop 73961931510a8fc084e3f2a93b3b7444230e5526; not yet released. Latest signed rc15/10014, deploy D7 6/8, Web parity W6.4 5/6 23/24; D8 separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete exact-head CI and merge cache recovery + background biometric branch; preserve local pending intent safety and cash/payroll Home contract. Diagnose production server GET400 via safe UUID and owner evidence separately; no production mutations. Real S24 signed candidate required after merge before D7 acceptance.
+Next PR #456 merged into develop with exact-head CI green. Prepare separately gated open release-source PR for signed rc16, then require owner physical S24 in-place install and finance/cache/card/auth acceptance. Backend GET400 still unresolved; do not mutate production finance data or infer D7/W6.4 approval.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
