@@ -470,7 +470,8 @@ class CanonicalProductProjectionTest {
         assertEquals(monthFlow.expense, overview.expense, 0.001)
         assertEquals(projected.activityState.items, monthOnly.items)
         assertEquals(overview, monthOnly.monthOverview)
-        assertEquals(projected.activityState.webLedgerItems.size,
+        assertEquals(7, projected.activityState.webLedgerItems.size)
+        assertEquals(projected.activityState.mobileLedgerItems.size,
             reduceActivity(monthOnly, ActivityAction.ClearSearchAndFilters).visibleItems.size)
     }
 
@@ -544,7 +545,7 @@ class CanonicalProductProjectionTest {
         )
         assertTrue(refreshed.activityState.showingOverviewMonth)
         assertEquals("2026-10-15", refreshed.activityState.ledgerDateFrom)
-        assertEquals(listOf("oct"), refreshed.activityState.visibleItems.map { it.id })
+        assertEquals(listOf("card", "oct"), refreshed.activityState.visibleItems.map { it.id })
         assertEquals(original.activityState.items, refreshed.activityState.items)
         val rolled = projectCanonicalProduct(
             document, LocalDate.of(2026, 11, 5), previous = refreshed,

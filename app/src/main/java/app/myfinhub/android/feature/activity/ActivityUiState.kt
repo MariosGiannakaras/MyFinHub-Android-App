@@ -420,8 +420,7 @@ data class ActivityUiState(
                 ActivityFilter.ALL -> true
                 ActivityFilter.EXPENSE -> item.kind == ActivityKind.EXPENSE
                 ActivityFilter.INCOME -> item.kind == ActivityKind.INCOME
-                ActivityFilter.TRANSFER -> item.kind == ActivityKind.TRANSFER ||
-                    item.kind == ActivityKind.CARD_PAYMENT
+                ActivityFilter.TRANSFER -> item.kind == ActivityKind.TRANSFER
             }
             // Web TransactionsPage: an imported row filters on its persisted
             // account endpoints; a canonical event filters EXCLUSIVELY on
