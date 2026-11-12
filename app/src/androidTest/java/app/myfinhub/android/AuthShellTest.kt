@@ -87,6 +87,42 @@ class AuthShellTest {
     }
 
     @Test
+    fun backgroundReturnHidesFinanceAndRequiresNewBiometricPromptEveryTime() {
+        val gateway = FakeBiometricGateway(BiometricCapability.AVAILABLE)
+        var currentState by mutableStateOf<AuthShellUiState>(AuthShellUiState.Ready(aal2Session()))
+        composeRule.setContent {
+            AuthShellTestContent(
+                state = currentState,
+                biometricGateway = gateway,
+                readyContent = { Text("Private finance after unlock") },
+            )
+        }
+
+        composeRule.onNodeWithText("Private finance after unlock").assertIsDisplayed()
+        composeRule.runOnIdle {
+            currentState = AuthShellUiState.Locked(
+                session = aal2Session(), showPin = false,
+                pinStatus = PinAttemptStatus(allowed = true, attemptsRemaining = 5),
+            )
+        }
+        composeRule.onNodeWithText("Private finance after unlock").assertDoesNotExist()
+        composeRule.waitForIdle()
+        assertEquals(1, gateway.authenticateCalls)
+
+        composeRule.runOnIdle { currentState = AuthShellUiState.Ready(aal2Session()) }
+        composeRule.onNodeWithText("Private finance after unlock").assertIsDisplayed()
+        composeRule.runOnIdle {
+            currentState = AuthShellUiState.Locked(
+                session = aal2Session(), showPin = false,
+                pinStatus = PinAttemptStatus(allowed = true, attemptsRemaining = 5),
+            )
+        }
+        composeRule.onNodeWithText("Private finance after unlock").assertDoesNotExist()
+        composeRule.waitForIdle()
+        assertEquals(2, gateway.authenticateCalls)
+    }
+
+    @Test
     fun logoutTransitionImmediatelyHidesOfflineFinanceContent() {
         var currentState by mutableStateOf<AuthShellUiState>(
             AuthShellUiState.Ready(aal2Session(), offline = true),

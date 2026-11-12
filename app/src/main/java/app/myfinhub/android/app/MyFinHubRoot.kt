@@ -126,11 +126,19 @@ fun MyFinHubRoot(
         appearancePreferences.registerOnSharedPreferenceChangeListener(listener)
         onDispose { appearancePreferences.unregisterOnSharedPreferenceChangeListener(listener) }
     }
-    DisposableEffect(lifecycleOwner, updateViewModel) {
+    DisposableEffect(lifecycleOwner, authViewModel, updateViewModel) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) updateViewModel.onAppResumed()
+            when (event) {
+                Lifecycle.Event.ON_START -> authViewModel.onAppForegrounded()
+                Lifecycle.Event.ON_RESUME -> updateViewModel.onAppResumed()
+                Lifecycle.Event.ON_STOP -> authViewModel.onAppBackgrounded()
+                else -> Unit
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            authViewModel.onAppForegrounded()
+        }
         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
             updateViewModel.onAppResumed()
         }
