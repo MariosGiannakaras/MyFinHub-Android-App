@@ -165,6 +165,14 @@ data class QuickEntryUiState(
         get() = splitParts.mapNotNull { it.amountText.toCurrencyCentsOrNull() }.sum()
 }
 
+/**
+ * The sticky Save control must follow the SAME pure validation as the Save action:
+ * invalid dates, stale account/card identities, transfers and incomplete splits
+ * must never advertise a submission that will be refused immediately.
+ */
+internal fun QuickEntryUiState.canSubmitDraft(): Boolean =
+    validateAndPreview(this).validationMessage == null
+
 sealed interface QuickEntryAction {
     data class SelectKind(val kind: QuickEntryKind) : QuickEntryAction
     data class AmountChanged(val value: String) : QuickEntryAction

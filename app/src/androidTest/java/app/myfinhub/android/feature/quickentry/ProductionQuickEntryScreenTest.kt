@@ -7,9 +7,12 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -109,6 +112,43 @@ class ProductionQuickEntryScreenTest {
         composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
         composeRule.runOnIdle { state = state.copy(actualBalanceText = "0") }
         composeRule.onNodeWithText("Καταχώριση").assertIsEnabled()
+    }
+
+    @Test
+    fun creditPurchaseShortcutSelectsCanonicalCardPurchaseInsteadOfSalaryExpense() {
+        var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(
+                    state = state,
+                    onAction = { state = reduceQuickEntry(state, it) },
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").performClick()
+        composeRule.runOnIdle {
+            assertEquals(QuickEntryKind.CARD_PURCHASE, state.kind)
+            assertEquals("card-credit", state.cardId)
+        }
+        composeRule.onNodeWithText("Πιστωτική κάρτα").fetchSemanticsNode()
+    }
+
+    @Test
+    fun fullDraftValidationGatesDateCardAndTransferSelections() {
+        var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(state = state, onAction = {}, onBack = {})
+            }
+        }
+        composeRule.onNodeWithText("Καταχώριση").assertIsEnabled()
+        composeRule.runOnIdle { state = state.copy(dateText = "invalid-date") }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.CARD_PURCHASE).copy(cardId = "missing") }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.TRANSFER).copy(toAccountId = "acc-main") }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
     }
 
     @Test
