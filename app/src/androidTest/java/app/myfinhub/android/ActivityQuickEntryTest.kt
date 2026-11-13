@@ -43,7 +43,11 @@ class ActivityQuickEntryTest {
         // Exercise the real scrollable form instead of assuming it starts visible.
         composeRule.onNodeWithText("Ημερομηνία").performScrollTo().assertIsDisplayed()
 
-        composeRule.onNodeWithText("Μεταφορά").performClick()
+        // After scrolling to the date, the chip may be clipped. Scroll it
+        // back into the viewport before tapping, then assert kind changed;
+        // "Από λογαριασμό" also exists for ordinary expenses.
+        composeRule.onNodeWithText("Μεταφορά").performScrollTo().performClick()
+        composeRule.onNodeWithText("Ποσό μεταφοράς").assertIsDisplayed()
         // Fields are in a scrollable form; the destination can start offscreen
         // after navigating through the date input on compact emulator viewports.
         composeRule.onNodeWithText("Από λογαριασμό").performScrollTo().assertIsDisplayed()

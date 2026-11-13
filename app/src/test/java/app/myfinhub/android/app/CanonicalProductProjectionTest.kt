@@ -1115,6 +1115,32 @@ class CanonicalProductProjectionTest {
         assertEquals("2026-08-23", refreshed.activityState.dateTo)
     }
 
+
+    @Test
+    fun cardPurchaseFilterSurvivesSyncReprojectionAndRemainsInLedger() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"payroll","kind":"bank","name":"Μισθοδοσία"}]},
+             "state":{"events":[
+               {"id":"payroll-expense","kind":"expense","date":"2026-11-12","amount":3,
+                "accountId":"payroll","note":"Καφές"},
+               {"id":"credit-purchase","kind":"card_purchase","date":"2026-11-12","amount":9,
+                "cardId":"credit-one","note":"Αγορά","creditDelta":-9,
+                "legs":[{"accountId":"credit-card","amount":-9}]}
+             ],"cards":[{"id":"credit-one","bankId":"bank","nickname":"Κάρτα",
+                          "kind":"credit","network":"visa","active":true}]}}
+        """.trimIndent()).jsonObject)
+        val initial = projectCanonicalProduct(document, LocalDate.of(2026, 11, 12))
+        val filtered = initial.activityState.copy(typeFilterId = "card_purchase")
+        assertEquals(listOf("credit-purchase"), filtered.visibleItems.map { it.id })
+        val refreshed = projectCanonicalProduct(
+            document, LocalDate.of(2026, 11, 12),
+            previous = initial.copy(activityState = filtered),
+        )
+        assertEquals("card_purchase", refreshed.activityState.typeFilterId)
+        assertEquals(listOf("credit-purchase"), refreshed.activityState.visibleItems.map { it.id })
+        assertEquals(9.0, refreshed.activityState.visibleExpense, 0.001)
+    }
+
     @Test
     fun everyCategoryDrillDown_reconcilesToItsCanonicalTotal() {
         val projection = projectCanonicalProduct(canonicalFixture(), LocalDate.of(2026, 8, 23))

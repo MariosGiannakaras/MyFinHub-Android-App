@@ -46,6 +46,27 @@ class QuickEntryReducerTest {
     }
 
     @Test
+    fun stickySaveGateRejectsInvalidDateAccountCardAndTransfer() {
+        val ordinary = QuickEntryUiState(amountText = "12,50")
+        assertTrue(ordinary.canSubmitDraft())
+        assertFalse(ordinary.copy(dateText = "invalid").canSubmitDraft())
+        assertFalse(ordinary.copy(accountId = "missing").canSubmitDraft())
+
+        val credit = reduceQuickEntry(ordinary, QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
+        assertTrue(credit.canSubmitDraft())
+        assertFalse(credit.copy(cardId = "missing").canSubmitDraft())
+        assertFalse(credit.copy(creditCards = emptyList()).canSubmitDraft())
+
+        val transfer = reduceQuickEntry(ordinary, QuickEntryAction.SelectKind(QuickEntryKind.TRANSFER))
+        assertTrue(transfer.canSubmitDraft())
+        assertFalse(transfer.copy(toAccountId = transfer.fromAccountId).canSubmitDraft())
+
+        val split = reduceQuickEntry(ordinary, QuickEntryAction.SelectKind(QuickEntryKind.SPLIT))
+            .copy(amountText = "12,50")
+        assertFalse(split.canSubmitDraft())
+    }
+
+    @Test
     fun ordinaryEntry_rejectsMissingAmountButAllowsBlankDescription() {
         val invalid = reduceQuickEntry(
             QuickEntryUiState(note = ""),

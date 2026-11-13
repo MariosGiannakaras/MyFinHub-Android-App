@@ -121,30 +121,7 @@ fun ProductionQuickEntryScreen(
     var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
     val savedLocally = state.awaitingSync
-    val declaredAmount = state.amount
-    val validRequiredAmount = if (state.kind == QuickEntryKind.RECONCILIATION) {
-        state.actualBalanceText.toCurrencyCentsOrNull() != null
-    } else {
-        declaredAmount != null && declaredAmount > 0.0 && declaredAmount.isFinite()
-    }
-    val requiredPersonReady = state.kind !in setOf(
-        QuickEntryKind.LENDING, QuickEntryKind.REPAYMENT
-    ) || state.person.isNotBlank()
-    val splitAllocationReady = state.kind != QuickEntryKind.SPLIT || (
-        declaredAmount != null &&
-            declaredAmount > 0.0 &&
-            state.splitRemaining == 0.0 &&
-            state.splitParts.size >= 2 &&
-            state.splitParts.all { part ->
-                val partAmount = part.amount
-                partAmount != null &&
-                    partAmount > 0.0 &&
-                    state.expenseCategories.any { category ->
-                        category.name == part.category &&
-                            (part.subcategory.isBlank() || part.subcategory in category.subcategories)
-                    }
-            }
-        )
+    val canSubmit = remember(state) { state.canSubmitDraft() }
     val requestBack = {
         if (state.dirty && !state.persisted && !savedLocally) discardDialogOpen = true else onBack()
     }
@@ -181,8 +158,8 @@ fun ProductionQuickEntryScreen(
                         savedLocally -> "Καταχωρίστηκε στη συσκευή"
                         else -> "Καταχώριση"
                     },
-                    enabled = validRequiredAmount && requiredPersonReady && splitAllocationReady &&
-                        !mutationInFlight && !state.persisted && !savedLocally,
+                    enabled = canSubmit && !mutationInFlight &&
+                        !state.persisted && !savedLocally,
                     onClick = {
                         if (!mutationInFlight) onAction(QuickEntryAction.Save)
                     },
@@ -228,6 +205,15 @@ fun ProductionQuickEntryScreen(
                             onClick = { onAction(QuickEntryAction.SelectKind(kind)) },
                             label = { Text(kind.label) },
                         )
+                    }
+                }
+                if (state.creditCards.isNotEmpty()) {
+                    OutlinedButton(
+                        onClick = { onAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE)) },
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("quick_entry_credit_purchase_shortcut"),
+                    ) {
+                        Text("Αγορά με πιστωτική")
                     }
                 }
                 TextButton(onClick = { advancedMenuOpen = true }) {

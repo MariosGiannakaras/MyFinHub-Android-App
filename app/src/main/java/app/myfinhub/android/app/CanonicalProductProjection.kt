@@ -392,11 +392,11 @@ val activityItems = buildActivityItems(
             else oldActivity?.ledgerDateTo,
         monthSourceSelected = oldActivity?.monthSourceSelected == true,
         overviewMonthManuallySelected = oldActivity?.overviewMonthManuallySelected == true,
-        // Web transaction type options never include card-only events.
-        // Discard stale pre-parity card filters on reprojection rather than
-        // restoring an invisible selection with permanently empty results.
-        typeFilterId = oldActivity?.typeFilterId?.takeUnless {
-            it == "card_purchase" || it == "card_payment"
+        // The native ledger includes card events, unlike the Web-only list.
+        // Keep a selected card kind across refresh when its events still exist;
+        // drop only missing/stale kinds rather than silently resetting filters.
+        typeFilterId = oldActivity?.typeFilterId?.takeIf { kind ->
+            activityItems.any { it.canonicalKind == kind }
         },
         categoryFilter = oldActivity?.categoryFilter,
         dateFrom = oldActivity?.dateFrom,
