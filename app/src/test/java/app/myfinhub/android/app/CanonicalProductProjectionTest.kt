@@ -1125,7 +1125,11 @@ class CanonicalProductProjectionTest {
                 "accountId":"payroll","note":"Καφές"},
                {"id":"credit-purchase","kind":"card_purchase","date":"2026-11-12","amount":9,
                 "cardId":"credit-one","note":"Αγορά","creditDelta":-9,
-                "legs":[{"accountId":"credit-card","amount":-9}]}
+                "legs":[{"accountId":"credit-card","amount":-9}]},
+               {"id":"credit-payment","kind":"card_payment","date":"2026-11-12","amount":4,
+                "cardId":"credit-one","fromAccountId":"payroll","creditDelta":4,
+                "legs":[{"accountId":"payroll","amount":-4},
+                        {"accountId":"credit-card","amount":4}]}
              ],"cards":[{"id":"credit-one","bankId":"bank","nickname":"Κάρτα",
                           "kind":"credit","network":"visa","active":true}]}}
         """.trimIndent()).jsonObject)
@@ -1139,6 +1143,27 @@ class CanonicalProductProjectionTest {
         assertEquals("card_purchase", refreshed.activityState.typeFilterId)
         assertEquals(listOf("credit-purchase"), refreshed.activityState.visibleItems.map { it.id })
         assertEquals(9.0, refreshed.activityState.visibleExpense, 0.001)
+
+        // A card payoff is visible and filterable, but it settles a liability;
+        // the purchase is the expense. A later projection must preserve both
+        // distinct card-kind filters without manufacturing another expense.
+        assertEquals(
+            setOf("payroll-expense", "credit-purchase", "credit-payment"),
+            initial.activityState.items.map { it.id }.toSet(),
+        )
+        assertEquals(12.0, initial.activityState.monthOverview!!.expense, 0.001)
+        val paymentFiltered = initial.activityState.copy(typeFilterId = "card_payment")
+        assertEquals(listOf("credit-payment"), paymentFiltered.visibleItems.map { it.id })
+        val paymentRefreshed = projectCanonicalProduct(
+            document, LocalDate.of(2026, 11, 12),
+            previous = initial.copy(activityState = paymentFiltered),
+        )
+        assertEquals("card_payment", paymentRefreshed.activityState.typeFilterId)
+        assertEquals(
+            listOf("credit-payment"),
+            paymentRefreshed.activityState.visibleItems.map { it.id },
+        )
+        assertEquals(12.0, paymentRefreshed.activityState.monthOverview!!.expense, 0.001)
     }
 
     @Test
