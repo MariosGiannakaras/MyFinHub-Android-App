@@ -8,11 +8,13 @@ import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.NetworkClientFactory
 import java.io.File
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class UpdateViewModel(application: Application) : AndroidViewModel(application) {
     private val client = PrivateUpdateClient(AppConfiguration.fromBuildConfig(), NetworkClientFactory.create())
@@ -74,7 +76,9 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
                 is UpdateDownloadResult.Failure ->
                     _state.value = UpdateUiState.Failure(result.kind, result.retryable, release)
                 is UpdateDownloadResult.Success -> {
-                    val verificationFailure = verifier.verify(result.file, release)
+                    val verificationFailure = withContext(Dispatchers.IO) {
+                        verifier.verify(result.file, release)
+                    }
                     _state.value = if (verificationFailure == null) {
                         UpdateUiState.ReadyToInstall(release, result.file)
                     } else {
@@ -94,23 +98,29 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
         }
         val release = pair.first
         val file = pair.second
-        // The file may have changed or the installed version may have advanced
-        // while Android's unknown-source permission screen was open.
-        val recheckFailure = verifier.verify(file, release)
-        if (recheckFailure != null) {
-            file.delete()
-            _state.value = UpdateUiState.Failure(recheckFailure, retryable = false, release = release)
-            return
-        }
         if (!installer.canRequestInstalls()) {
             _state.value = UpdateUiState.PermissionRequired(release, file)
             return
         }
-        val failure = installer.install(file, release)
-        _state.value = if (failure == null) {
-            UpdateUiState.Installing(release)
-        } else {
-            UpdateUiState.Failure(failure, retryable = true, release = release)
+        // Do not hash/copy a potentially large signed APK on Compose's UI thread.
+        // Installing state also prevents repeated taps while verification is running.
+        _state.value = UpdateUiState.Installing(release)
+        activeJob?.cancel()
+        activeJob = viewModelScope.launch {
+            // The file may have changed or the installed version may have advanced
+            // while Android's unknown-source permission screen was open.
+            val recheckFailure = withContext(Dispatchers.IO) { verifier.verify(file, release) }
+            if (recheckFailure != null) {
+                file.delete()
+                _state.value = UpdateUiState.Failure(recheckFailure, retryable = false, release = release)
+                return@launch
+            }
+            val failure = withContext(Dispatchers.IO) { installer.install(file, release) }
+            _state.value = if (failure == null) {
+                UpdateUiState.Installing(release)
+            } else {
+                UpdateUiState.Failure(failure, retryable = true, release = release)
+            }
         }
     }
 
