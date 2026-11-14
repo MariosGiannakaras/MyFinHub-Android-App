@@ -1,6 +1,8 @@
 package app.myfinhub.android.core.update
 
+import android.Manifest
 import android.content.ComponentName
+import android.content.pm.PackageInstaller
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -10,6 +12,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -41,6 +45,41 @@ class UpdateInstallerSecurityTest {
         }
 
         assertFalse(info.exported)
+    }
+
+
+    @Test
+    fun privateUpdaterKeepsUserInitiatedPackageInstallsButNoSilentUpdatePrivilege() {
+        val info = if (Build.VERSION.SDK_INT >= 33) {
+            context.packageManager.getPackageInfo(
+                context.packageName,
+                PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()),
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
+        }
+        val requested = info.requestedPermissions.orEmpty().toSet()
+        assertTrue(Manifest.permission.REQUEST_INSTALL_PACKAGES in requested)
+        assertFalse(Manifest.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION in requested)
+    }
+
+    @Test
+    fun privateUpdaterSessionRequiresAndroidConfirmationBeforeAnyInstall() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+        // No APK is staged or installed: inspect an abandoned session's
+        // policy directly instead of merely asserting a hard-coded constant.
+        val installer = context.packageManager.packageInstaller
+        val id = installer.createSession(userConfirmedUpdateSessionParams(context.packageName, 1024L))
+        try {
+            val info = requireNotNull(installer.getSessionInfo(id))
+            assertEquals(
+                PackageInstaller.SessionParams.USER_ACTION_REQUIRED,
+                info.requireUserAction,
+            )
+        } finally {
+            installer.abandonSession(id)
+        }
     }
 
     @Test
