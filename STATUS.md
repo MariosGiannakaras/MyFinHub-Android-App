@@ -44,3 +44,111 @@ Protected production run #43610151028 completed SUCCESS on 2026-11-14 from immut
 Canonical source: `tracking/android-project-state.json`.
 
 Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.md and docs/CURRENT_HANDOFF.md are generated. Lead with evidence-backed deploy D1–D8 (X/8), current step and actual CI/merge/physical state; also report older Web parity X/6 implementation, Y/24 subtasks when substantively useful. Historical September redesign counters are separate. Never infer physical S24 signoff or final release from hosted CI.
+
+## Android deploy progress
+
+**Μέχρι deploy: 6/8 stages**
+
+Evidence-backed release milestones, not percent of code written.
+
+| Stage | Status |
+|---|---|
+| D1 Native Android foundation and installed app | completed |
+| D2 Home and canonical accounts native journey | completed |
+| D3 Cards, credit and Quick Entry end-to-end | completed |
+| D4 Activity and transaction management | completed |
+| D5 Plan, savings, obligations and Insights | completed |
+| D6 Settings, auth, secure sync/offline and backup | completed |
+| D7 Final integrated physical S24 owner acceptance | pending |
+| D8 Production-signed release and deployment | pending |
+
+Current: D7
+Next: D7 OPEN 6/8: PR #459 merged, PR #460 all six source gates SUCCESS and merged, signed rc17/10016 published via protected run #43610151028 with enrolled signer. Owner S24 Google Play Protect displays 'Harmful app blocked' during rc17 install over rc16; rc17 physical acceptance REJECTED. rc16 and rc17 AndroidManifest permissions unchanged; exact Google detection cause not known. PR #461 scopes minimal security hardening: remove silent install permission, explicitly require Android user confirmation, reverify cached APK before any install, leave update/finance identity intact. Exact-head CI/physical reclassification remain pending, NO guarantee of Play Protect clearance; do not recommend bypass. Backend GET400 and Nov12 disputed expenses unresolved; D8 separate.
+
+
+## Active Web parity progress
+
+**Implementations: 5/6 · Subtasks: 23/24**
+
+Evidence-backed current progress, separate from historical September redesign.
+
+Issue #155, PR #461, branch android/d7-play-protect-updater-hardening-20261114
+Current W6.4: 2026-11-12 rc15 owner S24 physical test failed GET /api/data HTTP400 INVALID_DATA (safe UUID a953c405-fa80-4ae1-9762-c1c3b214321e). PR #456 encrypted cache recovery, safe write fence, biometric background lock passed exact-head CI and merged develop. Release-source PR #457 with credit Quick Entry regression passed all six required checks at c1ba84b95e6e3cde6a93c9ff123170a9e223a5fb; protected production signed rc16/10015 run #43304931439 SUCCESS and GitHub/private-channel published; source PR #457 merged develop 78e6ade7da2bc9b3a4dabfa028c51357d90aa9a3 after release. No physical rc16 installation/acceptance. Backend GET400 remains unresolved; two November 12 expense rows not linked to card. D7 6/8, W6.4 5/6 23/24 and D8 independent. Owner reported finance exposed in Samsung Recents; PR #459 implemented early API33+ Recents snapshots off plus Quick Entry/card Activity fixes, exact-head six CI checks SUCCESS on 4991d5ef4fe127f0d1a56834056025185e9ce509 and merged develop 9f6b437f14fb718d09755f771e32c2cdbcb69c41 on 2026-11-13. PR #460 regression all six exact-head checks SUCCESS at c3dc510c92d13e522790158d3aee4f941f9f8c40; protected rc17/10016 production signer build/publish SUCCESS #43610151028 on 2026-11-14, SHA-256 b17d0963ad50aa761c52d130dd7aa61a89b86a940b7dfa223f2d5433ce51f117, PR #460 merged develop 4fbd25f9b6577d76b2445210a679b344fccd3c67. Owner S24 Google Play Protect blocked rc17 installation as harmful; classification root cause unknown. PR #461 Android-only updater hardening authored; no owner physical acceptance.
+Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
+Next Complete PR #461 scoped updater security hardening with exact-head CI and no release; keep rc16 installed, do not bypass Play Protect warning on signed rc17, investigate/appeal erroneous classification via Google if justified. Only a separately approved signed release + physical S24 test can establish Recents privacy/biometric/finance acceptance. Backend INVALID_DATA and Nov12 disputed card events unresolved; no Web or production writes. D7 6/8, W6.4 5/6 23/24, D8 separate.
+
+| Implementation | Completed | Outstanding |
+|---|---|---|
+| W1 Canonical accounts and Home | 4/4 | Complete |
+| W2 Card identity and integrated credit experience | 4/4 | Complete |
+| W3 Events, statements and mutation semantics | 4/4 | Complete |
+| W4 Recurring, forecast, savings and reporting | 4/4 | Complete |
+| W5 Providers, API, security and settings | 4/4 | Complete |
+| W6 Parity validation, cleanup and device acceptance | 3/4 | W6.4 Owner physical acceptance and release isolation (pending) |
+
+### Subtasks
+
+- [x] W1.1 Canonical account merge and roles — completed
+- [x] W1.2 Home total and three primary account slots — completed
+- [x] W1.3 Chart/target/IBAN web-fidelity — completed
+- [x] W1.4 Home tests and shared projections — completed
+- [x] W2.1 Canonical card metadata/lifecycle — completed
+- [x] W2.2 Shared native card visual — completed
+- [x] W2.3 Credit information on card screen — completed
+- [x] W2.4 Card interactions and secure details — completed
+- [x] W3.1 Statement cycle and historical debt — completed
+- [x] W3.2 Event and classification parity — completed
+- [x] W3.3 Card repayment provider validation — completed
+- [x] W3.4 Single mutation pipeline — completed
+- [x] W4.1 Recurring lifecycle — completed
+- [x] W4.2 Scheduled forecast — completed
+- [x] W4.3 Savings, loans, lending and budgets — completed
+- [x] W4.4 Transactions and analytics completeness — completed
+- [x] W5.1 Dynamic provider/IBAN/assets contract — completed
+- [x] W5.2 Auth/sync/history consistency — completed
+- [x] W5.3 Card vault and security endpoints — completed
+- [x] W5.4 Settings, backup, rules and ancillary parity — completed
+- [x] W6.1 Golden cross-client fixture tests — completed
+- [x] W6.2 Real Compose accessibility/visual verification — completed
+- [x] W6.3 Exact-head CI, deduplication and tracking handoff — completed
+- [ ] W6.4 Owner physical acceptance and release isolation — pending
+
+### Blockers
+
+- None recorded.
+
+
+## Android redesign progress
+
+**Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
+
+These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
+
+Working branch: `develop`. PR: 122.
+Checkpoint: `s10_complete_merged_to_develop`.
+Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
+Next action: September redesign S1–S10 (40/40) remains historical and complete. The separate new owner-approved Web-parity workstream is issue #155 and reconciliation_workstream; prior completion counts do not establish Web parity. Signed rc12 physical acceptance remains pending under issue #149. SMS/notification import issue #146 remains deferred.
+
+| Slice | Completed subtasks | Remaining |
+|---|---|---|
+| S1 Financial truth and capability | 4/4 | Complete |
+| S2 Foundation and navigation | 4/4 | Complete |
+| S3 Activity | 4/4 | Complete |
+| S4 Quick Entry | 4/4 | Complete |
+| S5 Home and accounts | 4/4 | Complete |
+| S6 Cards | 4/4 | Complete |
+| S7 Plan and debts | 4/4 | Complete |
+| S8 Analysis | 4/4 | Complete |
+| S9 Settings and authentication | 4/4 | Complete |
+| S10 Integration and acceptance | 4/4 | Complete |
+
+### Preparation
+
+- [x] P1 Inspect live repository, instructions and existing tracking — completed
+- [x] P2 Reconcile durable instructions and old design authority — completed
+- [x] P3 Persist design decisions and ten-slice implementation specification — completed
+- [x] P4 Validate counters and generated tracking — completed
+
+### Blockers
+
+- No recorded blocker.
