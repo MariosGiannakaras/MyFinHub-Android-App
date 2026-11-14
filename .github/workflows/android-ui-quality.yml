@@ -13,6 +13,8 @@ on:
       - 'build.gradle.kts'
       - 'gradle.properties'
       - '.github/workflows/android-ui-quality.yml'
+      # Protect release-gate changes with the same hosted Android/UI checks.
+      - '.github/workflows/production-private-release.yml'
   workflow_dispatch:
 
 permissions:
