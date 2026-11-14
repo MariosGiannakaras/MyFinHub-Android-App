@@ -21,13 +21,7 @@ class PackageInstallerUpdateInstaller(private val context: Context) {
     fun install(file: File, release: UpdateRelease): UpdateFailureKind? {
         if (!canRequestInstalls()) return UpdateFailureKind.INSTALL_PERMISSION_REQUIRED
         val installer = context.packageManager.packageInstaller
-        val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
-            setAppPackageName(context.packageName)
-            setSize(file.length())
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
-            }
-        }
+        val params = privateUpdateSessionParams(context.packageName, file.length())
         val sessionId = try {
             installer.createSession(params)
         } catch (_: Exception) {
@@ -59,3 +53,13 @@ class PackageInstallerUpdateInstaller(private val context: Context) {
         }
     }
 }
+
+/** Always leave the final update decision to Android and the device owner. */
+internal fun privateUpdateSessionParams(packageName: String, sizeBytes: Long): PackageInstaller.SessionParams =
+    PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
+        setAppPackageName(packageName)
+        setSize(sizeBytes)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED)
+        }
+    }

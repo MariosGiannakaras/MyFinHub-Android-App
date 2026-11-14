@@ -94,6 +94,14 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
         }
         val release = pair.first
         val file = pair.second
+        // The file may have changed or the installed version may have advanced
+        // while Android's unknown-source permission screen was open.
+        val recheckFailure = verifier.verify(file, release)
+        if (recheckFailure != null) {
+            file.delete()
+            _state.value = UpdateUiState.Failure(recheckFailure, retryable = false, release = release)
+            return
+        }
         if (!installer.canRequestInstalls()) {
             _state.value = UpdateUiState.PermissionRequired(release, file)
             return

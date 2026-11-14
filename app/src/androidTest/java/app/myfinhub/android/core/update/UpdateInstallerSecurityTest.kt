@@ -3,11 +3,14 @@ package app.myfinhub.android.core.update
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.PackageInstaller
 import android.os.Build
 import android.provider.Settings
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assume.assumeTrue
 import java.io.File
+import java.security.MessageDigest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
@@ -44,6 +47,64 @@ class UpdateInstallerSecurityTest {
     }
 
     @Test
+    fun normalBuildDoesNotRequestSilentPackageUpdates() {
+        val info = if (Build.VERSION.SDK_INT >= 33) {
+            context.packageManager.getPackageInfo(
+                context.packageName,
+                PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()),
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
+        }
+        assertFalse(
+            info.requestedPermissions.orEmpty()
+                .contains("android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"),
+        )
+    }
+
+    @Test
+    fun updateInstallSessionRequiresUserConfirmation() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+        val installer = context.packageManager.packageInstaller
+        val sessionId = installer.createSession(privateUpdateSessionParams(context.packageName, 16L))
+        try {
+            val sessionInfo = installer.getSessionInfo(sessionId)
+            assertEquals(
+                PackageInstaller.SessionParams.USER_ACTION_REQUIRED,
+                sessionInfo?.requireUserAction,
+            )
+        } finally {
+            installer.abandonSession(sessionId)
+        }
+    }
+
+    @Test
+    fun modifiedCachedApkCannotPassVerificationAfterDownload() {
+        val file = File(context.cacheDir, "tampered-update-test.apk")
+        try {
+            file.writeText("tampered-cached-update")
+            val release = UpdateRelease(
+                versionCode = 999999L,
+                versionName = "synthetic",
+                downloadUrl = "https://storage.example.test/storage/v1/object/authenticated/android-releases/test.apk",
+                sha256 = "a".repeat(64),
+                sizeBytes = file.length(),
+                mandatory = false,
+                notes = "test",
+                publishedAt = "2026-11-14T12:00:00Z",
+            )
+            assertEquals(UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH, ApkVerifier(context).verify(file, release))
+            assertEquals(
+                UpdateFailureKind.DOWNLOAD_SIZE_MISMATCH,
+                ApkVerifier(context).verify(file, release.copy(sizeBytes = file.length() + 1)),
+            )
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
     fun installedApkCannotBeAcceptedAsFakeNewerUpdate() {
         val installedApk = File(context.applicationInfo.sourceDir)
         val installedInfo = if (Build.VERSION.SDK_INT >= 33) {
@@ -59,7 +120,9 @@ class UpdateInstallerSecurityTest {
             versionCode = installedInfo.longVersionCode + 1,
             versionName = "synthetic-newer",
             downloadUrl = "https://storage.example.test/storage/v1/object/authenticated/android-releases/new/MyFinHub.apk",
-            sha256 = "a".repeat(64),
+            sha256 = MessageDigest.getInstance("SHA-256")
+                .digest(installedApk.readBytes())
+                .joinToString("") { "%02x".format(it) },
             sizeBytes = installedApk.length(),
             mandatory = false,
             notes = "test",
