@@ -136,6 +136,33 @@ class UpdateInstallerSecurityTest {
         assertEquals(UpdateFailureKind.WRONG_VERSION, ApkVerifier(context).verify(installedApk, release))
     }
 
+
+    @Test
+    fun packageVerifierBlockIsPersistedSeparatelyFromGenericInstallerFailure() {
+        val version = 10018L
+        UpdateInstallStatusStore.clear(context)
+        try {
+            UpdateInstallReceiver().onReceive(
+                context,
+                Intent(UpdateInstallReceiver.ACTION_INSTALL_STATUS)
+                    .putExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE_BLOCKED)
+                    .putExtra(UpdateInstallReceiver.EXTRA_VERSION_CODE, version),
+            )
+            assertEquals(InstallStatus.BLOCKED to version, UpdateInstallStatusStore.read(context))
+
+            // User cancellation is not proof of a Play Protect detection.
+            UpdateInstallReceiver().onReceive(
+                context,
+                Intent(UpdateInstallReceiver.ACTION_INSTALL_STATUS)
+                    .putExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE_ABORTED)
+                    .putExtra(UpdateInstallReceiver.EXTRA_VERSION_CODE, version),
+            )
+            assertEquals(InstallStatus.FAILURE to version, UpdateInstallStatusStore.read(context))
+        } finally {
+            UpdateInstallStatusStore.clear(context)
+        }
+    }
+
     @Test
     fun installStatusStore_isAppLocalAndClearable() {
         UpdateInstallStatusStore.clear(context)
