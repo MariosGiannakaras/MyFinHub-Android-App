@@ -215,6 +215,19 @@ jobs:
           grep -F "package: name='app.myfinhub.android'" <<<"$badging"
           grep -F "versionCode='$VERSION_CODE'" <<<"$badging"
           grep -F "versionName='$VERSION_NAME'" <<<"$badging"
+
+          # Assert permissions embedded in the actual release APK before signing;
+          # a source manifest check is insufficient after manifest merging.
+          direct_permissions="$("$aapt" dump permissions "$apk")"
+          if grep -Fq "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" <<<"$direct_permissions"; then
+            echo 'Direct APK requests unattended package updates; refusing release.' >&2
+            exit 1
+          fi
+          if ! grep -Fq "android.permission.REQUEST_INSTALL_PACKAGES" <<<"$direct_permissions"; then
+            echo 'Direct APK lacks its user-initiated private updater permission.' >&2
+            exit 1
+          fi
+
           if "$apksigner" verify "$apk" >/dev/null 2>&1; then
             echo 'Production intermediate must remain unsigned before protected signing.' >&2
             exit 1
