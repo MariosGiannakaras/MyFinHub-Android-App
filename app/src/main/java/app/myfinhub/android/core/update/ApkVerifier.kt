@@ -5,10 +5,32 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
 
 class ApkVerifier(private val context: Context) {
     fun verify(file: File, release: UpdateRelease): UpdateFailureKind? {
+        // The owner can spend time on the update/permission screen after download.
+        // Recheck the private cached bytes before install as well as after download.
+        if (file.length() != release.sizeBytes) return UpdateFailureKind.DOWNLOAD_SIZE_MISMATCH
+        val digest = try {
+            val sha256 = MessageDigest.getInstance("SHA-256")
+            file.inputStream().buffered().use { input ->
+                val bytes = ByteArray(DEFAULT_BUFFER_SIZE)
+                while (true) {
+                    val count = input.read(bytes)
+                    if (count == -1) break
+                    sha256.update(bytes, 0, count)
+                }
+            }
+            sha256.digest().joinToString("") { "%02x".format(it) }
+        } catch (_: IOException) {
+            return UpdateFailureKind.PACKAGE_UNREADABLE
+        }
+        if (!digest.equals(release.sha256, ignoreCase = true)) {
+            return UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH
+        }
+
         val packageManager = context.packageManager
         val archive = archivePackageInfo(packageManager, file) ?: return UpdateFailureKind.PACKAGE_UNREADABLE
         if (archive.packageName != context.packageName) return UpdateFailureKind.WRONG_PACKAGE

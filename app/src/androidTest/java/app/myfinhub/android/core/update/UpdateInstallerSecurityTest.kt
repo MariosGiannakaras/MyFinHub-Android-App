@@ -10,6 +10,7 @@ import android.provider.Settings
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.io.File
+import java.security.MessageDigest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -83,6 +84,31 @@ class UpdateInstallerSecurityTest {
     }
 
     @Test
+    fun modifiedCachedApkCannotPassVerificationAfterDownload() {
+        val file = File(context.cacheDir, "tampered-update-test.apk")
+        try {
+            file.writeText("tampered-cached-update")
+            val release = UpdateRelease(
+                versionCode = 999999L,
+                versionName = "synthetic",
+                downloadUrl = "https://storage.example.test/storage/v1/object/authenticated/android-releases/test.apk",
+                sha256 = "a".repeat(64),
+                sizeBytes = file.length(),
+                mandatory = false,
+                notes = "test",
+                publishedAt = "2026-11-14T12:00:00Z",
+            )
+            assertEquals(UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH, ApkVerifier(context).verify(file, release))
+            assertEquals(
+                UpdateFailureKind.DOWNLOAD_SIZE_MISMATCH,
+                ApkVerifier(context).verify(file, release.copy(sizeBytes = file.length() + 1)),
+            )
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
     fun installedApkCannotBeAcceptedAsFakeNewerUpdate() {
         val installedApk = File(context.applicationInfo.sourceDir)
         val installedInfo = if (Build.VERSION.SDK_INT >= 33) {
@@ -98,7 +124,9 @@ class UpdateInstallerSecurityTest {
             versionCode = installedInfo.longVersionCode + 1,
             versionName = "synthetic-newer",
             downloadUrl = "https://storage.example.test/storage/v1/object/authenticated/android-releases/new/MyFinHub.apk",
-            sha256 = "a".repeat(64),
+            sha256 = MessageDigest.getInstance("SHA-256")
+                .digest(installedApk.readBytes())
+                .joinToString("") { "%02x".format(it) },
             sizeBytes = installedApk.length(),
             mandatory = false,
             notes = "test",

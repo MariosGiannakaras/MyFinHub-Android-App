@@ -60,6 +60,8 @@ For privately distributed builds Android may require the user to allow "Install 
 
 Direct MyFinHub builds retain only `REQUEST_INSTALL_PACKAGES` so users can initiate updates of this same signed package. `UPDATE_PACKAGES_WITHOUT_USER_ACTION` is deliberately omitted. On Android 12+ the installer explicitly sets `USER_ACTION_REQUIRED`, and the resulting `STATUS_PENDING_USER_ACTION` is handled by launching the system-provided confirmation intent. Earlier Android versions retain their ordinary confirmation path. A denial, Play Protect block or installer failure must not be bypassed; the already-installed app remains intact. Never disable Play Protect, suppress platform prompts or auto-install in the background.
 
+A downloaded APK can change while the user is on Android's install-permission screen. Before starting any PackageInstaller session, the client re-reads and rechecks cached file size, SHA-256, package name, version and installed signer; a changed or invalid file is rejected and discarded. The verification and session installation operate off the UI thread, preserving the responsiveness of the Settings screen. The app never bypasses OS approval or Play Protect.
+
 Google Play Protect classification is separate from MyFinHub's SHA-256/signature checks. A failed or contested classification requires developer review through Google's official Play Protect appeal process; removing a permission does not guarantee reclassification.
 
 ## Session continuity
