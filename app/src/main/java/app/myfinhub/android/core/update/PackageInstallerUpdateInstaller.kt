@@ -9,6 +9,25 @@ import android.os.Build
 import android.provider.Settings
 import java.io.File
 
+
+/**
+ * Private updates must always be an explicit user decision, including when
+ * updating the same package with the enrolled signer. Android >= 12 supports
+ * an explicit session policy; earlier releases use the OS confirmation flow.
+ */
+internal fun userConfirmedUpdateSessionParams(
+    packageName: String,
+    apkSizeBytes: Long,
+): PackageInstaller.SessionParams = PackageInstaller.SessionParams(
+    PackageInstaller.SessionParams.MODE_FULL_INSTALL,
+).apply {
+    setAppPackageName(packageName)
+    setSize(apkSizeBytes)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED)
+    }
+}
+
 class PackageInstallerUpdateInstaller(private val context: Context) {
     fun canRequestInstalls(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.O || context.packageManager.canRequestPackageInstalls()
@@ -21,7 +40,7 @@ class PackageInstallerUpdateInstaller(private val context: Context) {
     fun install(file: File, release: UpdateRelease): UpdateFailureKind? {
         if (!canRequestInstalls()) return UpdateFailureKind.INSTALL_PERMISSION_REQUIRED
         val installer = context.packageManager.packageInstaller
-        val params = privateUpdateSessionParams(context.packageName, file.length())
+        val params = userConfirmedUpdateSessionParams(context.packageName, file.length())
         val sessionId = try {
             installer.createSession(params)
         } catch (_: Exception) {
@@ -53,13 +72,3 @@ class PackageInstallerUpdateInstaller(private val context: Context) {
         }
     }
 }
-
-/** Always leave the final update decision to Android and the device owner. */
-internal fun privateUpdateSessionParams(packageName: String, sizeBytes: Long): PackageInstaller.SessionParams =
-    PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
-        setAppPackageName(packageName)
-        setSize(sizeBytes)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED)
-        }
-    }
