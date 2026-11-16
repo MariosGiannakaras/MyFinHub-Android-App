@@ -101,6 +101,35 @@ class UpdateSettingsCardTest {
         assertTrue(composeRule.onAllNodesWithText("AAL2", substring = true).fetchSemanticsNodes().isEmpty())
     }
 
+
+    @Test
+    fun securityBlockedInstallShowsExplanationWithoutOfferingRetry() {
+        var installs = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                UpdateSettingsCard(
+                    currentVersionName = "1.0.0-rc16",
+                    state = UpdateUiState.Failure(
+                        kind = UpdateFailureKind.INSTALL_BLOCKED,
+                        retryable = false,
+                        release = release(),
+                    ),
+                    onCheck = {},
+                    onDownload = {},
+                    onInstall = { installs += 1 },
+                    onOpenInstallPermission = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Η εγκατάσταση αποκλείστηκε από το Android", substring = true)
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("Εγκατάσταση ξανά").assertDoesNotExist()
+        composeRule.onNodeWithText("Λήψη ξανά").assertDoesNotExist()
+        composeRule.onNodeWithText("Έλεγχος ξανά").assertDoesNotExist()
+        assertEquals(0, installs)
+    }
+
     @Test
     fun diagnostics_keepRawTermsBehindSupportDisclosure() {
         composeRule.setContent {

@@ -143,10 +143,16 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
             is UpdateUiState.ReadyToInstall -> current.release
             else -> null
         }
-        if (currentRelease != null && versionCode == currentRelease.versionCode && status == InstallStatus.FAILURE) {
-            _state.value = UpdateUiState.Failure(UpdateFailureKind.INSTALL_FAILED, retryable = true, currentRelease)
+        if (currentRelease != null && versionCode == currentRelease.versionCode) {
+            when (status) {
+                InstallStatus.FAILURE ->
+                    _state.value = UpdateUiState.Failure(UpdateFailureKind.INSTALL_FAILED, retryable = true, currentRelease)
+                InstallStatus.BLOCKED ->
+                    _state.value = UpdateUiState.Failure(UpdateFailureKind.INSTALL_BLOCKED, retryable = false, currentRelease)
+                else -> Unit
+            }
         }
-        if (status == InstallStatus.FAILURE || status == InstallStatus.SUCCESS) {
+        if (status == InstallStatus.FAILURE || status == InstallStatus.BLOCKED || status == InstallStatus.SUCCESS) {
             UpdateInstallStatusStore.clear(getApplication())
         }
     }

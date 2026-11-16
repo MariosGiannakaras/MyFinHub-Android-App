@@ -17,7 +17,7 @@ import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.util.Locale
 
-internal enum class UpdateRecoveryAction { CHECK, DOWNLOAD, INSTALL, INSTALL_PERMISSION, AUTH }
+internal enum class UpdateRecoveryAction { CHECK, DOWNLOAD, INSTALL, INSTALL_PERMISSION, AUTH, NO_RETRY }
 
 internal fun updateRecoveryAction(kind: UpdateFailureKind, releaseAvailable: Boolean): UpdateRecoveryAction = when (kind) {
     UpdateFailureKind.AUTH_REQUIRED,
@@ -27,7 +27,9 @@ internal fun updateRecoveryAction(kind: UpdateFailureKind, releaseAvailable: Boo
     UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH -> if (releaseAvailable) UpdateRecoveryAction.DOWNLOAD else UpdateRecoveryAction.CHECK
 
     UpdateFailureKind.INSTALL_PERMISSION_REQUIRED -> UpdateRecoveryAction.INSTALL_PERMISSION
-    UpdateFailureKind.INSTALL_BLOCKED,
+    // If the OS/package verifier rejected the APK, never offer a bypass or
+    // an immediate retry of the same rejected file.
+    UpdateFailureKind.INSTALL_BLOCKED -> UpdateRecoveryAction.NO_RETRY
     UpdateFailureKind.INSTALL_FAILED -> if (releaseAvailable) UpdateRecoveryAction.INSTALL else UpdateRecoveryAction.CHECK
 
     else -> UpdateRecoveryAction.CHECK
@@ -98,6 +100,7 @@ internal fun UpdateSettingsCard(
                         UpdateRecoveryAction.INSTALL -> MyFinHubOutlinedAction("Εγκατάσταση ξανά", onInstall, Modifier.fillMaxWidth())
                         UpdateRecoveryAction.INSTALL_PERMISSION -> MyFinHubOutlinedAction("Άνοιγμα ρύθμισης εγκατάστασης", onOpenInstallPermission, Modifier.fillMaxWidth())
                         UpdateRecoveryAction.CHECK -> MyFinHubOutlinedAction("Έλεγχος ξανά", onCheck, Modifier.fillMaxWidth())
+                        UpdateRecoveryAction.NO_RETRY -> Unit
                     }
                 }
             }
@@ -149,6 +152,6 @@ internal fun updateFailureMessage(kind: UpdateFailureKind): String = when (kind)
     UpdateFailureKind.WRONG_SIGNER,
     UpdateFailureKind.PACKAGE_UNREADABLE -> "Το αρχείο δεν αναγνωρίστηκε ως έγκυρη νεότερη έκδοση του MyFinHub και δεν μπορεί να εγκατασταθεί."
     UpdateFailureKind.INSTALL_PERMISSION_REQUIRED -> "Απαιτείται άδεια εγκατάστασης ιδιωτικών ενημερώσεων."
-    UpdateFailureKind.INSTALL_BLOCKED -> "Το Android εμπόδισε την έναρξη της εγκατάστασης."
+    UpdateFailureKind.INSTALL_BLOCKED -> "Η εγκατάσταση αποκλείστηκε από το Android ή τον έλεγχο ασφαλείας. Μην παρακάμψεις την προειδοποίηση. Η προηγούμενη έκδοση παραμένει εγκατεστημένη."
     UpdateFailureKind.INSTALL_FAILED -> "Η εγκατάσταση δεν ολοκληρώθηκε. Το υπάρχον MyFinHub παραμένει εγκατεστημένο."
 }

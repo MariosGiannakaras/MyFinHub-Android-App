@@ -24,6 +24,10 @@ class UpdateInstallReceiver : BroadcastReceiver() {
             }
             PackageInstaller.STATUS_SUCCESS ->
                 UpdateInstallStatusStore.write(context, InstallStatus.SUCCESS, versionCode)
+            // A verifier or system policy can block this package. Do not
+            // convert a security rejection into a generic retry prompt.
+            PackageInstaller.STATUS_FAILURE_BLOCKED ->
+                UpdateInstallStatusStore.write(context, InstallStatus.BLOCKED, versionCode)
             else ->
                 UpdateInstallStatusStore.write(context, InstallStatus.FAILURE, versionCode)
         }
@@ -35,7 +39,7 @@ class UpdateInstallReceiver : BroadcastReceiver() {
     }
 }
 
-enum class InstallStatus { NONE, PENDING_USER_ACTION, SUCCESS, FAILURE }
+enum class InstallStatus { NONE, PENDING_USER_ACTION, SUCCESS, FAILURE, BLOCKED }
 
 object UpdateInstallStatusStore {
     private const val PREFS = "myfinhub_update_install"
