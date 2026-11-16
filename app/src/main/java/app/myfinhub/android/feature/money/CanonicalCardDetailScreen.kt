@@ -213,14 +213,28 @@ fun CanonicalCardDetailScreen(
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Ενέργειες πιστωτικής", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                        MyFinHubPrimaryAction(
-                            label = "Πληρωμή κάρτας",
-                            onClick = onPayCard,
-                            modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
-                            enabled = (creditFinancial?.outstanding ?: 0.0) > 0.005,
-                            icon = null,
-                        )
-                        if ((creditFinancial?.outstanding ?: 0.0) <= 0.005) {
+                        if (hasPayableCreditDebt(creditFinancial?.outstanding)) {
+                            MyFinHubPrimaryAction(
+                                label = "Πληρωμή κάρτας",
+                                onClick = onPayCard,
+                                modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
+                                icon = null,
+                            )
+                            OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
+                                Text("Καταχώριση αγοράς")
+                            }
+                        } else {
+                            MyFinHubPrimaryAction(
+                                label = "Καταχώριση αγοράς",
+                                onClick = onAddPurchase,
+                                modifier = Modifier.fillMaxWidth().testTag("card_detail_purchase_primary"),
+                                icon = null,
+                            )
+                            OutlinedButton(
+                                onClick = onPayCard,
+                                enabled = false,
+                                modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
+                            ) { Text("Πληρωμή κάρτας") }
                             Text(
                                 if (creditFinancial?.outstanding == null)
                                     "Η οφειλή δεν είναι διαθέσιμη."
@@ -230,9 +244,6 @@ fun CanonicalCardDetailScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.testTag("card_detail_payment_unavailable_reason"),
                             )
-                        }
-                        OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
-                            Text("Καταχώριση αγοράς")
                         }
                     }
                 }

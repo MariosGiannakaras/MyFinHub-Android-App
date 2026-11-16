@@ -86,6 +86,10 @@ private val FastKinds = listOf(
     QuickEntryKind.TRANSFER,
 )
 
+/** A credit purchase is a contextual expense, not an income or transfer action. */
+internal fun showCreditPurchaseShortcut(kind: QuickEntryKind, hasCreditCards: Boolean): Boolean =
+    kind == QuickEntryKind.EXPENSE && hasCreditCards
+
 private val GreekDateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("el-GR"))
 
 internal val QuickEntryKind.amountHeading: String
@@ -207,7 +211,7 @@ fun ProductionQuickEntryScreen(
                         )
                     }
                 }
-                if (state.creditCards.isNotEmpty()) {
+                if (showCreditPurchaseShortcut(state.kind, state.creditCards.isNotEmpty())) {
                     OutlinedButton(
                         onClick = { onAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE)) },
                         modifier = Modifier.fillMaxWidth()

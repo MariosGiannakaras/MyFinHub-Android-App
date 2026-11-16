@@ -8,6 +8,15 @@ import org.junit.Test
 
 class QuickEntryReducerTest {
     @Test
+    fun creditPurchaseShortcutOnlyAppearsWithinExpenseWithAnAvailableCard() {
+        assertTrue(showCreditPurchaseShortcut(QuickEntryKind.EXPENSE, true))
+        assertFalse(showCreditPurchaseShortcut(QuickEntryKind.EXPENSE, false))
+        assertFalse(showCreditPurchaseShortcut(QuickEntryKind.INCOME, true))
+        assertFalse(showCreditPurchaseShortcut(QuickEntryKind.TRANSFER, true))
+        assertFalse(showCreditPurchaseShortcut(QuickEntryKind.CARD_PURCHASE, true))
+    }
+
+    @Test
     fun selectedCreditStatementIsExplicitAndClearsOnCardOrDateChanges() {
         val statement = QuickEntryStatementOption("stmt-one", "card-credit", "Δήλωση", 35.0)
         val state = QuickEntryUiState(

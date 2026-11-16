@@ -57,10 +57,14 @@ internal fun canUseCreditCardActions(card: MoneyCard?): Boolean {
     }
 }
 
+/** An unavailable or invalid credit debt is not equivalent to a settled balance. */
+internal fun hasPayableCreditDebt(outstanding: Double?): Boolean =
+    outstanding != null && outstanding.isFinite() && outstanding > 0.005
+
 internal fun canOpenCreditCardQuickEntry(card: MoneyCard?, payment: Boolean): Boolean =
     canUseCreditCardActions(card) &&
         (!payment || card != null &&
-            (creditWorkspaceFinancialSnapshot(card).outstanding ?: 0.0) > 0.005)
+            hasPayableCreditDebt(creditWorkspaceFinancialSnapshot(card).outstanding))
 
 internal fun creditWorkspaceFinancialSnapshot(card: MoneyCard): CreditWorkspaceFinancialSnapshot {
     val outstanding = card.currentBalance.takeIf(Double::isFinite)?.coerceAtLeast(0.0)
@@ -192,13 +196,30 @@ fun InlineCreditCardWorkspace(
                             )
                         }
                     }
-                    Button(
-                        onClick = onPayCard,
-                        enabled = (financial.outstanding ?: 0.0) > 0.005,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Πληρωμή κάρτας") }
-                    OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
-                        Text("Καταχώριση αγοράς")
+                    if (hasPayableCreditDebt(financial.outstanding)) {
+                        Button(onClick = onPayCard, modifier = Modifier.fillMaxWidth()) {
+                            Text("Πληρωμή κάρτας")
+                        }
+                        OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
+                            Text("Καταχώριση αγοράς")
+                        }
+                    } else {
+                        Button(
+                            onClick = onAddPurchase,
+                            modifier = Modifier.fillMaxWidth().testTag("inline_credit_purchase_primary"),
+                        ) { Text("Καταχώριση αγοράς") }
+                        OutlinedButton(
+                            onClick = onPayCard,
+                            enabled = false,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("Πληρωμή κάρτας") }
+                        Text(
+                            if (financial.outstanding == null) "Η οφειλή δεν είναι διαθέσιμη."
+                            else "Δεν υπάρχει οφειλή προς εξόφληση.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.testTag("inline_credit_payment_unavailable_reason"),
+                        )
                     }
                 }
                 TextButton(onClick = onOpenDetails) { Text("Στοιχεία / διαχείριση κάρτας") }

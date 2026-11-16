@@ -135,6 +135,23 @@ class ProductionQuickEntryScreenTest {
     }
 
     @Test
+    fun purchaseShortcutIsContextualAndDoesNotPolluteIncomeOrTransfer() {
+        var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(state = state, onAction = {}, onBack = {})
+            }
+        }
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").assertExists()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.INCOME) }
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").assertDoesNotExist()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.TRANSFER) }
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").assertDoesNotExist()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.EXPENSE).copy(creditCards = emptyList()) }
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").assertDoesNotExist()
+    }
+
+    @Test
     fun fullDraftValidationGatesDateCardAndTransferSelections() {
         var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
         composeRule.setContent {
