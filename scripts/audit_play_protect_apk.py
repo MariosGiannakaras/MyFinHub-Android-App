@@ -96,20 +96,32 @@ def apk_check(path, release, expected_signer, aapt, apksigner):
     if unexpected:
         raise AuditError("Unexpected dangerous APK permissions: " + ", ".join(sorted(unexpected)))
     output = run(apksigner, "verify", "--verbose", "--print-certs", str(path))
+    # apksigner may print the same certificate for multiple signing schemes;
+    # duplicate identical digests are not multiple different signing identities.
     signers = [x.replace(":", "").lower() for x in re.findall(
-        r"Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9:]+)", output)]
-    if len(signers) != 1 or signers[0] != expected_signer:
-        raise AuditError("APK signature or enrolled release certificate mismatch")
-    return signers[0], sorted(perms)
+        r"Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9:]+)", output, re.IGNORECASE)]
+    if not signers or set(signers) != {expected_signer}:
+        labels = [re.sub(r"([a-fA-F0-9]{64})", "<redacted-digest>", line.strip())
+                  for line in output.splitlines() if "SHA-256" in line]
+        raise AuditError(
+            "APK signer parse/certificate mismatch: parsed="
+            + str(len(signers)) + ", unique=" + str(len(set(signers)))
+            + ", metadata_match=" + str(expected_signer in signers)
+            + ", verifier_labels=" + str(labels[:5])
+        )
+    return expected_signer, sorted(perms)
 
 
 def inspect(kind, apk, meta, aapt, apksigner):
-    release = RELEASES[kind]
-    digest, expected_signer = metadata_check(apk, meta, release)
-    entries, dex = validate_zip(apk)
-    signer, perms = apk_check(apk, release, expected_signer, aapt, apksigner)
-    return {"digest": digest, "signer": signer, "perms": perms, "size": apk.stat().st_size,
-            "entries": entries, "dex": dex, "version": release[0]}
+    try:
+        release = RELEASES[kind]
+        digest, expected_signer = metadata_check(apk, meta, release)
+        entries, dex = validate_zip(apk)
+        signer, perms = apk_check(apk, release, expected_signer, aapt, apksigner)
+        return {"digest": digest, "signer": signer, "perms": perms, "size": apk.stat().st_size,
+                "entries": entries, "dex": dex, "version": release[0]}
+    except AuditError as exc:
+        raise AuditError(kind + ": " + str(exc)) from exc
 
 
 def report(a, b):
