@@ -1226,9 +1226,9 @@
         ]
       }
     ],
-    "next_action": "PR #468 all six final-head gates green and merged develop eaccc86c02b91cbe4f4e21da536fa8d396f70852. Next audit Stage B sub-batch on android/d7-home-cache-provenance-20261116 adds an offline cache-origin Home notice and real pending mutation count based only on canonical local state, not a guessed server sync timestamp. Review rendered screenshot evidence and pass all exact-head gates before merge; no APK, backend or production financial changes. External GET400, missing two card purchases, Play Protect and owner physical D7 remain blocked. D7 6/8, W6.4 5/6 and 23/24; D8 separate.",
+    "next_action": "PR #468 all six final-head gates green and merged develop eaccc86c02b91cbe4f4e21da536fa8d396f70852. Current draft PR #469 (head: f146ae93e2e111525eee80b390a7baf7778f12f9) at android/d7-home-cache-provenance-20261116 adds an offline cache-origin Home notice and real pending mutation count based only on canonical local state, not a guessed server sync timestamp. Review rendered screenshot evidence and pass all exact-head gates before merge; no APK, backend or production financial changes. External GET400, missing two card purchases, Play Protect and owner physical D7 remain blocked. D7 6/8, W6.4 5/6 and 23/24; D8 separate.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": null,
+    "pr": 469,
     "current_subtask": "W6.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   },
