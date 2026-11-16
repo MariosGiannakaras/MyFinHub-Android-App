@@ -83,6 +83,9 @@ fun ProductionHomeScreen(
     accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
     accountMetadataLoaded: Boolean = false,
     canOpenRecent: (String) -> Boolean = { true },
+    /** Set only for canonical finance data rendered without a freshly accepted server read. */
+    financeCacheMode: Boolean = false,
+    pendingFinanceChanges: Int = 0,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -146,6 +149,39 @@ fun ProductionHomeScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.lg),
         ) {
+            if (financeCacheMode) {
+                item(key = "home-finance-cache") {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("home_finance_cache_notice"),
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(MyFinHubSpacing.md),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                        ) {
+                            Text(
+                                "Αποθηκευμένα οικονομικά στοιχεία",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                "Η υπηρεσία δεν έχει επιβεβαιώσει νέα ανάγνωση. Τα υπόλοιπα μπορεί να μην είναι ενημερωμένα.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (pendingFinanceChanges > 0) {
+                                Text(
+                                    "Εκκρεμούν $pendingFinanceChanges τοπικές αλλαγές για συγχρονισμό.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             item {
                 HomeAvailableSummary(
                     amount = state.liquidTotal,
