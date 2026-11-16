@@ -1,0 +1,68 @@
+name: Audit published Android APKs
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/audit-published-android-apks.yml
+      - scripts/audit_play_protect_apk.py
+      - scripts/test_audit_play_protect_apk.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signed-apk-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Run standalone audit tests
+        run: python3 -m unittest discover -s scripts -p 'test_audit_play_protect_apk.py'
+      - name: Configure Java for Android SDK inspection
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare Android inspection tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          # sdkmanager is not on PATH on ubuntu-24.04; use the project's pinned SDK locator.
+          bash scripts/install-android-sdk.sh
+          test -x "$ANDROID_HOME/build-tools/37.0.0/aapt"
+          test -x "$ANDROID_HOME/build-tools/37.0.0/apksigner"
+      - name: Obtain published signed APKs and safe release metadata
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for variant in "rc16 10015" "rc17 10016"; do
+            read -r label number <<< "$variant"
+            mkdir -p "apk-audit/$label"
+            gh release download "v1.0.0-$label" --repo "$GITHUB_REPOSITORY" \
+              --dir "apk-audit/$label" \
+              --pattern "MyFinHub-1.0.0-$label-$number.apk" \
+              --pattern "release-metadata.json"
+          done
+      - name: Inspect only published artifacts; do not install anything
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_play_protect_apk.py \
+            --rc16-apk apk-audit/rc16/MyFinHub-1.0.0-rc16-10015.apk \
+            --rc16-metadata apk-audit/rc16/release-metadata.json \
+            --rc17-apk apk-audit/rc17/MyFinHub-1.0.0-rc17-10016.apk \
+            --rc17-metadata apk-audit/rc17/release-metadata.json \
+            --aapt "$ANDROID_HOME/build-tools/37.0.0/aapt" \
+            --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner" \
+            --report "$RUNNER_TEMP/published-apk-audit.md"
+          cat "$RUNNER_TEMP/published-apk-audit.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload text report only, never APKs
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: published-apk-audit-report
+          path: ${{ runner.temp }}/published-apk-audit.md
+          retention-days: 14
