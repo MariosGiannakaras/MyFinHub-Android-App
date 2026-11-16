@@ -3,6 +3,8 @@ package app.myfinhub.android.feature.quickentry
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
@@ -132,6 +134,23 @@ class ProductionQuickEntryScreenTest {
             assertEquals("card-credit", state.cardId)
         }
         composeRule.onNodeWithText("Πιστωτική κάρτα").fetchSemanticsNode()
+    }
+
+    @Test
+    fun purchaseShortcutIsContextualAndDoesNotPolluteIncomeOrTransfer() {
+        var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(state = state, onAction = {}, onBack = {})
+            }
+        }
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").assertExists()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.INCOME) }
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").assertDoesNotExist()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.TRANSFER) }
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").assertDoesNotExist()
+        composeRule.runOnIdle { state = validState(QuickEntryKind.EXPENSE).copy(creditCards = emptyList()) }
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").assertDoesNotExist()
     }
 
     @Test

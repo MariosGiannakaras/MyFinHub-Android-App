@@ -81,6 +81,25 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         rule.runOnIdle { assertEquals(1, pays) }
     }
 
+    @Test fun zeroDebtHighlightsAvailablePurchaseAndDoesNotEnablePayment() {
+        var purchases = 0
+        var payments = 0
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardDetailScreen(
+                card = credit(debt = 0.0), onBack = {},
+                onAddPurchase = { purchases++ }, onPayCard = { payments++ },
+                amountsVisibleOverride = true,
+            )
+        } }
+        rule.onNodeWithTag("card_detail_purchase_primary").assertIsEnabled().performClick()
+        rule.onNodeWithTag("card_detail_payment_action").assertIsNotEnabled()
+        rule.onNodeWithTag("card_detail_payment_unavailable_reason").assertExists()
+        rule.runOnIdle {
+            assertEquals(1, purchases)
+            assertEquals(0, payments)
+        }
+    }
+
     @Test fun malformedImportedCardLastFourNeverAppearsInDetailOrCardPicker() {
         val imported = credit().copy(last4 = "4242424242424242")
         val valid = imported.copy(id = "second-card", nickname = "Another", last4 = "1881")

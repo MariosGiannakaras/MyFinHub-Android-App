@@ -79,6 +79,27 @@ class InlineCreditCardWorkspaceUiTest {
         assertEquals(1, purchases)
     }
 
+    @Test fun zeroDebtMakesPurchasePrimaryAndKeepsPaymentUnavailable() {
+        var purchases = 0
+        var payments = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                InlineCreditCardWorkspace(
+                    card = credit.copy(currentBalance = 0.0),
+                    statements = listOf(statement),
+                    amountsVisible = true,
+                    onPayCard = { payments++ }, onAddPurchase = { purchases++ },
+                    onOpenActivity = {}, onOpenDetails = {},
+                )
+            }
+        }
+        composeRule.onNodeWithTag("inline_credit_purchase_primary").performClick()
+        composeRule.onNodeWithText("Πληρωμή κάρτας").assertIsNotEnabled()
+        composeRule.onNodeWithTag("inline_credit_payment_unavailable_reason").assertExists()
+        assertEquals(1, purchases)
+        assertEquals(0, payments)
+    }
+
     @Test fun invalidImportedCreditAndHistoryAmountsFailClosedWithoutFakeNumbers() {
         composeRule.setContent {
             MyFinHubTheme {

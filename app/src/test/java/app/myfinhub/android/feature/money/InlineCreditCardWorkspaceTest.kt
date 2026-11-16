@@ -5,6 +5,17 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class InlineCreditCardWorkspaceTest {
+    @Test fun paymentAvailabilityRequiresRealFinitePositiveDebt() {
+        assertEquals(false, hasPayableCreditDebt(null))
+        assertEquals(false, hasPayableCreditDebt(Double.NaN))
+        assertEquals(false, hasPayableCreditDebt(Double.POSITIVE_INFINITY))
+        assertEquals(false, hasPayableCreditDebt(-10.0))
+        assertEquals(false, hasPayableCreditDebt(0.0))
+        assertEquals(false, hasPayableCreditDebt(0.005))
+        assertEquals(true, hasPayableCreditDebt(0.01))
+        assertEquals(true, hasPayableCreditDebt(20.0))
+    }
+
     private fun card(debt: Double, limit: Double?) = MoneyCard(
         id = "credit-1", nickname = "Card", last4 = "1234",
         kind = "Πιστωτική", currentBalance = debt, limit = limit,

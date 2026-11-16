@@ -277,6 +277,16 @@ fun ActivityLedgerScreen(
                         }
                     }
                     if (monthOverviewExpanded) {
+                        if (state.hasActiveListScope) {
+                            item(key = "monthly-overview-scope-note") {
+                                Text(
+                                    "Η σύνοψη αφορά όλες τις κινήσεις του μήνα και δεν επηρεάζεται από τα φίλτρα της λίστας.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.testTag("activity_month_summary_unfiltered_note"),
+                                )
+                            }
+                        }
                         item(key = "monthly-overview") {
                             ActivityMonthlyOverviewSurface(
                                 overview = overview,
