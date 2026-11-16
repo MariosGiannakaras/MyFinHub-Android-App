@@ -1,0 +1,81 @@
+name: Published APK Security Comparison
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - scripts/audit_signed_release_apk.py
+      - scripts/test_signed_release_apk_audit.py
+      - .github/workflows/play-protect-release-apk-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  published-apk-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout audit source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Test audit helpers
+        run: python3 -m unittest discover -s scripts -p 'test_signed_release_apk_audit.py'
+
+      - name: Download only publicly released APKs and sidecar checksums
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/myfinhub-apk-audit/rc16" "$RUNNER_TEMP/myfinhub-apk-audit/rc17"
+          gh release download v1.0.0-rc16 --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/myfinhub-apk-audit/rc16" --pattern '*.apk' --pattern 'SHA256SUMS.txt' --pattern 'release-metadata.json'
+          gh release download v1.0.0-rc17 --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/myfinhub-apk-audit/rc17" --pattern '*.apk' --pattern 'SHA256SUMS.txt' --pattern 'release-metadata.json'
+
+      - name: Setup Java for standard Android APK verifier
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Resolve Android aapt and apksigner
+        id: sdk
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_HOME"
+          tools="$ANDROID_HOME/build-tools/37.0.0"
+          if [[ ! -x "$tools/aapt" || ! -x "$tools/apksigner" ]]; then
+            sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+            test -x "$sdkmanager"
+            "$sdkmanager" 'build-tools;37.0.0' >/dev/null
+          fi
+          test -x "$tools/aapt"
+          test -x "$tools/apksigner"
+          echo "aapt=$tools/aapt" >> "$GITHUB_OUTPUT"
+          echo "apksigner=$tools/apksigner" >> "$GITHUB_OUTPUT"
+
+      - name: Verify actual rc16 and rc17 ZIP, bytes, package, version, permissions and signer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_signed_release_apk.py \
+            --baseline "$RUNNER_TEMP/myfinhub-apk-audit/rc16" \
+            --candidate "$RUNNER_TEMP/myfinhub-apk-audit/rc17" \
+            --aapt '${{ steps.sdk.outputs.aapt }}' \
+            --apksigner '${{ steps.sdk.outputs.apksigner }}' \
+            | tee "$RUNNER_TEMP/myfinhub-apk-audit/result.json"
+          {
+            echo '## Real published rc16/rc17 APK comparison'
+            echo 'This is only an integrity/manifest/signing check, not a malware or Google Play Protect verdict.'
+            echo '~~~json'
+            cat "$RUNNER_TEMP/myfinhub-apk-audit/result.json"
+            echo '~~~'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove APK bytes from ephemeral runner
+        if: always()
+        shell: bash
+        run: rm -rf -- "$RUNNER_TEMP/myfinhub-apk-audit"
