@@ -15,6 +15,9 @@ on:
       - '.github/workflows/android-ui-quality.yml'
       # Protect release-gate changes with the same hosted Android/UI checks.
       - '.github/workflows/production-private-release.yml'
+      - '.github/workflows/play-protect-release-apk-audit.yml'
+      - 'scripts/audit_signed_release_apk.py'
+      - 'scripts/test_signed_release_apk_audit.py'
   workflow_dispatch:
 
 permissions:
