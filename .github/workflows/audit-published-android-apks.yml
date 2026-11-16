@@ -19,11 +19,17 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - name: Run standalone audit tests
         run: python3 -m unittest discover -s scripts -p 'test_audit_play_protect_apk.py'
+      - name: Configure Java for Android SDK inspection
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
       - name: Prepare Android inspection tools
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager --install "build-tools;37.0.0" > /dev/null
+          # sdkmanager is not on PATH on ubuntu-24.04; use the project's pinned SDK locator.
+          bash scripts/install-android-sdk.sh
           test -x "$ANDROID_HOME/build-tools/37.0.0/aapt"
           test -x "$ANDROID_HOME/build-tools/37.0.0/apksigner"
       - name: Obtain published signed APKs and safe release metadata
