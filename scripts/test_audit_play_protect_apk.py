@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from audit_play_protect_apk import AuditError, metadata_check, report, validate_zip, signer_digests
+from audit_play_protect_apk import AuditError, metadata_check, report, validate_zip, signer_digests, zip_diff
 
 
 class PublishedApkAuditTests(unittest.TestCase):
@@ -63,6 +63,17 @@ class PublishedApkAuditTests(unittest.TestCase):
         file.write_bytes(file.read_bytes() + b"tampered")
         with self.assertRaises(AuditError):
             metadata_check(file, metadata, release)
+
+    def test_zip_diff_detects_changed_dex_without_executing_it(self):
+        old = self.apk()
+        new = self.root / "new.apk"
+        with zipfile.ZipFile(new, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("AndroidManifest.xml", "x")
+            z.writestr("classes.dex", "different-dex")
+        difference = zip_diff(old, new)
+        self.assertEqual(["classes.dex"], difference["changed"])
+        self.assertEqual([], difference["added"])
+        self.assertEqual([], difference["removed"])
 
     def test_signer_continuity_required(self):
         a = {"signer": "a" * 64, "perms": [], "version": "rc16", "size": 1,

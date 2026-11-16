@@ -129,7 +129,20 @@ def inspect(kind, apk, meta, aapt, apksigner):
         raise AuditError(kind + ": " + str(exc)) from exc
 
 
-def report(a, b):
+def zip_diff(older, newer):
+    def entries(path):
+        with zipfile.ZipFile(path) as z:
+            return {info.filename: (info.CRC, info.file_size) for info in z.infolist()}
+    before, after = entries(older), entries(newer)
+    names_old, names_new = set(before), set(after)
+    return {
+        "added": sorted(names_new - names_old),
+        "removed": sorted(names_old - names_new),
+        "changed": sorted(n for n in names_old & names_new if before[n] != after[n]),
+    }
+
+
+def report(a, b, diff=None):
     if a["signer"] != b["signer"]:
         raise AuditError("rc16 and rc17 are signed by different certificates")
     added = sorted(set(b["perms"]) - set(a["perms"]))
@@ -141,6 +154,15 @@ def report(a, b):
     ]
     for label, key in [("Version", "version"), ("Size (bytes)", "size"), ("ZIP entries", "entries"), ("DEX files", "dex")]:
         lines.append(f"| {label} | {a[key]} | {b[key]} |")
+    if diff is not None:
+        lines.extend([
+            "",
+            "- Added APK ZIP entries: " + (", ".join(diff["added"][:30]) if diff["added"] else "none"),
+            "- Removed APK ZIP entries: " + (", ".join(diff["removed"][:30]) if diff["removed"] else "none"),
+            "- Changed-entry count (CRC/size): " + str(len(diff["changed"])),
+            "- Changed APK ZIP entries (up to 30): " +
+            (", ".join(diff["changed"][:30]) if diff["changed"] else "none"),
+        ])
     lines += ["", "- Identical enrolled signer: " + a["signer"],
               "- rc16 SHA-256: " + a["digest"], "- rc17 SHA-256: " + b["digest"],
               "- Added permissions: " + (", ".join(added) if added else "none"),
@@ -164,7 +186,7 @@ def main():
     try:
         older = inspect("rc16", args.rc16_apk, args.rc16_metadata, args.aapt, args.apksigner)
         newer = inspect("rc17", args.rc17_apk, args.rc17_metadata, args.aapt, args.apksigner)
-        output = report(older, newer)
+        output = report(older, newer, zip_diff(args.rc16_apk, args.rc17_apk))
         args.report.write_text(output, encoding="utf-8")
         print(output)
         return 0

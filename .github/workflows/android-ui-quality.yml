@@ -15,6 +15,10 @@ on:
       - '.github/workflows/android-ui-quality.yml'
       # Protect release-gate changes with the same hosted Android/UI checks.
       - '.github/workflows/production-private-release.yml'
+      # Keep published binary evidence checks under the same hosted Android/UI gates.
+      - '.github/workflows/audit-published-android-apks.yml'
+      - 'scripts/audit_play_protect_apk.py'
+      - 'scripts/test_audit_play_protect_apk.py'
   workflow_dispatch:
 
 permissions:
