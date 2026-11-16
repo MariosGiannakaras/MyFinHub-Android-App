@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from audit_play_protect_apk import AuditError, metadata_check, report, validate_zip
+from audit_play_protect_apk import AuditError, metadata_check, report, validate_zip, signer_digests
 
 
 class PublishedApkAuditTests(unittest.TestCase):
@@ -26,6 +26,17 @@ class PublishedApkAuditTests(unittest.TestCase):
         if prefix:
             file.write_bytes(prefix + file.read_bytes())
         return file
+
+    def test_v3_apksigner_certificate_line(self):
+        value = "a" * 64
+        self.assertEqual([value], signer_digests(
+            "V3.0 Signer: certificate SHA-256 digest: " + value + "\n"
+            + "V3.0 Signer: public key SHA-256 digest: " + "b" * 64))
+
+    def test_legacy_apksigner_certificate_line(self):
+        value = "c" * 64
+        self.assertEqual([value], signer_digests(
+            "Signer #1 certificate SHA-256 digest: " + value))
 
     def test_valid_archive(self):
         self.assertEqual(1, validate_zip(self.apk())[1])

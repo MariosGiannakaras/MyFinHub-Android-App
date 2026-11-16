@@ -82,6 +82,12 @@ def run(*args):
         raise AuditError("Android tool failed: " + args[0]) from exc
 
 
+def signer_digests(output):
+    """Handle both Android V3.0 Signer and older Signer #1 apksigner labels."""
+    return [value.lower() for value in re.findall(
+        r"certificate SHA-256 digest:\s*([a-fA-F0-9]{64})", output, re.IGNORECASE)]
+
+
 def apk_check(path, release, expected_signer, aapt, apksigner):
     name, code, _ = release
     badging = run(aapt, "dump", "badging", str(path))
@@ -98,8 +104,7 @@ def apk_check(path, release, expected_signer, aapt, apksigner):
     output = run(apksigner, "verify", "--verbose", "--print-certs", str(path))
     # apksigner may print the same certificate for multiple signing schemes;
     # duplicate identical digests are not multiple different signing identities.
-    signers = [x.replace(":", "").lower() for x in re.findall(
-        r"Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9:]+)", output, re.IGNORECASE)]
+    signers = signer_digests(output)
     if not signers or set(signers) != {expected_signer}:
         labels = [re.sub(r"([a-fA-F0-9]{64})", "<redacted-digest>", line.strip())
                   for line in output.splitlines() if "SHA-256" in line]
