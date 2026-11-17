@@ -103,35 +103,7 @@ internal fun projectQuickEntryState(
     val selectedAsOf = runCatching { LocalDate.parse(base.dateText) }.getOrDefault(today).toString()
     // Web recommendedPayableStatement precedence: due > closed > open.
     // Only the user may choose a link; never silently allocate a repayment.
-    val sourceStatementIdCounts = document.canonicalStatementSourceIdCounts()
-    val creditStatements = document.creditStatementViews(selectedCard, selectedAsOf)
-        .filter {
-            it.id.isNotBlank() && sourceStatementIdCounts[it.id] == 1 &&
-                it.remaining.isFinite() && it.remaining > 0.005
-        }
-        .sortedWith(compareBy<app.myfinhub.android.core.data.CanonicalCreditStatementView> {
-            when (it.status) {
-                "due" -> 0
-                "closed" -> 1
-                "open" -> 2
-                else -> 3
-            }
-        }.thenBy { it.dueDate }.thenBy { it.closeDate }.thenBy { it.id })
-        .map { statement ->
-            val statusLabel = when (statement.status) {
-                "due" -> "Ληξιπρόθεσμη"
-                "closed" -> "Κλειστή"
-                else -> "Ανοιχτή"
-            }
-            QuickEntryStatementOption(
-                id = statement.id,
-                cardId = statement.cardId,
-                label = statusLabel + " · " + statement.closeDate +
-                    " · έως " + statement.dueDate + " · " +
-                    String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", statement.remaining) + " €",
-                remaining = statement.remaining,
-            )
-        }
+    val creditStatements = projectPayableCreditStatements(document, selectedCard, selectedAsOf)
     val selectedStatementId = base.statementId.takeIf { id ->
         creditStatements.count { it.id == id && it.cardId == selectedCard } == 1
     }.orEmpty()
@@ -182,6 +154,73 @@ internal fun projectQuickEntryState(
         defaultExpenseAccountId = defaultExpenseId,
         defaultIncomeAccountId = defaultIncomeId,
     )
+}
+
+/**
+ * User actions which change the payment card, transaction date or transaction kind
+ * invalidate the statement options calculated at the previous snapshot. Recalculate
+ * against the current local canonical projection without doing a server fetch.
+ * The ordinary reducer still owns dirty flags and clears stale statement selection.
+ */
+internal fun reduceQuickEntryWithCanonicalStatements(
+    document: CanonicalFinanceDocument,
+    state: QuickEntryUiState,
+    action: app.myfinhub.android.feature.quickentry.QuickEntryAction,
+    today: LocalDate,
+): QuickEntryUiState {
+    val reduced = app.myfinhub.android.feature.quickentry.reduceQuickEntry(state, action)
+    return when (action) {
+        is app.myfinhub.android.feature.quickentry.QuickEntryAction.CardChanged,
+        is app.myfinhub.android.feature.quickentry.QuickEntryAction.DateChanged,
+        is app.myfinhub.android.feature.quickentry.QuickEntryAction.SelectKind,
+        app.myfinhub.android.feature.quickentry.QuickEntryAction.Reset -> {
+            val asOf = runCatching { LocalDate.parse(reduced.dateText) }
+                .getOrDefault(today).toString()
+            reduced.copy(
+                creditStatements = projectPayableCreditStatements(
+                    document, reduced.cardId, asOf,
+                ),
+            )
+        }
+        else -> reduced
+    }
+}
+
+/** Server-sourced statement IDs must remain unique across every physical source row. */
+private fun projectPayableCreditStatements(
+    document: CanonicalFinanceDocument,
+    cardId: String,
+    asOf: String,
+): List<QuickEntryStatementOption> {
+    val sourceStatementIdCounts = document.canonicalStatementSourceIdCounts()
+    return document.creditStatementViews(cardId, asOf)
+        .filter {
+            it.id.isNotBlank() && sourceStatementIdCounts[it.id] == 1 &&
+                it.remaining.isFinite() && it.remaining > 0.005
+        }
+        .sortedWith(compareBy<app.myfinhub.android.core.data.CanonicalCreditStatementView> {
+            when (it.status) {
+                "due" -> 0
+                "closed" -> 1
+                "open" -> 2
+                else -> 3
+            }
+        }.thenBy { it.dueDate }.thenBy { it.closeDate }.thenBy { it.id })
+        .map { statement ->
+            val statusLabel = when (statement.status) {
+                "due" -> "Ληξιπρόθεσμη"
+                "closed" -> "Κλειστή"
+                else -> "Ανοιχτή"
+            }
+            QuickEntryStatementOption(
+                id = statement.id,
+                cardId = statement.cardId,
+                label = statusLabel + " · " + statement.closeDate +
+                    " · έως " + statement.dueDate + " · " +
+                    String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", statement.remaining) + " €",
+                remaining = statement.remaining,
+            )
+        }
 }
 
 private fun cardProviderLabel(raw: String): String = when (raw.trim().lowercase()) {

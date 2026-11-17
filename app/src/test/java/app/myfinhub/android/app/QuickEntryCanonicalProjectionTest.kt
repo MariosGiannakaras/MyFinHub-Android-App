@@ -44,6 +44,101 @@ class QuickEntryCanonicalProjectionTest {
 
 
     @Test
+    fun interactivePaymentDraft_refreshesPayableStatementsWhenCardDateKindAndResetChange() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement(
+            """
+            {"seed":{"accounts":[{"id":"payroll","kind":"bank","name":"Μισθοδοσία"}]},
+             "state":{"cards":[
+                {"id":"c1","kind":"credit","active":true,"network":"visa"},
+                {"id":"c2","kind":"credit","active":true,"network":"mastercard"}
+             ],"creditStatements":[
+                {"id":"stmt-c1","cardId":"c1","openDate":"2026-09-26",
+                 "closeDate":"2026-10-25","dueDate":"2026-11-05"},
+                {"id":"stmt-c2","cardId":"c2","openDate":"2026-09-26",
+                 "closeDate":"2026-10-25","dueDate":"2026-11-05"}
+             ],"events":[
+                {"id":"purchase-c1","kind":"card_purchase","date":"2026-10-01",
+                 "amount":20,"cardId":"c1","statementId":"stmt-c1"},
+                {"id":"purchase-c2","kind":"card_purchase","date":"2026-10-10",
+                 "amount":30,"cardId":"c2","statementId":"stmt-c2"}
+             ],"settings":{}}}
+            """.trimIndent(),
+        ).jsonObject)
+        val today = LocalDate.parse("2026-10-15")
+        val initial = projectQuickEntryState(doc, today, QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PAYMENT,
+            cardId = "c1",
+            fromAccountId = "payroll",
+            dateText = today.toString(),
+            statementId = "stmt-c1",
+            amountText = "10",
+            note = "Εξόφληση",
+            dirty = true,
+        ))
+        assertEquals(listOf("stmt-c1"), initial.creditStatements.map { it.id })
+        assertEquals("stmt-c1", initial.statementId)
+
+        val cardSwitched = reduceQuickEntryWithCanonicalStatements(
+            doc, initial,
+            app.myfinhub.android.feature.quickentry.QuickEntryAction.CardChanged("c2"),
+            today,
+        )
+        assertEquals("c2", cardSwitched.cardId)
+        assertEquals("", cardSwitched.statementId)
+        assertEquals(listOf("stmt-c2"), cardSwitched.creditStatements.map { it.id })
+        assertEquals("10", cardSwitched.amountText)
+        assertEquals("Εξόφληση", cardSwitched.note)
+        assertTrue(cardSwitched.dirty)
+
+        val earlierDate = reduceQuickEntryWithCanonicalStatements(
+            doc, cardSwitched,
+            app.myfinhub.android.feature.quickentry.QuickEntryAction.DateChanged("2026-10-05"),
+            today,
+        )
+        assertTrue(earlierDate.creditStatements.isEmpty())
+        assertEquals("", earlierDate.statementId)
+        val laterDate = reduceQuickEntryWithCanonicalStatements(
+            doc, earlierDate,
+            app.myfinhub.android.feature.quickentry.QuickEntryAction.DateChanged("2026-10-15"),
+            today,
+        )
+        assertEquals(listOf("stmt-c2"), laterDate.creditStatements.map { it.id })
+
+        val selected = reduceQuickEntryWithCanonicalStatements(
+            doc, laterDate,
+            app.myfinhub.android.feature.quickentry.QuickEntryAction.StatementChanged("stmt-c2"),
+            today,
+        )
+        assertEquals("stmt-c2", selected.statementId)
+
+        val otherKind = reduceQuickEntryWithCanonicalStatements(
+            doc, selected,
+            app.myfinhub.android.feature.quickentry.QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE),
+            today,
+        )
+        val backToPayment = reduceQuickEntryWithCanonicalStatements(
+            doc, otherKind,
+            app.myfinhub.android.feature.quickentry.QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT),
+            today,
+        )
+        assertEquals("c1", backToPayment.cardId)
+        assertEquals(listOf("stmt-c1"), backToPayment.creditStatements.map { it.id })
+        assertEquals("", backToPayment.statementId)
+
+        val reset = reduceQuickEntryWithCanonicalStatements(
+            doc, selected,
+            app.myfinhub.android.feature.quickentry.QuickEntryAction.Reset,
+            today,
+        )
+        assertEquals("", reset.statementId)
+        assertEquals(
+            projectQuickEntryState(doc, LocalDate.parse(reset.dateText), reset).creditStatements,
+            reset.creditStatements,
+        )
+        assertFalse(reset.dirty)
+    }
+
+    @Test
     fun creditPurchaseQuickEntry_isNotSilentlyConvertedToPayrollExpense() {
         val document = projectionFixture()
         val date = LocalDate.parse("2026-09-02")
