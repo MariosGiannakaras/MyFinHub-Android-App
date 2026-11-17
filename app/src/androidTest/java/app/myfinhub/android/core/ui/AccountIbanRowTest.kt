@@ -54,7 +54,7 @@ class AccountIbanRowTest {
         composeRule.setContent {
             MyFinHubTheme { AccountIbanRow(null, loaded = true, amountsVisible = true) }
         }
-        composeRule.onNodeWithText("Δεν έχει οριστεί").assertExists()
+        composeRule.onNodeWithText("IBAN δεν έχει οριστεί").assertExists()
         composeRule.onNodeWithText("Αντιγραφή").assertDoesNotExist()
     }
 }

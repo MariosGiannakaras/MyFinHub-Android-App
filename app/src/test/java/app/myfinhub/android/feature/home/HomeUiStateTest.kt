@@ -62,4 +62,27 @@ class HomeUiStateTest {
         val primary = homePrimaryAccounts(accounts)
         assertEquals(listOf("cash", "piraeus-savings"), primary.map(HomeAccount::id))
     }
+    @Test
+    fun historyCaptionDoesNotInventAbsentMonthBoundaryOrLeakBalances() {
+        val accounts = syntheticHomeUiState().accounts
+        val cash = accounts.first { it.primaryRole == HomePrimaryRole.CASH }
+        val savings = accounts.first { it.primaryRole == HomePrimaryRole.SAVINGS }
+        assertEquals("Προηγ. μήνας · Τρέχων μήνας", homeHistoryPeriodCaption(cash))
+        assertEquals(
+            "Ιστορικό υπολοίπου",
+            homeHistoryPeriodCaption(cash.copy(monthBoundaryIndex = 0)),
+        )
+        assertEquals(
+            "Τρέχων μήνας · Προηγ. μήνας · Στόχος",
+            homeHistoryPeriodCaption(savings),
+        )
+        val history = homeHistoryAccessibilityDescription(savings)
+        assertTrue(history.contains("σύγκριση με προηγούμενο μήνα"))
+        assertFalse(history.contains("6240"))
+        assertFalse(history.contains("7000"))
+        assertFalse(history.contains("€"))
+        assertFalse(homeHistoryAccessibilityDescription(cash.copy(monthBoundaryIndex = 0))
+            .contains("προηγούμενος και τρέχων μήνας"))
+    }
+
 }
