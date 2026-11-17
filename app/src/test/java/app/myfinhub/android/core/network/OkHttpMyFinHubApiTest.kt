@@ -120,6 +120,47 @@ class OkHttpMyFinHubApiTest {
         assertEquals(ApiFailureKind.REVISION_CONFLICT, result.kind)
     }
 
+
+    @Test
+    fun cardSecretCleanup409_preservesSafeCodeAndDoesNotPretendRevisionConflict() = runBlocking {
+        val requestId = "123e4567-e89b-42d3-a456-426614174000"
+        val interceptor = SequencedRecordingInterceptor(
+            listOf(
+                SyntheticResponse(200, """{"available":true,"generation":"41","financeRevision":"7"}"""),
+                SyntheticResponse(409,
+                    """{"code":"CARD_CLEANUP_INTENT_REQUIRED","requestId":"$requestId","message":"private PAN CVV"}"""),
+            ),
+        )
+        val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
+        val document = CanonicalFinanceDocument(
+            Json.parseToJsonElement("""{"updatedAt":"2026-08-22T00:00:00Z","state":{},"seed":{}}""").jsonObject,
+        )
+
+        val result = api.saveMutableState(session, document, "7") as ApiResult.Failure
+
+        assertEquals(ApiFailureKind.CARD_CLEANUP_REQUIRED, result.kind)
+        assertEquals("CARD_CLEANUP_INTENT_REQUIRED", result.serverCode)
+        assertEquals(requestId, result.requestId)
+        assertEquals(409, result.statusCode)
+        assertFalse(result.toString().contains("private PAN CVV"))
+        assertEquals(2, interceptor.requests.size)
+    }
+
+    @Test
+    fun revisionConflict409_keepsSafeCorrelationWithoutUntrustedMessage() = runBlocking {
+        val requestId = "123e4567-e89b-42d3-a456-426614174000"
+        val interceptor = RecordingInterceptor(409,
+            """{"code":"REVISION_CONFLICT","requestId":"$requestId","message":"sensitive"}""")
+        val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
+
+        val result = api.loadFinanceData(session) as ApiResult.Failure
+
+        assertEquals(ApiFailureKind.REVISION_CONFLICT, result.kind)
+        assertEquals("REVISION_CONFLICT", result.serverCode)
+        assertEquals(requestId, result.requestId)
+        assertFalse(result.toString().contains("sensitive"))
+    }
+
     @Test
     fun unauthorizedResponse_failsClosedAsAuthRequired() = runBlocking {
         val interceptor = RecordingInterceptor(401, """{"error":"invalid bearer"}""")

@@ -38,6 +38,24 @@ class UserNoticeTest {
         assertEquals("MFH-API-INVALID_DATA-400", notice.diagnosticCode)
     }
 
+
+    @Test
+    fun pendingCardCleanup_showsActionableNonRevisionNoticeAndBoundedCorrelation() {
+        val id = "123e4567-e89b-42d3-a456-426614174000"
+        val notice = ApiResult.Failure(
+            kind = ApiFailureKind.CARD_CLEANUP_REQUIRED,
+            statusCode = 409,
+            serverCode = "CARD_CLEANUP_INTENT_REQUIRED",
+            requestId = id,
+        ).toUserNotice("Αποθήκευση οικονομικών δεδομένων")
+
+        assertTrue(notice.message.contains("διαγραφή"))
+        assertFalse(notice.message.contains("άλλαξαν αλλού"))
+        assertTrue(notice.details.contains("CARD_CLEANUP_INTENT_REQUIRED"))
+        assertTrue(notice.details.contains("Αναγνωριστικό αιτήματος: $id"))
+        assertEquals("MFH-API-CARD_CLEANUP_REQUIRED-409", notice.diagnosticCode)
+    }
+
     @Test
     fun authFailure_doesNotExposeGatewayMessage() {
         val secretGatewayMessage = "token=secret-token user@example.com"
