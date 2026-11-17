@@ -1030,10 +1030,16 @@ private fun ReferenceDeleteConfirmation(
             Column(modifier = Modifier.weight(1f)) {
                 Text("Αρχειοθέτηση κάρτας;", color = Color.White, fontWeight = FontWeight.Bold)
                 Text(
-                    "Σύρε δεξιά για αφαίρεση από τις ενεργές κάρτες. Οι κινήσεις και οι οφειλές διατηρούνται. Δεν ακυρώνεται η τραπεζική κάρτα.",
+                    "Σύρε δεξιά ή πάτησε ✓ για αρχειοθέτηση. Οι κινήσεις και οι οφειλές διατηρούνται. Δεν ακυρώνεται η τραπεζική κάρτα.",
                     color = Color.White.copy(alpha = .76f),
                     fontSize = 12.sp,
                 )
+            }
+            // The first tap arms this confirmation. An explicit accessible
+            // second tap avoids requiring a horizontal drag on a touch screen.
+            // Keep the existing swipe and keyboard confirmation paths intact.
+            ReferenceActionButton(label = "Επιβεβαίωση αρχειοθέτησης", onClick = onCommit) {
+                Text("✓", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
             ReferenceActionButton(label = "Ακύρωση", onClick = onCancel) {
                 ReferenceCloseGlyph(Color.White)
