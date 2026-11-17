@@ -62,7 +62,7 @@ class WebFinancialProviderApiContractTest {
         }
     }
 
-    @Test fun malformedProviderPayloadAndServerMfaFailClosed() = runBlocking {
+    @Test fun malformedProviderPayloadAndUntrusted403FailClosed() = runBlocking {
         MockWebServer().use { server ->
             server.start()
             server.enqueue(MockResponse.Builder().code(200).body("{}").build())
@@ -72,7 +72,7 @@ class WebFinancialProviderApiContractTest {
             val forbidden=api.loadFinancialProviders(owner) as ApiResult.Failure
             assertEquals(ApiFailureKind.MALFORMED_RESPONSE,invalid.kind)
             assertEquals(200,invalid.statusCode)
-            assertEquals(ApiFailureKind.MFA_REQUIRED,forbidden.kind)
+            assertEquals(ApiFailureKind.FORBIDDEN,forbidden.kind)
             assertEquals(403,forbidden.statusCode)
             assertFalse(forbidden.toString().contains("private server detail"))
         }

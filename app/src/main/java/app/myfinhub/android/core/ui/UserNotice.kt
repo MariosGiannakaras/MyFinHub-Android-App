@@ -79,6 +79,7 @@ fun apiFailureMessage(kind: ApiFailureKind): String = when (kind) {
     ApiFailureKind.BUILD_NOT_CONFIGURED -> "Η εφαρμογή δεν έχει έγκυρη ρύθμιση σύνδεσης με το MyFinHub."
     ApiFailureKind.AUTH_REQUIRED -> "Η συνεδρία έληξε. Χρειάζεται νέα σύνδεση."
     ApiFailureKind.MFA_REQUIRED -> "Χρειάζεται ξανά επαλήθευση δύο παραγόντων."
+    ApiFailureKind.FORBIDDEN -> "Δεν επιτρέπεται η πρόσβαση σε αυτή τη λειτουργία του MyFinHub."
     ApiFailureKind.REVISION_CONFLICT -> "Τα δεδομένα άλλαξαν αλλού και χρειάζονται συγχρονισμό."
     ApiFailureKind.PRECONDITION_REQUIRED -> "Δεν υπάρχει έγκυρη έκδοση δεδομένων για ασφαλή αποθήκευση."
     ApiFailureKind.INVALID_DATA -> "Τα δεδομένα δεν έγιναν δεκτά από το MyFinHub."

@@ -174,6 +174,59 @@ class OkHttpMyFinHubApiTest {
         assertEquals(ApiFailureKind.MFA_REQUIRED, result.kind)
         assertEquals(null, interceptor.request)
     }
+    @Test
+    fun forbidden403_isNotMisreportedAsMfa_andPreservesSafeCorrelation() = runBlocking {
+        val requestId = "123e4567-e89b-42d3-a456-426614174000"
+        val interceptor = RecordingInterceptor(403,
+            """{"code":"FORBIDDEN","requestId":"$requestId","error":"sensitive server text"}""")
+        val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
+
+        val result = api.loadFinanceData(session) as ApiResult.Failure
+
+        assertEquals(ApiFailureKind.FORBIDDEN, result.kind)
+        assertEquals("FORBIDDEN", result.serverCode)
+        assertEquals(requestId, result.requestId)
+        assertEquals(403, result.statusCode)
+    }
+
+    @Test
+    fun explicitMfa403_requiresVerificationInsteadOfTreatingOwnerAsForbidden() = runBlocking {
+        val interceptor = RecordingInterceptor(403, """{"code":"MFA_REQUIRED"}""")
+        val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
+
+        val result = api.loadFinanceData(session) as ApiResult.Failure
+
+        assertEquals(ApiFailureKind.MFA_REQUIRED, result.kind)
+        assertEquals("MFA_REQUIRED", result.serverCode)
+    }
+
+    @Test
+    fun ambiguous403_failsClosedAsPermissionDenial() = runBlocking {
+        val interceptor = RecordingInterceptor(403, """{"code":"ATTACKER_CONTROLLED","requestId":"not-a-uuid"}""")
+        val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
+
+        val result = api.loadFinanceData(session) as ApiResult.Failure
+
+        assertEquals(ApiFailureKind.FORBIDDEN, result.kind)
+        assertEquals(null, result.serverCode)
+        assertEquals(null, result.requestId)
+    }
+
+    @Test
+    fun invalidFinanceRead_preservesOnlyAllowlistedServerCodeAndUuid() = runBlocking {
+        val requestId = "123e4567-e89b-42d3-a456-426614174000"
+        val interceptor = RecordingInterceptor(400,
+            """{"code":"INVALID_DATA","requestId":"$requestId","error":"card 4111111111111111 CVV 123"}""")
+        val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
+
+        val result = api.loadFinanceData(session) as ApiResult.Failure
+
+        assertEquals(ApiFailureKind.INVALID_DATA, result.kind)
+        assertEquals("INVALID_DATA", result.serverCode)
+        assertEquals(requestId, result.requestId)
+        assertEquals(400, result.statusCode)
+    }
+
 }
 
 private class RecordingInterceptor(
