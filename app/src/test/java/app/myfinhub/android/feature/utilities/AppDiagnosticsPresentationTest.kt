@@ -48,6 +48,13 @@ class AppDiagnosticsPresentationTest {
 
         assertEquals("Η υπηρεσία MyFinHub δεν ήταν προσωρινά διαθέσιμη.", value)
     }
+
+    @Test
+    fun pendingCardCleanup_supportCodeExplainsSafeDeleteBlocker() {
+        val value = diagnosticCodeDescription("MFH-API-CARD_CLEANUP_REQUIRED-409")
+        assertTrue(value?.contains("εκκρεμή ασφαλή διαγραφή") == true)
+    }
+
     @Test
     fun forbiddenSupportCode_isDescribedAsAccessDenialNotMfa() {
         val value = diagnosticCodeDescription("MFH-API-FORBIDDEN-403")

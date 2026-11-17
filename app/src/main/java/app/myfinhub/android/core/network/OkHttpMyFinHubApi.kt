@@ -460,7 +460,18 @@ class OkHttpMyFinHubApi(
                         )
                     }
                     status == 404 && notFoundKind != null -> ApiResult.Failure(notFoundKind, statusCode = status)
-                    status == 409 -> ApiResult.Failure(ApiFailureKind.REVISION_CONFLICT, statusCode = status)
+                    status == 409 -> {
+                        // The Web finance server rejects saves while card-secret cleanup is
+                        // pending. That is not a revision mismatch; never offer a stale retry.
+                        val (serverCode, requestId) = safeFinanceErrorMetadata(body)
+                        ApiResult.Failure(
+                            kind = if (serverCode == "CARD_CLEANUP_INTENT_REQUIRED")
+                                ApiFailureKind.CARD_CLEANUP_REQUIRED else ApiFailureKind.REVISION_CONFLICT,
+                            statusCode = status,
+                            serverCode = serverCode,
+                            requestId = requestId,
+                        )
+                    }
                     status == 428 -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED, statusCode = status)
                     status == 400 || status == 422 -> {
                         val (serverCode, requestId) = safeFinanceErrorMetadata(body)
@@ -519,7 +530,11 @@ class OkHttpMyFinHubApi(
             RegexOption.IGNORE_CASE,
         )
         const val HISTORY_GENERATION_HEADER = "x-rheomiq-history-generation"
-        val SAFE_FINANCE_ERROR_CODES = setOf("INVALID_DATA", "INVALID_SCHEMA_VERSION", "INVALID_REVISION", "MFA_REQUIRED", "FORBIDDEN")
+        val SAFE_FINANCE_ERROR_CODES = setOf(
+            "INVALID_DATA", "INVALID_SCHEMA_VERSION", "INVALID_REVISION",
+            "MFA_REQUIRED", "FORBIDDEN", "REVISION_CONFLICT",
+            "HISTORY_CURSOR_CONFLICT", "CARD_CLEANUP_INTENT_REQUIRED",
+        )
         val SAFE_REQUEST_ID_REGEX = Regex("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
     }
 }

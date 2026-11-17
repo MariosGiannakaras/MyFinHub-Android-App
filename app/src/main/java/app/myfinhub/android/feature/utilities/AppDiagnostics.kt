@@ -69,6 +69,8 @@ internal fun diagnosticCodeDescription(rawCode: String?): String? {
             "Καταγράφηκε έλεγχος της σύνδεσης λογαριασμού."
         code.startsWith("MFH-NET") || code.startsWith("MFH-OFFLINE") ->
             "Καταγράφηκε αλλαγή σύνδεσης ή αναμονή συγχρονισμού."
+        code.startsWith("MFH-API-CARD_CLEANUP_REQUIRED") ->
+            "Η αποθήκευση εμποδίστηκε από εκκρεμή ασφαλή διαγραφή στοιχείων κάρτας."
         code.startsWith("MFH-API-FORBIDDEN") ->
             "Ο server απέρριψε την πρόσβαση. Δεν πρόκειται απαραίτητα για πρόβλημα MFA."
         code.startsWith("MFH-API") && (code.contains("503") || code.contains("SERVER")) ->

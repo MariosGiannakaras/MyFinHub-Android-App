@@ -38,6 +38,26 @@ class FinanceRepositoryTest {
         assertEquals(document, state.localDocument)
     }
 
+
+    @Test
+    fun pendingCardSecretCleanup409_isAnErrorAndNeverARevisionRetry() = runBlocking {
+        val api = FakeFinanceApi(
+            load = { ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved")) },
+            save = { ApiResult.Failure(ApiFailureKind.CARD_CLEANUP_REQUIRED,
+                statusCode = 409, serverCode = "CARD_CLEANUP_INTENT_REQUIRED") },
+        )
+        val repository = repository(api)
+        repository.load(session)
+
+        repository.save(session, document)
+
+        val state = repository.state.value as FinanceSyncState.Error
+        assertEquals(ApiFailureKind.CARD_CLEANUP_REQUIRED, state.failure.kind)
+        assertEquals(409, state.failure.statusCode)
+        assertEquals(1, api.saveCalls)
+        assertEquals("7", state.recoverableEnvelope?.revision)
+    }
+
     @Test
     fun successfulWrite_advancesRevisionWithoutCreatingLocalDatabase() = runBlocking {
         val api = FakeFinanceApi(
