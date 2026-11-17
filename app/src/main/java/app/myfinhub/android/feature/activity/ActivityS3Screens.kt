@@ -73,6 +73,7 @@ import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.core.data.moneyToCents
+import app.myfinhub.android.core.ui.FinanceCacheNotice
 import app.myfinhub.android.feature.quickentry.DateEntryField
 import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
@@ -174,6 +175,8 @@ fun ActivityLedgerScreen(
     categoryIconColors: Map<String, String> = emptyMap(),
     subcategoryIconColors: Map<String, String> = emptyMap(),
     categoryGlyphOverrides: Map<String, String> = emptyMap(),
+    financeCacheMode: Boolean = false,
+    pendingFinanceChanges: Int = 0,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -206,6 +209,15 @@ fun ActivityLedgerScreen(
                 bottom = MyFinHubDesignMetrics.productSnackbarBottomClearance,
             ),
         ) {
+            if (financeCacheMode) {
+                item(key = "activity-finance-cache") {
+                    FinanceCacheNotice(
+                        pendingFinanceChanges = pendingFinanceChanges,
+                        modifier = Modifier.testTag("activity_finance_cache_notice"),
+                        dataWarning = "Οι κινήσεις μπορεί να μην είναι ενημερωμένες.",
+                    )
+                }
+            }
             if (analyticsScope) {
                 item(key = "analytics-scope-copy") {
                     Text(
