@@ -335,6 +335,22 @@ fun ProductionQuickEntryScreen(
             }
 
             if (state.kind == QuickEntryKind.CARD_PAYMENT) {
+                state.cardPaymentDebt?.let { debt ->
+                    val debtLabel = if (debt.isFinite() && debt > 0.005) {
+                        "Οφειλή κάρτας: " +
+                            String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €"
+                    } else {
+                        "Δεν υπάρχει καταγεγραμμένη οφειλή για την επιλεγμένη ημερομηνία."
+                    }
+                    Text(
+                        debtLabel,
+                        modifier = Modifier.testTag("quick_entry_card_debt"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (debt.isFinite() && debt > 0.005)
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        else MaterialTheme.colorScheme.error,
+                    )
+                }
                 val payableStatements = payableCreditStatementOptions(
                     state.cardId, state.creditStatements,
                 )
