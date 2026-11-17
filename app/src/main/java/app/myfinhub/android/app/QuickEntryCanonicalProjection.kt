@@ -9,6 +9,7 @@ import app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent
 import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.canonicalStatementSourceIdCounts
+import app.myfinhub.android.core.data.matchesFinancialProvider
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.feature.quickentry.QuickEntryAccountOption
@@ -90,16 +91,21 @@ internal fun projectQuickEntryState(
     }.orEmpty()
     val selectedAccount = base.accountId.takeIf(accountIds::contains)
         ?: if (base.kind == QuickEntryKind.INCOME) defaultIncomeId else defaultExpenseId
+    val selectedCard = base.cardId.takeIf(cardIds::contains) ?: cards.firstOrNull()?.id.orEmpty()
+    val cardPaymentSources = projectCardPaymentSourceAccountIds(document, selectedCard)
     val selectedFromCandidate = base.fromAccountId.takeIf(accountIds::contains) ?: defaultExpenseId
-    val selectedFrom = if (base.kind == QuickEntryKind.SAVING) {
-        accountOptions.firstOrNull {
+    val selectedFrom = when (base.kind) {
+        QuickEntryKind.SAVING -> accountOptions.firstOrNull {
             it.id == selectedFromCandidate && it.isSavingContributionSource
         }?.id ?: accountOptions.firstOrNull(QuickEntryAccountOption::isSavingContributionSource)?.id.orEmpty()
-    } else selectedFromCandidate
+        QuickEntryKind.CARD_PAYMENT -> selectedFromCandidate.takeIf { it in cardPaymentSources }
+            ?: defaultExpenseId.takeIf { it in cardPaymentSources }
+            ?: accountOptions.firstOrNull { it.id in cardPaymentSources }?.id.orEmpty()
+        else -> selectedFromCandidate
+    }
     val selectedTo = base.toAccountId.takeIf { it in accountIds && it != selectedFrom }
         ?: accountOptions.firstOrNull { option -> option.isSavingsDestination && option.id != selectedFrom }?.id
         ?: defaultDestinationId
-    val selectedCard = base.cardId.takeIf(cardIds::contains) ?: cards.firstOrNull()?.id.orEmpty()
     val selectedAsOf = runCatching { LocalDate.parse(base.dateText) }.getOrDefault(today).toString()
     // Web recommendedPayableStatement precedence: due > closed > open.
     // Only the user may choose a link; never silently allocate a repayment.
@@ -145,6 +151,7 @@ internal fun projectQuickEntryState(
         cardId = selectedCard,
         statementId = selectedStatementId,
         creditStatements = creditStatements,
+        cardPaymentSourceAccountIds = cardPaymentSources,
         recurringId = linkedRecurring?.id.orEmpty(),
         splitParts = splitParts,
         accounts = accountOptions,
@@ -176,7 +183,15 @@ internal fun reduceQuickEntryWithCanonicalStatements(
         app.myfinhub.android.feature.quickentry.QuickEntryAction.Reset -> {
             val asOf = runCatching { LocalDate.parse(reduced.dateText) }
                 .getOrDefault(today).toString()
+            val cardPaymentSources = projectCardPaymentSourceAccountIds(document, reduced.cardId)
+            val fromId = if (reduced.kind == QuickEntryKind.CARD_PAYMENT) {
+                reduced.fromAccountId.takeIf { it in cardPaymentSources }
+                    ?: reduced.defaultExpenseAccountId.takeIf { it in cardPaymentSources }
+                    ?: reduced.accounts.firstOrNull { it.id in cardPaymentSources }?.id.orEmpty()
+            } else reduced.fromAccountId
             reduced.copy(
+                fromAccountId = fromId,
+                cardPaymentSourceAccountIds = cardPaymentSources,
                 creditStatements = projectPayableCreditStatements(
                     document, reduced.cardId, asOf,
                 ),
@@ -184,6 +199,23 @@ internal fun reduceQuickEntryWithCanonicalStatements(
         }
         else -> reduced
     }
+}
+
+/**
+ * The canonical money mutation requires the repayment account to match the
+ * selected credit card's authoritative bankId. Never infer bank ownership from
+ * display labels or ID prefixes here; share the finance-domain identity matcher.
+ */
+private fun projectCardPaymentSourceAccountIds(
+    document: CanonicalFinanceDocument,
+    cardId: String,
+): Set<String> {
+    val card = document.canonicalCards()
+        .singleOrNull { it.id == cardId && it.active && it.kind == "credit" }
+        ?: return emptySet()
+    return document.canonicalAccounts()
+        .filter { it.kind != "credit" && it.matchesFinancialProvider(card.bankId) }
+        .map { it.id }.toSet()
 }
 
 /** Server-sourced statement IDs must remain unique across every physical source row. */

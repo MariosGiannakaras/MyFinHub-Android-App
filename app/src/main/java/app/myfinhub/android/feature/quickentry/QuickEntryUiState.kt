@@ -123,6 +123,8 @@ data class QuickEntryUiState(
     val counterpartyId: String = "",
     val counterparties: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
     val creditStatements: List<QuickEntryStatementOption> = emptyList(),
+    /** Canonical bank-matched repayment sources; null only before a real finance projection. */
+    val cardPaymentSourceAccountIds: Set<String>? = null,
     val person: String = "",
     val expectedReturnDateText: String = "",
     val actualBalanceText: String = "",
@@ -491,6 +493,12 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
 
     if (state.kind.needsPrimaryAccount && state.accounts.none { it.id == state.accountId }) {
         return state.invalid("Διάλεξε διαθέσιμο λογαριασμό.")
+    }
+
+    if (state.kind == QuickEntryKind.CARD_PAYMENT && state.cardPaymentSourceAccountIds != null &&
+        state.fromAccountId !in state.cardPaymentSourceAccountIds
+    ) {
+        return state.invalid("Επίλεξε λογαριασμό της ίδιας τράπεζας με την πιστωτική κάρτα.")
     }
 
     if (state.kind.needsTransferAccounts || state.kind == QuickEntryKind.CARD_PAYMENT) {
