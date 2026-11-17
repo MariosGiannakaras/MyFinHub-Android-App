@@ -59,6 +59,7 @@ import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.core.ui.AccountIbanRow
+import app.myfinhub.android.core.ui.FinanceCacheNotice
 import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
 import app.myfinhub.android.feature.money.InlineCreditCardWorkspace
 import app.myfinhub.android.feature.utilities.AppAppearancePreference
@@ -132,6 +133,8 @@ fun CanonicalWalletScreen(
     fullActivityIdCounts: Map<String, Int>? = null,
     companionMode: Boolean = false,
     onOpenQuickEntry: () -> Unit = {},
+    financeCacheMode: Boolean = false,
+    pendingFinanceChanges: Int = 0,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -183,6 +186,15 @@ fun CanonicalWalletScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
         ) {
+            if (financeCacheMode) {
+                item("wallet-finance-cache") {
+                    FinanceCacheNotice(
+                        pendingFinanceChanges = pendingFinanceChanges,
+                        modifier = Modifier.testTag("wallet_finance_cache_notice"),
+                        dataWarning = "Οι συναλλαγές και οι οφειλές μπορεί να μην είναι ενημερωμένες.",
+                    )
+                }
+            }
             if (!cardsOnly && !accountsOnly) {
                 item("wallet-section-selector") {
                     WalletSectionSelector(

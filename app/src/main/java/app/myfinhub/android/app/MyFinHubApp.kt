@@ -411,6 +411,8 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Activity> {
                     ActivityLedgerScreen(
                             state = activityState,
+                            financeCacheMode = backupOffline,
+                            pendingFinanceChanges = backupPendingChangeCount,
                             categoryIconColors = planState.categoryIconColors,
                             subcategoryIconColors = planState.subcategoryIconColors,
                             categoryGlyphOverrides = planState.categoryGlyphOverrides,
@@ -488,6 +490,8 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.CategoryActivity> { route ->
                     ActivityLedgerScreen(
+                        financeCacheMode = backupOffline,
+                        pendingFinanceChanges = backupPendingChangeCount,
                         categoryIconColors = planState.categoryIconColors,
                         subcategoryIconColors = planState.subcategoryIconColors,
                         categoryGlyphOverrides = planState.categoryGlyphOverrides,
@@ -527,6 +531,8 @@ internal fun MyFinHubAppContent(
                         state = moneyProviderState,
                         cardsOnly = true,
                         companionMode = true,
+                        financeCacheMode = backupOffline,
+                        pendingFinanceChanges = backupPendingChangeCount,
                         onOpenQuickEntry = { openFastExpense(moneyBackStack) },
                         onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                         accountMetadata = accountMetadata,

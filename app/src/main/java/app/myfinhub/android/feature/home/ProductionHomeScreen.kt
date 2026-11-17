@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.home
 
 import android.content.Context
 import app.myfinhub.android.core.ui.AccountIbanRow
+import app.myfinhub.android.core.ui.FinanceCacheNotice
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Path
@@ -151,35 +152,10 @@ fun ProductionHomeScreen(
         ) {
             if (financeCacheMode) {
                 item(key = "home-finance-cache") {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth()
-                            .testTag("home_finance_cache_notice"),
-                        shape = MaterialTheme.shapes.medium,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(MyFinHubSpacing.md),
-                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-                        ) {
-                            Text(
-                                "Αποθηκευμένα οικονομικά στοιχεία",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                "Η υπηρεσία δεν έχει επιβεβαιώσει νέα ανάγνωση. Τα υπόλοιπα μπορεί να μην είναι ενημερωμένα.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (pendingFinanceChanges > 0) {
-                                Text(
-                                    "Εκκρεμούν $pendingFinanceChanges τοπικές αλλαγές για συγχρονισμό.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    }
+                    FinanceCacheNotice(
+                        pendingFinanceChanges = pendingFinanceChanges,
+                        modifier = Modifier.testTag("home_finance_cache_notice"),
+                    )
                 }
             }
             item {
