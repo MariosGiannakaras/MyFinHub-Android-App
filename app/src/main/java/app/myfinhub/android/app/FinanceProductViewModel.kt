@@ -694,7 +694,12 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (action != QuickEntryAction.Save) {
             mutableState.value = ready.copy(
                 projection = ready.projection.copy(
-                    quickEntryState = reduceQuickEntry(ready.projection.quickEntryState, action),
+                    quickEntryState = reduceQuickEntryWithCanonicalStatements(
+                        document = ready.projection.document,
+                        state = ready.projection.quickEntryState,
+                        action = action,
+                        today = LocalDate.now(),
+                    ),
                 ),
             )
             return
