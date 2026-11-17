@@ -482,6 +482,37 @@ fun ActivityLedgerScreen(
 }
 
 
+/** Persisted pending ledger rows must retain their source identity alongside the operation.
+ * Preview-only fixtures intentionally keep their existing compact pending status.
+ */
+internal fun activityLedgerRowMeta(
+    item: ActivityItem,
+    identityWarning: String?,
+): String {
+    val realWebRow = item.isLegacyTransaction || item.canonicalSourceOrdinal >= 0
+    val source = when {
+        item.isInternalTransfer() -> if (realWebRow)
+            "${item.typeLabel} · ${item.accountLabel}" else "Εσωτερική μεταφορά"
+        item.canonicalKind == "lending" || item.canonicalKind == "repayment" ->
+            "${item.typeLabel} · ${item.accountLabel}"
+        item.canonicalKind == "card_purchase" || item.canonicalKind == "card_payment" ->
+            listOfNotNull(
+                item.typeLabel,
+                item.cardLabel?.takeIf(String::isNotBlank),
+                item.accountLabel.takeIf { it != "—" && it.isNotBlank() },
+            ).joinToString(" · ")
+        item.isLegacyTransaction ->
+            "${item.accountLabel} · ${item.legacyHistoryLabel()}"
+        else -> item.accountLabel
+    }
+    if (identityWarning != null) return identityWarning
+    if (!item.pendingSync) return source
+    val pending = item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
+    return if (realWebRow && source.isNotBlank() && source != "—") {
+        "$pending\n$source"
+    } else pending
+}
+
 /** Unfiltered Web month and previous-month comparisons, separate from
  * the native long-history filtered amount summary. Hidden totals stay hidden.
  */
@@ -722,23 +753,7 @@ private fun ActivityFlatLedgerRow(
         noteParts.comment.isNotEmpty() -> noteParts.comment
         else -> item.note
     }
-    val meta = when {
-        identityWarning != null -> identityWarning
-        item.pendingSync -> item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
-        item.isInternalTransfer() -> if (realWebRow)
-            "${item.typeLabel} · ${item.accountLabel}" else "Εσωτερική μεταφορά"
-        item.canonicalKind == "lending" || item.canonicalKind == "repayment" ->
-            "${item.typeLabel} · ${item.accountLabel}"
-        item.canonicalKind == "card_purchase" || item.canonicalKind == "card_payment" ->
-            listOfNotNull(
-                item.typeLabel,
-                item.cardLabel?.takeIf(String::isNotBlank),
-                item.accountLabel.takeIf { it != "—" && it.isNotBlank() },
-            ).joinToString(" · ")
-        item.isLegacyTransaction ->
-            "${item.accountLabel} · ${item.legacyHistoryLabel()}"
-        else -> item.accountLabel
-    }
+    val meta = activityLedgerRowMeta(item, identityWarning)
 
     // Web preference key: kind:category[:subcategory]. Invalid colors preserve tone.
     val categoryKind = if (item.canonicalKind == "income") "income" else "expense"
@@ -775,6 +790,7 @@ private fun ActivityFlatLedgerRow(
         tone = tone,
         onClick = onClick,
         enabled = canOpen,
+        metaMaxLines = if (realWebRow && item.pendingSync && identityWarning == null) 2 else 1,
         modifier = Modifier.testTag(rowTag),
     )
     // Web TransactionSplitDetails is an independent, read-only control inside
