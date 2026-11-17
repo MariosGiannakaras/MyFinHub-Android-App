@@ -39,9 +39,13 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
         composeRule.onNodeWithText("Περισσότεροι τύποι").assertIsDisplayed()
-        // The date selector is below the initial compact-device viewport.
-        // Exercise the real scrollable form instead of assuming it starts visible.
-        composeRule.onNodeWithText("Ημερομηνία").performScrollTo().assertIsDisplayed()
+        // Scroll to the date control and exercise its real picker. Checking only
+        // screen visibility can be flaky when the sticky Save bar clips the label
+        // on compact AVD viewports; opening and dismissing the picker proves that
+        // the field is both reachable and actionable.
+        composeRule.onNodeWithText("Ημερομηνία").performScrollTo().performClick()
+        composeRule.onNodeWithText("Επιλογή ημερομηνίας").assertIsDisplayed()
+        composeRule.onNodeWithText("Ακύρωση").performClick()
 
         // After scrolling to the date, the chip may be clipped. Scroll it
         // back into the viewport before tapping, then assert kind changed;
