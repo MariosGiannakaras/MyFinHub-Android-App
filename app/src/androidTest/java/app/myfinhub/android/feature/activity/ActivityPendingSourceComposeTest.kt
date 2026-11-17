@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.activity
 
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import app.myfinhub.android.designsystem.MyFinHubTheme
