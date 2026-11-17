@@ -39,11 +39,10 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
         composeRule.onNodeWithText("Περισσότεροι τύποι").assertIsDisplayed()
-        // Scroll to the date control and exercise its real picker. Checking only
-        // screen visibility can be flaky when the sticky Save bar clips the label
-        // on compact AVD viewports; opening and dismissing the picker proves that
-        // the field is both reachable and actionable.
-        composeRule.onNodeWithText("Ημερομηνία").performScrollTo().performClick()
+        // The date label is a sibling of its clickable selector button.
+        // Interact with the accessible control rather than tapping the label.
+        composeRule.onNodeWithTag("quick_entry_date_picker")
+            .performScrollTo().performClick()
         composeRule.onNodeWithText("Επιλογή ημερομηνίας").assertIsDisplayed()
         composeRule.onNodeWithText("Ακύρωση").performClick()
 
