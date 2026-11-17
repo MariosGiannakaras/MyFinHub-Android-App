@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.home
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -73,9 +74,12 @@ class HomeUiStateTest {
             homeHistoryPeriodCaption(cash.copy(monthBoundaryIndex = 0)),
         )
         assertEquals(
-            "Τρέχων μήνας · Προηγ. μήνας · Στόχος",
+            "Προηγ. μήνας · Τρέχων μήνας",
             homeHistoryPeriodCaption(savings),
         )
+        assertEquals(7000.0, homeVisibleChartTarget(savings)!!, 0.001)
+        assertNull(homeVisibleChartTarget(savings.copy(savingsTarget = 1_000_000.0)))
+        assertNull(homeVisibleChartTarget(savings.copy(savingsTarget = null)))
         val history = homeHistoryAccessibilityDescription(savings)
         assertTrue(history.contains("σύγκριση με προηγούμενο μήνα"))
         assertFalse(history.contains("6240"))
