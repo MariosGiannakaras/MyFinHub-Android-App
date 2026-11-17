@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -42,7 +43,13 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 
 /** Local Android preferences and app information; no Web financial administration. */
 @Composable
-fun MobileDeviceSettingsScreen(onBack: () -> Unit, onLogout: (() -> Unit)?) {
+fun MobileDeviceSettingsScreen(
+    onBack: () -> Unit,
+    onLogout: (() -> Unit)?,
+    noticeHistoryCount: Int = 0,
+    onOpenNoticeHistory: (() -> Unit)? = null,
+    onOpenDiagnostics: (() -> Unit)? = null,
+) {
     val context = LocalContext.current
     val updater = LocalUpdateController.current
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -129,6 +136,18 @@ fun MobileDeviceSettingsScreen(onBack: () -> Unit, onLogout: (() -> Unit)?) {
                         },
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    onOpenNoticeHistory?.let { openHistory ->
+                        MyFinHubOutlinedAction(
+                            label = if (noticeHistoryCount > 0) {
+                                "Ιστορικό ειδοποιήσεων · $noticeHistoryCount"
+                            } else {
+                                "Ιστορικό ειδοποιήσεων"
+                            },
+                            onClick = openHistory,
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("mobile_settings_notice_history"),
+                        )
+                    }
                 }
             }
             if (BuildConfig.SELF_UPDATE_ENABLED) {
@@ -160,6 +179,14 @@ fun MobileDeviceSettingsScreen(onBack: () -> Unit, onLogout: (() -> Unit)?) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    onOpenDiagnostics?.let { openDiagnostics ->
+                        MyFinHubOutlinedAction(
+                            label = "Διαγνωστικά και υποστήριξη",
+                            onClick = openDiagnostics,
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("mobile_settings_diagnostics"),
+                        )
+                    }
                     MyFinHubOutlinedAction(
                         label = "Πληροφορίες και άδειες Android",
                         onClick = {
