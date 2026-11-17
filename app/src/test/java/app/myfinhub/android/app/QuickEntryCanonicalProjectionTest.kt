@@ -4,7 +4,10 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.monthlyFlow
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.string
+import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
+import app.myfinhub.android.feature.quickentry.canSubmitDraft
+import app.myfinhub.android.feature.quickentry.reduceQuickEntry
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
@@ -136,6 +139,70 @@ class QuickEntryCanonicalProjectionTest {
             reset.creditStatements,
         )
         assertFalse(reset.dirty)
+    }
+
+    @Test
+    fun creditPayment_repaymentSourceFollowsCanonicalBankNotDefaultOrPreviousCard() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement(
+            """
+            {"seed":{"accounts":[
+                {"id":"alpha-account","kind":"bank","name":"Alpha","providerId":"alpha"},
+                {"id":"piraeus-account","kind":"bank","name":"Πειραιώς","providerId":"piraeus"},
+                {"id":"cash-account","kind":"cash","name":"Μετρητά"}
+             ]},
+             "state":{"cards":[
+                {"id":"piraeus-card","kind":"credit","active":true,"bankId":"piraeus","network":"visa"},
+                {"id":"alpha-card","kind":"credit","active":true,"bankId":"alpha","network":"mastercard"},
+                {"id":"unlinked-card","kind":"credit","active":true,"bankId":"","network":"visa"}
+             ],"events":[],"settings":{"defaultExpenseAccount":"alpha-account"}}}
+            """.trimIndent(),
+        ).jsonObject)
+        val today = LocalDate.parse("2026-11-18")
+        val original = projectQuickEntryState(doc, today, QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PAYMENT,
+            cardId = "piraeus-card",
+            fromAccountId = "alpha-account",
+            dateText = today.toString(),
+            amountText = "10",
+            note = "Μερική εξόφληση",
+            dirty = true,
+        ))
+
+        assertEquals(setOf("piraeus-account"), original.cardPaymentSourceAccountIds)
+        assertEquals("piraeus-account", original.fromAccountId)
+        assertTrue(original.canSubmitDraft())
+
+        val changedCard = reduceQuickEntryWithCanonicalStatements(
+            doc, original, QuickEntryAction.CardChanged("alpha-card"), today,
+        )
+        assertEquals(setOf("alpha-account"), changedCard.cardPaymentSourceAccountIds)
+        assertEquals("alpha-account", changedCard.fromAccountId)
+        assertEquals("10", changedCard.amountText)
+        assertEquals("Μερική εξόφληση", changedCard.note)
+        assertTrue(changedCard.dirty)
+        assertTrue(changedCard.canSubmitDraft())
+
+        val wrongSource = reduceQuickEntry(
+            changedCard, QuickEntryAction.FromAccountChanged("piraeus-account"),
+        )
+        assertFalse(wrongSource.canSubmitDraft())
+        assertTrue(reduceQuickEntry(wrongSource, QuickEntryAction.Save)
+            .validationMessage.orEmpty().contains("ίδιας τράπεζας"))
+
+        val noBank = reduceQuickEntryWithCanonicalStatements(
+            doc, changedCard, QuickEntryAction.CardChanged("unlinked-card"), today,
+        )
+        assertEquals(emptySet<String>(), noBank.cardPaymentSourceAccountIds)
+        assertEquals("", noBank.fromAccountId)
+        assertFalse(noBank.canSubmitDraft())
+        assertTrue(reduceQuickEntry(noBank, QuickEntryAction.Save)
+            .validationMessage.orEmpty().contains("ίδιας τράπεζας"))
+
+        val restored = reduceQuickEntryWithCanonicalStatements(
+            doc, noBank, QuickEntryAction.CardChanged("piraeus-card"), today,
+        )
+        assertEquals("piraeus-account", restored.fromAccountId)
+        assertTrue(restored.canSubmitDraft())
     }
 
     @Test
@@ -333,7 +400,7 @@ private fun projectionFixture(): CanonicalFinanceDocument = CanonicalFinanceDocu
           "updatedAt":"2026-09-02T00:00:00Z",
           "seed":{
             "accounts":[
-              {"id":"bank-main","name":"Μισθοδοσία","kind":"bank"},
+              {"id":"bank-main","name":"Μισθοδοσία","kind":"bank","providerId":"piraeus"},
               {"id":"save-main","name":"Στόχος","kind":"savings"},
               {"id":"cash-main","name":"Πορτοφόλι","kind":"cash"}
             ],
@@ -357,7 +424,7 @@ private fun projectionFixture(): CanonicalFinanceDocument = CanonicalFinanceDocu
             ],
             "scheduled":[],
             "cards":[
-              {"id":"credit-one","nickname":"Ταξίδια","kind":"credit","network":"mastercard","last4":"9012","active":true,"creditLimit":2500.0},
+              {"id":"credit-one","nickname":"Ταξίδια","kind":"credit","bankId":"piraeus","network":"mastercard","last4":"9012","active":true,"creditLimit":2500.0},
               {"id":"credit-archived","nickname":"Παλιή","kind":"credit","network":"visa","last4":"1111","active":false,"creditLimit":1000.0},
               {"id":"debit-one","nickname":"Χρεωστική","kind":"debit","network":"visa","last4":"4242","active":true}
             ],

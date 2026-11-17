@@ -283,14 +283,23 @@ fun ProductionQuickEntryScreen(
             }
 
             if (state.kind.needsTransferAccounts || state.kind == QuickEntryKind.CARD_PAYMENT) {
-                CompactChoice(
-                    label = "Από λογαριασμό",
-                    selectedId = state.fromAccountId,
-                    choices = productionSourceOptions(state).map { it.id to it.label },
-                    subtitles = productionSourceOptions(state).associate { it.id to accountKindLabel(it.kind) },
-                    onSelected = { onAction(QuickEntryAction.FromAccountChanged(it)) },
-                    searchable = true,
-                )
+                val sources = productionSourceOptions(state)
+                if (state.kind == QuickEntryKind.CARD_PAYMENT && sources.isEmpty()) {
+                    Text(
+                        "Δεν υπάρχει διαθέσιμος λογαριασμός της ίδιας τράπεζας για εξόφληση αυτής της κάρτας.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                } else {
+                    CompactChoice(
+                        label = "Από λογαριασμό",
+                        selectedId = state.fromAccountId,
+                        choices = sources.map { it.id to it.label },
+                        subtitles = sources.associate { it.id to accountKindLabel(it.kind) },
+                        onSelected = { onAction(QuickEntryAction.FromAccountChanged(it)) },
+                        searchable = true,
+                    )
+                }
             }
 
             if (state.kind.needsTransferAccounts) {
@@ -803,9 +812,14 @@ private fun ProductionTransactionSemanticsHint(kind: QuickEntryKind) {
 }
 
 private fun productionSourceOptions(state: QuickEntryUiState): List<QuickEntryAccountOption> =
-    if (state.kind == QuickEntryKind.SAVING) {
-        state.accounts.filter(QuickEntryAccountOption::isSavingContributionSource)
-    } else state.accounts
+    when (state.kind) {
+        QuickEntryKind.SAVING ->
+            state.accounts.filter(QuickEntryAccountOption::isSavingContributionSource)
+        QuickEntryKind.CARD_PAYMENT -> state.cardPaymentSourceAccountIds?.let { ids ->
+            state.accounts.filter { it.id in ids }
+        } ?: state.accounts
+        else -> state.accounts
+    }
 
 private fun productionDestinationOptions(state: QuickEntryUiState): List<QuickEntryAccountOption> {
     val filtered = when (state.kind) {
