@@ -56,7 +56,8 @@ fun AccountIbanRow(
     val label = when {
         !amountsVisible -> "IBAN ••••"
         compact != null -> compact
-        else -> "IBAN δεν έχει οριστεί"
+        !record?.iban.isNullOrBlank() -> "Μη έγκυρο IBAN"
+        else -> "Δεν έχει οριστεί IBAN"
     }
     val context = LocalContext.current.applicationContext
     val injected = LocalIbanClipboardController.current
