@@ -85,4 +85,39 @@ class ActivityLedgerIdentityTest {
         )
     }
 
+    @Test fun pendingPersistedRowsKeepAccountAndCardIdentityWithSyncStatus() {
+        val pending = row("persisted", "Καφές").copy(
+            canonicalSourceOrdinal = 4,
+            accountLabel = "Πειραιώς Μισθοδοσίας",
+            pendingSync = true,
+            pendingLabel = "Εκκρεμεί διαγραφή",
+        )
+        assertEquals(
+            "Πειραιώς Μισθοδοσίας · Εκκρεμεί διαγραφή",
+            activityLedgerRowMeta(pending, null),
+        )
+        val card = pending.copy(
+            canonicalKind = "card_purchase",
+            typeLabel = "Αγορά με κάρτα",
+            cardLabel = "Visa 4242",
+            pendingLabel = null,
+        )
+        assertEquals(
+            "Αγορά με κάρτα · Visa 4242 · Πειραιώς Μισθοδοσίας · Εκκρεμεί συγχρονισμός",
+            activityLedgerRowMeta(card, null),
+        )
+        val archived = pending.copy(canonicalSourceOrdinal = -1, isLegacyTransaction = true)
+        assertEquals(
+            "Πειραιώς Μισθοδοσίας · Ιστορικό · Εκκρεμεί διαγραφή",
+            activityLedgerRowMeta(archived, null),
+        )
+        // Historic synthetic preview contract and ambiguous-ID safety stay unchanged.
+        assertEquals("Εκκρεμεί διαγραφή",
+            activityLedgerRowMeta(pending.copy(canonicalSourceOrdinal = -1), null))
+        assertEquals("Διπλό αναγνωριστικό · απαιτεί έλεγχο",
+            activityLedgerRowMeta(card, "Διπλό αναγνωριστικό · απαιτεί έλεγχο"))
+        assertEquals("Εκκρεμεί συγχρονισμός",
+            activityLedgerRowMeta(pending.copy(accountLabel = "—", pendingLabel = null), null))
+    }
+
 }
