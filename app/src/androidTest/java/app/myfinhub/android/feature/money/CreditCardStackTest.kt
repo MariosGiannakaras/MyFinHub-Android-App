@@ -244,6 +244,32 @@ class CreditCardStackTest {
     }
 
     @Test
+    fun archiveHasAccessibleTwoTapConfirmationWithoutSwipe() {
+        val archived = mutableListOf<String>()
+        composeRule.setContent {
+            MyFinHubTheme {
+                CreditCardStack(
+                    cards = testCards(1),
+                    secretState = CardSecretUiState.Hidden(),
+                    onActiveCardChanged = {},
+                    onOpenCard = {},
+                    onDeleteCard = { archived += it },
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription("Επιβεβαίωση αρχειοθέτησης")
+            .assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Αρχειοθέτηση κάρτας").performClick()
+        composeRule.onNodeWithTag("card_delete_slider").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Επιβεβαίωση αρχειοθέτησης")
+            .assertIsDisplayed()
+        composeRule.runOnIdle { assertTrue("First tap must not archive", archived.isEmpty()) }
+        composeRule.onNodeWithContentDescription("Επιβεβαίωση αρχειοθέτησης")
+            .performClick()
+        composeRule.runOnIdle { assertEquals(listOf("card-a"), archived) }
+    }
+
+    @Test
     fun archiveAboveThreshold_requestsStableId_andParentCommitAllowsEmptyStack() {
         // Use normal motion: the canonical write must not wait for decoration.
         setAnimatorDurationScale(1f)
