@@ -28,7 +28,7 @@ class ActivityPendingSourceComposeTest {
             )
         } }
         rule.onNodeWithText(
-            "Αγορά με κάρτα · Visa 4242 · Μισθοδοσία · Εκκρεμεί επεξεργασία",
+            "Εκκρεμεί επεξεργασία\nΑγορά με κάρτα · Visa 4242 · Μισθοδοσία",
         ).assertExists()
     }
 }

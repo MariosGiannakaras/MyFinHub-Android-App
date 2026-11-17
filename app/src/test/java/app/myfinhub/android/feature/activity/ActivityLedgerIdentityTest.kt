@@ -93,7 +93,7 @@ class ActivityLedgerIdentityTest {
             pendingLabel = "Εκκρεμεί διαγραφή",
         )
         assertEquals(
-            "Πειραιώς Μισθοδοσίας · Εκκρεμεί διαγραφή",
+            "Εκκρεμεί διαγραφή\nΠειραιώς Μισθοδοσίας",
             activityLedgerRowMeta(pending, null),
         )
         val card = pending.copy(
@@ -103,12 +103,12 @@ class ActivityLedgerIdentityTest {
             pendingLabel = null,
         )
         assertEquals(
-            "Αγορά με κάρτα · Visa 4242 · Πειραιώς Μισθοδοσίας · Εκκρεμεί συγχρονισμός",
+            "Εκκρεμεί συγχρονισμός\nΑγορά με κάρτα · Visa 4242 · Πειραιώς Μισθοδοσίας",
             activityLedgerRowMeta(card, null),
         )
         val archived = pending.copy(canonicalSourceOrdinal = -1, isLegacyTransaction = true)
         assertEquals(
-            "Πειραιώς Μισθοδοσίας · Ιστορικό · Εκκρεμεί διαγραφή",
+            "Εκκρεμεί διαγραφή\nΠειραιώς Μισθοδοσίας · Ιστορικό",
             activityLedgerRowMeta(archived, null),
         )
         // Historic synthetic preview contract and ambiguous-ID safety stay unchanged.

@@ -509,7 +509,7 @@ internal fun activityLedgerRowMeta(
     if (!item.pendingSync) return source
     val pending = item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
     return if (realWebRow && source.isNotBlank() && source != "—") {
-        "${source} · ${pending}"
+        "$pending\n$source"
     } else pending
 }
 
@@ -790,6 +790,7 @@ private fun ActivityFlatLedgerRow(
         tone = tone,
         onClick = onClick,
         enabled = canOpen,
+        metaMaxLines = if (realWebRow && item.pendingSync && identityWarning == null) 2 else 1,
         modifier = Modifier.testTag(rowTag),
     )
     // Web TransactionSplitDetails is an independent, read-only control inside

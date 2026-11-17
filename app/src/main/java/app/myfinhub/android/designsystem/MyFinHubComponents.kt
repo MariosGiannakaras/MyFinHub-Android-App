@@ -289,6 +289,7 @@ fun MyFinHubFinanceRow(
     onLongClick: (() -> Unit)? = null,
     categoryAccent: Color? = null,
     enabled: Boolean = true,
+    metaMaxLines: Int = 1,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     Column(
@@ -326,6 +327,7 @@ fun MyFinHubFinanceRow(
                         subtitle = subtitle,
                         meta = meta,
                         largeFont = true,
+                        metaMaxLines = metaMaxLines,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -355,6 +357,7 @@ fun MyFinHubFinanceRow(
                     subtitle = subtitle,
                     meta = meta,
                     largeFont = false,
+                    metaMaxLines = metaMaxLines,
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(modifier = Modifier.width(MyFinHubSpacing.xs))
@@ -371,6 +374,7 @@ private fun FinanceRowIdentity(
     subtitle: String,
     meta: String,
     largeFont: Boolean,
+    metaMaxLines: Int,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -395,7 +399,7 @@ private fun FinanceRowIdentity(
                 text = meta,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = if (largeFont) 2 else 1,
+                maxLines = maxOf(if (largeFont) 2 else 1, metaMaxLines),
                 overflow = if (largeFont) TextOverflow.Clip else TextOverflow.Ellipsis,
             )
         }
