@@ -304,6 +304,8 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Home> {
                     ProductionHomeScreen(
                         state = homeProviderState,
+                        financeCacheMode = backupOffline,
+                        pendingFinanceChanges = backupPendingChangeCount,
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
                         onAction = onHomeAction,
