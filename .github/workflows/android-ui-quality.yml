@@ -87,6 +87,7 @@ jobs:
               'ProductionHomeAllAccountsLightScreenshot_',
               'ProductionHomeCompactLargeFontScreenshot_',
               'ProductionHomeCompactLightScreenshot_',
+              'UserNoticeSnackbarScreenshot_',
           )
           for prefix in targets:
               matches = list(root.rglob(prefix + '*.png'))
