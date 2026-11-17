@@ -73,8 +73,8 @@ class S5HomeWalletTest {
             composeRule.onNodeWithTag("home_account_quick_entry_$id").assertIsDisplayed()
         }
         composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasText("Τρέχων μήνας · Προηγ. μήνας · Στόχος"))
-        composeRule.onNodeWithText("Τρέχων μήνας · Προηγ. μήνας · Στόχος")
+            .performScrollToNode(hasText("Προηγ. μήνας · Τρέχων μήνας"))
+        composeRule.onNodeWithText("Προηγ. μήνας · Τρέχων μήνας")
             .assertIsDisplayed()
         composeRule.onNodeWithText("Η εξέλιξη υπολοίπου είναι κρυφή").assertDoesNotExist()
     }

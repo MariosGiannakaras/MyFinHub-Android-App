@@ -72,6 +72,34 @@ jobs:
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --no-configuration-cache --stacktrace
 
+      # Temporary read-only bridge for human-reviewed, exact-PR-rendered goldens.
+      # Remove before final review; never update arbitrary references.
+      - name: Export specific changed Home references for controlled review
+        if: failure()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+          root = Path('app/src/screenshotTestDebug/reference')
+          targets = (
+              'ProductionHomeAllAccountsDarkScreenshot_',
+              'ProductionHomeAllAccountsLightScreenshot_',
+              'ProductionHomeCompactLargeFontScreenshot_',
+              'ProductionHomeCompactLightScreenshot_',
+          )
+          for prefix in targets:
+              matches = list(root.rglob(prefix + '*.png'))
+              if len(matches) != 1:
+                  raise SystemExit(f'Expected one screenshot for {prefix}, got {len(matches)}')
+              path = matches[0]
+              print(f'GOLDEN_BEGIN|{path.as_posix()}|{path.stat().st_size}')
+              encoded = base64.b64encode(path.read_bytes()).decode('ascii')
+              for pos in range(0, len(encoded), 4000):
+                  print('GOLDEN_DATA|' + encoded[pos:pos + 4000])
+              print('GOLDEN_END|' + path.as_posix())
+          PY
+
       - name: Build screenshot gallery from official rendered PNGs
         if: always()
         shell: bash
