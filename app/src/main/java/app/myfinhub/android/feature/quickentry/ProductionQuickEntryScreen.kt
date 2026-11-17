@@ -932,6 +932,9 @@ private fun ProductionDateChoice(
     MyFinHubSelectorButton(
         label = label,
         onClick = { pickerOpen = true },
+        modifier = Modifier
+            .testTag(if (optional) "quick_entry_optional_date_picker" else "quick_entry_date_picker")
+            .semantics { contentDescription = "$label: $displayValue" },
         errorMessage = errorMessage,
     ) {
         Text(displayValue, modifier = Modifier.weight(1f))
