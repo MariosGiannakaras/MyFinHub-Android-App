@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -440,14 +441,23 @@ private fun HomePrimaryAccountsSection(
 internal fun homeHistoryPeriodCaption(account: HomeAccount): String {
     val hasMonthBoundary = account.monthBoundaryIndex > 0 &&
         account.monthBoundaryIndex < account.balanceTrend.lastIndex
-    val period = when {
-        !hasMonthBoundary -> "Ιστορικό υπολοίπου"
-        account.primaryRole == HomePrimaryRole.SAVINGS -> "Τρέχων μήνας · Προηγ. μήνας"
-        else -> "Προηγ. μήνας · Τρέχων μήνας"
+    return if (hasMonthBoundary) "Προηγ. μήνας · Τρέχων μήνας" else "Ιστορικό υπολοίπου"
+}
+
+/** The legend must agree with the chart: far-away goals are not drawn as target lines. */
+internal fun homeVisibleChartTarget(account: HomeAccount): Double? {
+    val values = account.balanceTrend
+    val current = if (values.size > 1) values else listOf(
+        values.firstOrNull() ?: account.balance, values.firstOrNull() ?: account.balance,
+    )
+    val original = current + account.previousMonthTrend
+    val low = original.minOrNull() ?: 0.0
+    val high = original.maxOrNull() ?: 0.0
+    val span = maxOf(1.0, high - low)
+    val allowance = maxOf(span * 2.5, maxOf(kotlin.math.abs(low), kotlin.math.abs(high), 1.0) * .08)
+    return account.savingsTarget?.takeIf {
+        it.isFinite() && it >= low - allowance && it <= high + allowance
     }
-    return if (account.primaryRole == HomePrimaryRole.SAVINGS && account.savingsTarget != null) {
-        "${period} · Στόχος"
-    } else period
 }
 
 /** Accessibility describes available chart context, never a sensitive balance or numeric target. */
@@ -458,6 +468,52 @@ internal fun homeHistoryAccessibilityDescription(account: HomeAccount): String {
     val comparison = if (account.previousMonthTrend.size > 1)
         ", σύγκριση με προηγούμενο μήνα" else ""
     return "Εξέλιξη υπολοίπου ${account.name}: ${period}${comparison}"
+}
+
+
+@Composable
+private fun homeHistoryComparisonColor(): Color =
+    if (MaterialTheme.colorScheme.background.luminance() > .5f) Color(0xFF5B7CAC)
+    else Color(0xFFA9C5FF)
+
+/** Only label a comparison or target when the corresponding chart line exists. */
+@Composable
+private fun HomeSavingsChartLegend(account: HomeAccount, mainColor: Color) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().testTag("home_savings_legend"),
+        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+    ) {
+        HomeChartLegendMarker("Ιστορικό", mainColor)
+        if (account.previousMonthTrend.size > 1) {
+            HomeChartLegendMarker("Σύγκριση προηγ. μήνα", homeHistoryComparisonColor())
+        }
+        if (homeVisibleChartTarget(account) != null) {
+            HomeChartLegendMarker("Στόχος", mainColor, dashed = true)
+        }
+    }
+}
+
+@Composable
+private fun HomeChartLegendMarker(label: String, color: Color, dashed: Boolean = false) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Canvas(modifier = Modifier.size(width = 18.dp, height = 8.dp)) {
+            drawLine(
+                color = color,
+                start = androidx.compose.ui.geometry.Offset(0f, size.height / 2f),
+                end = androidx.compose.ui.geometry.Offset(size.width, size.height / 2f),
+                strokeWidth = 2.dp.toPx(),
+                pathEffect = if (dashed) PathEffect.dashPathEffect(
+                    floatArrayOf(4.dp.toPx(), 3.dp.toPx()),
+                ) else null,
+            )
+        }
+        Text(label, style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable
@@ -545,6 +601,7 @@ private fun HomePrimaryAccountCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                HomeSavingsChartLegend(account, color)
                 Text(
                     text = when {
                         account.savingsTarget != null ->
@@ -588,10 +645,9 @@ private fun HomeAccountTrendChart(account: HomeAccount, modifier: Modifier = Mod
         HomePrimaryRole.PAYROLL -> Color(0xFFA15CFF)
         HomePrimaryRole.SAVINGS, null -> Color(0xFF2463F4)
     }
-    val comparisonColor = Color(0xFFA9C5FF)
+    val comparisonColor = homeHistoryComparisonColor()
     val values = account.balanceTrend
     val comparison = account.previousMonthTrend
-    val rawTarget = account.savingsTarget
     Canvas(
         modifier = modifier.height(83.dp)
             .testTag("home_account_history_${account.id}")
@@ -600,11 +656,7 @@ private fun HomeAccountTrendChart(account: HomeAccount, modifier: Modifier = Mod
         val current = if (values.size > 1) values else listOf(values.firstOrNull() ?: account.balance,
             values.firstOrNull() ?: account.balance)
         val original = current + comparison
-        val low = original.minOrNull() ?: 0.0
-        val high = original.maxOrNull() ?: 0.0
-        val observedSpan = maxOf(1.0, high - low)
-        val allowance = maxOf(observedSpan * 2.5, maxOf(kotlin.math.abs(low), kotlin.math.abs(high), 1.0) * .08)
-        val target = rawTarget?.takeIf { it.isFinite() && it >= low - allowance && it <= high + allowance }
+        val target = homeVisibleChartTarget(account)
         val all = original + listOfNotNull(target)
         val rawMin = all.minOrNull() ?: 0.0
         val rawMax = all.maxOrNull() ?: 0.0
