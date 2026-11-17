@@ -22,6 +22,7 @@ class D7FinanceRejectedReadOfflineContractTest {
     @Test fun authenticationOrConfigurationFailureCannotBeBypassedWithCache() {
         assertFalse(financeReadFailureMayUseCache(ApiFailureKind.AUTH_REQUIRED))
         assertFalse(financeReadFailureMayUseCache(ApiFailureKind.MFA_REQUIRED))
+        assertFalse(financeReadFailureMayUseCache(ApiFailureKind.FORBIDDEN))
         assertFalse(financeReadFailureMayUseCache(ApiFailureKind.BUILD_NOT_CONFIGURED))
         assertFalse(financeReadFailureMayUseCache(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE))
     }

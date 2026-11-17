@@ -48,4 +48,11 @@ class AppDiagnosticsPresentationTest {
 
         assertEquals("Η υπηρεσία MyFinHub δεν ήταν προσωρινά διαθέσιμη.", value)
     }
+    @Test
+    fun forbiddenSupportCode_isDescribedAsAccessDenialNotMfa() {
+        val value = diagnosticCodeDescription("MFH-API-FORBIDDEN-403")
+
+        assertTrue(value?.contains("απέρριψε την πρόσβαση") == true)
+    }
+
 }

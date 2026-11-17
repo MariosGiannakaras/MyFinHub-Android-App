@@ -447,7 +447,18 @@ class OkHttpMyFinHubApi(
                 when {
                     response.isSuccessful -> safeParse(status, body, parse)
                     status == 401 -> ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED, statusCode = status)
-                    status == 403 -> ApiResult.Failure(ApiFailureKind.MFA_REQUIRED, statusCode = status)
+                    status == 403 -> {
+                        // 403 is also used for owner/permission denial: do not misreport it as MFA.
+                        // Only an explicit, allowlisted MFA_REQUIRED code may request re-verification.
+                        val (serverCode, requestId) = safeFinanceErrorMetadata(body)
+                        ApiResult.Failure(
+                            kind = if (serverCode == "MFA_REQUIRED") ApiFailureKind.MFA_REQUIRED
+                                else ApiFailureKind.FORBIDDEN,
+                            statusCode = status,
+                            serverCode = serverCode,
+                            requestId = requestId,
+                        )
+                    }
                     status == 404 && notFoundKind != null -> ApiResult.Failure(notFoundKind, statusCode = status)
                     status == 409 -> ApiResult.Failure(ApiFailureKind.REVISION_CONFLICT, statusCode = status)
                     status == 428 -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED, statusCode = status)
@@ -508,7 +519,7 @@ class OkHttpMyFinHubApi(
             RegexOption.IGNORE_CASE,
         )
         const val HISTORY_GENERATION_HEADER = "x-rheomiq-history-generation"
-        val SAFE_FINANCE_ERROR_CODES = setOf("INVALID_DATA", "INVALID_SCHEMA_VERSION", "INVALID_REVISION")
+        val SAFE_FINANCE_ERROR_CODES = setOf("INVALID_DATA", "INVALID_SCHEMA_VERSION", "INVALID_REVISION", "MFA_REQUIRED", "FORBIDDEN")
         val SAFE_REQUEST_ID_REGEX = Regex("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
     }
 }

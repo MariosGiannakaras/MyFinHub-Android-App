@@ -66,4 +66,20 @@ class UserNoticeTest {
         assertFalse(notice.details.contains(secret))
         assertFalse(notice.message.contains(secret))
     }
+    @Test
+    fun forbiddenAccess_doesNotGiveMfaAdviceOrExposeServerPayload() {
+        val id = "123e4567-e89b-42d3-a456-426614174000"
+        val notice = ApiResult.Failure(
+            kind = ApiFailureKind.FORBIDDEN,
+            statusCode = 403,
+            serverCode = "FORBIDDEN",
+            requestId = id,
+        ).toUserNotice("Φόρτωση οικονομικών δεδομένων")
+        assertFalse(notice.message.contains("επαλήθευση δύο παραγόντων"))
+        assertTrue(notice.message.contains("πρόσβαση"))
+        assertTrue(notice.details.contains("HTTP: 403"))
+        assertTrue(notice.details.contains("Αναγνωριστικό αιτήματος: $id"))
+        assertEquals("MFH-API-FORBIDDEN-403", notice.diagnosticCode)
+    }
+
 }

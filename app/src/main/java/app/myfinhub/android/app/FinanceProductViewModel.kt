@@ -198,7 +198,7 @@ internal fun financePendingCounts(
  * non-auth server read failures; never bypass local PIN, server auth or MFA.
  */
 internal fun financeReadFailureMayUseCache(kind: ApiFailureKind): Boolean = when (kind) {
-    ApiFailureKind.AUTH_REQUIRED, ApiFailureKind.MFA_REQUIRED,
+    ApiFailureKind.AUTH_REQUIRED, ApiFailureKind.MFA_REQUIRED, ApiFailureKind.FORBIDDEN,
     ApiFailureKind.BUILD_NOT_CONFIGURED,
     ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE -> false
     else -> true
@@ -2434,6 +2434,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     )
 
     private fun ApiFailureKind.isAuthRejection(): Boolean =
-        this == ApiFailureKind.AUTH_REQUIRED || this == ApiFailureKind.MFA_REQUIRED
+        this == ApiFailureKind.AUTH_REQUIRED || this == ApiFailureKind.MFA_REQUIRED ||
+            this == ApiFailureKind.FORBIDDEN
 
 }
