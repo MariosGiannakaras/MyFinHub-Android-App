@@ -41,6 +41,41 @@ class MobileDeviceSettingsJourneyTest {
         compose.onNodeWithText("Συνδεδεμένες συσκευές").assertDoesNotExist()
     }
 
+    @Test fun supportDestinationsAreSecondaryButReachableAndCallOnlyTheirHandlers() {
+        var historyOpens = 0
+        var diagnosticsOpens = 0
+        compose.setContent {
+            MyFinHubTheme {
+                MobileDeviceSettingsScreen(
+                    onBack = {},
+                    onLogout = {},
+                    noticeHistoryCount = 2,
+                    onOpenNoticeHistory = { historyOpens += 1 },
+                    onOpenDiagnostics = { diagnosticsOpens += 1 },
+                )
+            }
+        }
+        compose.onNodeWithText("Ιστορικό ειδοποιήσεων · 2")
+            .performScrollTo().assertIsDisplayed().performClick()
+        compose.onNodeWithText("Διαγνωστικά και υποστήριξη")
+            .performScrollTo().assertIsDisplayed().performClick()
+        compose.runOnIdle {
+            assertEquals(1, historyOpens)
+            assertEquals(1, diagnosticsOpens)
+        }
+        compose.onNodeWithText("Αυτόματη ταξινόμηση").assertDoesNotExist()
+    }
+
+    @Test fun missingSupportCallbacksDoNotShowDeadActions() {
+        compose.setContent {
+            MyFinHubTheme {
+                MobileDeviceSettingsScreen(onBack = {}, onLogout = {})
+            }
+        }
+        compose.onNodeWithText("Ιστορικό ειδοποιήσεων").assertDoesNotExist()
+        compose.onNodeWithText("Διαγνωστικά και υποστήριξη").assertDoesNotExist()
+    }
+
     @Test fun privacySwitchUpdatesSharedDevicePreferenceWithoutFinanceWrite() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val originallyVisible = AmountVisibilityPreference.read(context)

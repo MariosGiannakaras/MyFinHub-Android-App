@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.home.syntheticHomeUiState
+import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -15,6 +16,48 @@ import org.junit.Test
 /** Full native Home → phone Settings route acceptance, not the retired Web admin screen. */
 class D6MobileSettingsNavigationAcceptanceTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun realSettingsRouteOpensExistingPrivacySafeNoticeHistory() {
+        compose.setContent {
+            MyFinHubTheme {
+                MyFinHubAppContent(
+                    homeState = syntheticHomeUiState(),
+                    onHomeAction = {},
+                )
+            }
+        }
+        compose.onNodeWithContentDescription("Ρυθμίσεις").performClick()
+        compose.onNodeWithText("Ιστορικό ειδοποιήσεων")
+            .performScrollTo().assertIsDisplayed().performClick()
+        compose.onNodeWithText("Δεν υπάρχουν ειδοποιήσεις").assertIsDisplayed()
+    }
+
+    @Test fun realSettingsRouteOpensExistingDiagnosticsOnlyWithSnapshot() {
+        compose.setContent {
+            MyFinHubTheme {
+                MyFinHubAppContent(
+                    homeState = syntheticHomeUiState(),
+                    onHomeAction = {},
+                    diagnostics = AppDiagnosticsSnapshot(
+                        versionName = "1.0.0-test",
+                        buildType = "debug",
+                        environment = "Test",
+                        apiHost = "api.example.invalid",
+                        networkStatus = "Χωρίς σύνδεση",
+                        apiStatus = "Χωρίς δεδομένα",
+                        sessionStatus = "Ενεργή",
+                        lastSuccessfulSync = "2026-11-16T10:00:00Z",
+                        lastDiagnosticCode = null,
+                    ),
+                )
+            }
+        }
+        compose.onNodeWithContentDescription("Ρυθμίσεις").performClick()
+        compose.onNodeWithText("Διαγνωστικά και υποστήριξη")
+            .performScrollTo().assertIsDisplayed().performClick()
+        compose.onNodeWithText("Ασφαλή στοιχεία για έλεγχο και υποστήριξη")
+            .assertIsDisplayed()
+    }
 
     @Test fun homeSettingsRouteKeepsPrivacyAndLogoutReachableWithoutWebAdministration() {
         var logoutCount = 0

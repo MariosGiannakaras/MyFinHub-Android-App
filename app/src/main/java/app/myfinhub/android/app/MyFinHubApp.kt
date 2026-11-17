@@ -369,6 +369,13 @@ internal fun MyFinHubAppContent(
                     MobileDeviceSettingsScreen(
                         onBack = { homeBackStack.removeLastOrNull() },
                         onLogout = onLogout,
+                        noticeHistoryCount = noticeHistory.size,
+                        onOpenNoticeHistory = {
+                            homeBackStack.pushIfNew(AppRoute.NoticeHistory)
+                        },
+                        onOpenDiagnostics = diagnostics?.let {
+                            { homeBackStack.pushIfNew(AppRoute.Diagnostics); Unit }
+                        },
                     )
                 }
                 entry<AppRoute.Accounts> {
