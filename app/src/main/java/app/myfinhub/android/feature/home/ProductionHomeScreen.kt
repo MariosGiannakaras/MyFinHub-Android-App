@@ -460,6 +460,30 @@ private fun HomePrimaryAccountsSection(
     }
 }
 
+/** Chart labels must not claim a previous-month segment when the source has no month boundary. */
+internal fun homeHistoryPeriodCaption(account: HomeAccount): String {
+    val hasMonthBoundary = account.monthBoundaryIndex > 0 &&
+        account.monthBoundaryIndex < account.balanceTrend.lastIndex
+    val period = when {
+        !hasMonthBoundary -> "Ιστορικό υπολοίπου"
+        account.primaryRole == HomePrimaryRole.SAVINGS -> "Τρέχων μήνας · Προηγ. μήνας"
+        else -> "Προηγ. μήνας · Τρέχων μήνας"
+    }
+    return if (account.primaryRole == HomePrimaryRole.SAVINGS && account.savingsTarget != null) {
+        "${period} · Στόχος"
+    } else period
+}
+
+/** Accessibility describes available chart context, never a sensitive balance or numeric target. */
+internal fun homeHistoryAccessibilityDescription(account: HomeAccount): String {
+    val hasMonthBoundary = account.monthBoundaryIndex > 0 &&
+        account.monthBoundaryIndex < account.balanceTrend.lastIndex
+    val period = if (hasMonthBoundary) "προηγούμενος και τρέχων μήνας" else "διαθέσιμο ιστορικό"
+    val comparison = if (account.previousMonthTrend.size > 1)
+        ", σύγκριση με προηγούμενο μήνα" else ""
+    return "Εξέλιξη υπολοίπου ${account.name}: ${period}${comparison}"
+}
+
 @Composable
 private fun HomePrimaryAccountCard(
     account: HomeAccount,
@@ -541,8 +565,7 @@ private fun HomePrimaryAccountCard(
             }
             if (savings) {
                 Text(
-                    "Τρέχων μήνας · Προηγ. μήνας" +
-                        if (account.savingsTarget != null) " · Στόχος" else "",
+                    homeHistoryPeriodCaption(account),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -558,7 +581,7 @@ private fun HomePrimaryAccountCard(
                 )
             } else {
                 Text(
-                    "Προηγ. μήνας · Τρέχων μήνας",
+                    homeHistoryPeriodCaption(account),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -596,7 +619,7 @@ private fun HomeAccountTrendChart(account: HomeAccount, modifier: Modifier = Mod
     Canvas(
         modifier = modifier.height(83.dp)
             .testTag("home_account_history_${account.id}")
-            .semantics { contentDescription = "Εξέλιξη υπολοίπου ${account.name}" },
+            .semantics { contentDescription = homeHistoryAccessibilityDescription(account) },
     ) {
         val current = if (values.size > 1) values else listOf(values.firstOrNull() ?: account.balance,
             values.firstOrNull() ?: account.balance)

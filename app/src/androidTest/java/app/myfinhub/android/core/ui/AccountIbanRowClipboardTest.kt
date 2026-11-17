@@ -136,6 +136,6 @@ class AccountIbanRowClipboardTest {
             }
         }
         assertTrue(rule.onAllNodesWithTag("account_iban_copy").fetchSemanticsNodes().isEmpty())
-        rule.onNodeWithText("Δεν έχει οριστεί").assertExists()
+        rule.onNodeWithText("Μη έγκυρο IBAN").assertExists()
     }
 }
