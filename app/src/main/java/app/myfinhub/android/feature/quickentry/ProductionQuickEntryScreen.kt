@@ -54,6 +54,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -986,6 +988,8 @@ private fun ProductionDateChoice(
     label: String = "Ημερομηνία",
     optional: Boolean = false,
 ) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     var pickerOpen by remember { mutableStateOf(false) }
     val displayValue = when {
         value.isBlank() && optional -> "Δεν έχει οριστεί"
@@ -994,7 +998,13 @@ private fun ProductionDateChoice(
 
     MyFinHubSelectorButton(
         label = label,
-        onClick = { pickerOpen = true },
+        // A focused amount field can keep the IME in front of the calendar on
+        // compact emulator/phone windows. Dismiss it before presenting the dialog.
+        onClick = {
+            focusManager.clearFocus()
+            keyboardController?.hide()
+            pickerOpen = true
+        },
         modifier = Modifier
             .testTag(if (optional) "quick_entry_optional_date_picker" else "quick_entry_date_picker")
             .semantics { contentDescription = "$label: $displayValue" },
