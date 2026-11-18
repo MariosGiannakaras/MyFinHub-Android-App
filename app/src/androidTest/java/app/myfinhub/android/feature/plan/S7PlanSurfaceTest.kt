@@ -86,10 +86,10 @@ class S7PlanSurfaceTest {
         }
         composeRule.onNodeWithTag("s7_budget_save").assertIsNotEnabled()
         composeRule.onNodeWithTag("s7_budget_limit").performTextReplacement("850")
-        // Dismiss the real decimal IME before tapping the fixed bottom action.
-        // Otherwise AVD input-window interception may swallow the first tap.
-        androidx.test.espresso.Espresso.closeSoftKeyboard()
-        composeRule.waitForIdle()
+        // Use the Compose semantics action for the fixed bottom Save button.
+        // Espresso.closeSoftKeyboard() requires a focused activity window and
+        // can fail before testing Save on hosted emulator window transitions.
+        // Keep the enabled, exactly-once, and subsequent disabled assertions.
         composeRule.onNodeWithTag("s7_budget_save").assertIsEnabled().performClick()
         composeRule.runOnIdle { assertEquals(1, saveCalls) }
         composeRule.onNodeWithTag("s7_budget_save").assertIsNotEnabled()
