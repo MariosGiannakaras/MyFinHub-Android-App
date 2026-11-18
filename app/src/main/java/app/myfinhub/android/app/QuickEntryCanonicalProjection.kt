@@ -11,6 +11,7 @@ import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.canonicalStatementSourceIdCounts
 import app.myfinhub.android.core.data.matchesFinancialProvider
 import app.myfinhub.android.core.data.creditDebtForCardAt
+import app.myfinhub.android.core.data.lendingOutstandingForPerson
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.feature.quickentry.QuickEntryAccountOption
@@ -112,6 +113,7 @@ internal fun projectQuickEntryState(
     // Only the user may choose a link; never silently allocate a repayment.
     val creditStatements = projectPayableCreditStatements(document, selectedCard, selectedAsOf)
     val cardPaymentDebt = projectCardPaymentDebt(document, selectedCard, selectedAsOf)
+    val lendingOutstanding = document.lendingOutstandingForPerson(base.person, selectedAsOf)
     val selectedStatementId = base.statementId.takeIf { id ->
         creditStatements.count { it.id == id && it.cardId == selectedCard } == 1
     }.orEmpty()
@@ -155,6 +157,7 @@ internal fun projectQuickEntryState(
         creditStatements = creditStatements,
         cardPaymentSourceAccountIds = cardPaymentSources,
         cardPaymentDebt = cardPaymentDebt,
+        lendingOutstanding = lendingOutstanding,
         recurringId = linkedRecurring?.id.orEmpty(),
         splitParts = splitParts,
         accounts = accountOptions,
@@ -167,7 +170,7 @@ internal fun projectQuickEntryState(
 }
 
 /**
- * User actions which change the payment card, transaction date or transaction kind
+ * User actions which change payment card, transaction date, lending person or transaction kind
  * invalidate the statement options calculated at the previous snapshot. Recalculate
  * against the current local canonical projection without doing a server fetch.
  * The ordinary reducer still owns dirty flags and clears stale statement selection.
@@ -182,6 +185,7 @@ internal fun reduceQuickEntryWithCanonicalStatements(
     return when (action) {
         is app.myfinhub.android.feature.quickentry.QuickEntryAction.CardChanged,
         is app.myfinhub.android.feature.quickentry.QuickEntryAction.DateChanged,
+        is app.myfinhub.android.feature.quickentry.QuickEntryAction.PersonChanged,
         is app.myfinhub.android.feature.quickentry.QuickEntryAction.SelectKind,
         app.myfinhub.android.feature.quickentry.QuickEntryAction.Reset -> {
             val asOf = runCatching { LocalDate.parse(reduced.dateText) }
@@ -196,6 +200,7 @@ internal fun reduceQuickEntryWithCanonicalStatements(
                 fromAccountId = fromId,
                 cardPaymentSourceAccountIds = cardPaymentSources,
                 cardPaymentDebt = projectCardPaymentDebt(document, reduced.cardId, asOf),
+                lendingOutstanding = document.lendingOutstandingForPerson(reduced.person, asOf),
                 creditStatements = projectPayableCreditStatements(
                     document, reduced.cardId, asOf,
                 ),
