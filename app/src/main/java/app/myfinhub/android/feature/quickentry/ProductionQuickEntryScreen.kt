@@ -118,6 +118,7 @@ fun ProductionQuickEntryScreen(
     onAction: (QuickEntryAction) -> Unit,
     onBack: () -> Unit,
     mutationInFlight: Boolean = false,
+    mutationBlocked: Boolean = false,
     categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     var noteExpanded by rememberSaveable { mutableStateOf(false) }
@@ -125,7 +126,9 @@ fun ProductionQuickEntryScreen(
     var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
     val savedLocally = state.awaitingSync
-    val canSubmit = remember(state) { state.canSubmitDraft() }
+    val canSubmit = remember(state, mutationBlocked) {
+        !mutationBlocked && state.canSubmitDraft()
+    }
     val requestBack = {
         if (state.dirty && !state.persisted && !savedLocally) discardDialogOpen = true else onBack()
     }
@@ -165,7 +168,7 @@ fun ProductionQuickEntryScreen(
                     enabled = canSubmit && !mutationInFlight &&
                         !state.persisted && !savedLocally,
                     onClick = {
-                        if (!mutationInFlight) onAction(QuickEntryAction.Save)
+                        if (!mutationInFlight && !mutationBlocked) onAction(QuickEntryAction.Save)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -188,6 +191,15 @@ fun ProductionQuickEntryScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
+            if (mutationBlocked) {
+                Text(
+                    text = "Η καταχώριση δεν είναι διαθέσιμη όσο εκκρεμεί σφάλμα συγχρονισμού. " +
+                        "Έλεγξε την ειδοποίηση σφάλματος και δοκίμασε ξανά.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("quick_entry_mutation_blocked"),
+                )
+            }
             if (state.recurringId.isNotEmpty()) {
                 Text(
                     text = "Συνδεδεμένη πληρωμή παγίου · " +

@@ -94,6 +94,32 @@ class ProductionQuickEntryScreenTest {
     }
 
     @Test
+    fun blockingSyncIssueDisablesSaveWithGuidanceButKeepsDraftEditable() {
+        var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
+        var blocked by mutableStateOf(true)
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(
+                    state = state,
+                    onAction = { state = reduceQuickEntry(state, it) },
+                    onBack = {},
+                    mutationBlocked = blocked,
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("quick_entry_mutation_blocked").assertExists()
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        // Changing draft kind is still allowed. It must not turn Save on while
+        // the unresolved issue blocks canonical finance writes.
+        composeRule.onNodeWithTag("quick_entry_credit_purchase_shortcut").performClick()
+        composeRule.onNodeWithText("Αγορά με κάρτα · Αλλαγή τύπου").assertIsEnabled()
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        composeRule.runOnIdle { blocked = false }
+        composeRule.onNodeWithText("Καταχώριση").assertIsEnabled()
+    }
+
+    @Test
     fun requiredAmountsAndLendingPersonGateSubmissionButValidZeroReconciliationIsAccepted() {
         var state by mutableStateOf(validState(QuickEntryKind.EXPENSE).copy(amountText = ""))
         composeRule.setContent {
