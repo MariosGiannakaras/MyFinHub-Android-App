@@ -13,7 +13,7 @@ D7 source for the owner's explicitly requested all-changes Android production-si
 The previously published `1.0.0-rc13` / versionCode `10012` originates from older PR #446, so it is **not** the all-changes build and must not be re-labeled as such. A future production versionCode, signing fingerprint, and SHA-256 must come only from the guarded publisher. D7/W6.4 requires **actual physical S24 acceptance**, including investigation of the owner-reported finance-load `HTTP 400 / INVALID_DATA`; D8 final stable promotion is separately gated. No financial data, credentials, keystores, signing secrets or actual release assets are stored here.
 
 
-## D7 source-only physical video checkpoint — 2026-11-18
+## D7 S24 video readiness checkpoint — 2026-11-18
 
 This checkpoint starts from Android `develop` commit `a3f7e28b8bf33d2743145f53fe4191b6f25126b2`,
 which includes the validated and integrated Activity recovery PR #484 and all preceding
@@ -22,11 +22,15 @@ Android development changes. The marker itself changes no application behavior.
 An open, non-draft source PR with successful checks on its immutable final head
 is required by `scripts/phase6_release_source_gate.py` before a separately
 owner-authorized protected production publisher may sign a newer candidate.
-This PR is **source preparation only**: it neither publishes a new APK nor
-establishes Play Protect clearance or physical Samsung S24 Ultra acceptance.
+This PR additionally fixes an observed Quick Entry date-picker/keyboard
+visibility issue on the hosted S24 emulator by clearing the amount field's
+focus and hiding its soft keyboard before opening the date dialog. This
+runtime correction must pass exact-final-head UI validation before integration.
+No signed APK is published, and no Play Protect clearance or owner S24 physical
+acceptance is inferred from this work.
 
 The device recording and privacy-safe acceptance contract is
 `docs/D7_S24_VIDEO_VALIDATION.md`. Its release/source/version fields must
 be filled only from a future actually published and independently verified APK,
 never by guessing from this marker. Production finance writes and signing
-material are explicitly outside this source-preparation checkpoint.
+material are explicitly outside this UI/device-readiness checkpoint.
