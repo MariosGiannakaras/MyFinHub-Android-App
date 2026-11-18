@@ -461,6 +461,27 @@ fun ProductionQuickEntryScreen(
                 )
             }
 
+            if (state.kind == QuickEntryKind.REPAYMENT && state.person.isNotBlank()) {
+                state.lendingOutstanding?.let { debt ->
+                    val available = debt.isFinite() && debt > 0.005
+                    val overpaid = available && (state.amount ?: 0.0) > debt + 0.01
+                    val formatted = if (available) {
+                        String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €"
+                    } else ""
+                    Text(
+                        text = when {
+                            !available -> "Δεν υπάρχει καταγεγραμμένη οφειλή για αυτό το πρόσωπο."
+                            overpaid -> "Το ποσό ξεπερνά την οφειλή του προσώπου: $formatted."
+                            else -> "Οφειλή προσώπου στην επιλεγμένη ημερομηνία: $formatted."
+                        },
+                        modifier = Modifier.testTag("quick_entry_lending_debt"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (!available || overpaid) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
             if (state.kind == QuickEntryKind.LENDING) {
                 ProductionDateChoice(
                     value = state.expectedReturnDateText,

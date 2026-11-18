@@ -120,6 +120,27 @@ class ProductionQuickEntryScreenTest {
     }
 
     @Test
+    fun lendingRepaymentShowsAsOfDebtAndBlocksOverpaymentBeforeSave() {
+        var state by mutableStateOf(
+            validState(QuickEntryKind.REPAYMENT).copy(
+                person = "Άννα", lendingOutstanding = 10.0,
+            ),
+        )
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(state = state, onAction = {}, onBack = {})
+            }
+        }
+
+        composeRule.onNodeWithTag("quick_entry_lending_debt").assertExists()
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        composeRule.runOnIdle { state = state.copy(amountText = "10,00") }
+        composeRule.onNodeWithText("Καταχώριση").assertIsEnabled()
+        composeRule.runOnIdle { state = state.copy(lendingOutstanding = 0.0) }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+    }
+
+    @Test
     fun requiredAmountsAndLendingPersonGateSubmissionButValidZeroReconciliationIsAccepted() {
         var state by mutableStateOf(validState(QuickEntryKind.EXPENSE).copy(amountText = ""))
         composeRule.setContent {

@@ -127,6 +127,8 @@ data class QuickEntryUiState(
     val cardPaymentSourceAccountIds: Set<String>? = null,
     /** The selected card's canonical debt at the draft date; null only before finance projection. */
     val cardPaymentDebt: Double? = null,
+    /** Per-person canonical receivable on the draft date; null only before projection. */
+    val lendingOutstanding: Double? = null,
     val person: String = "",
     val expectedReturnDateText: String = "",
     val actualBalanceText: String = "",
@@ -564,6 +566,16 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
 
     if (state.kind == QuickEntryKind.LENDING || state.kind == QuickEntryKind.REPAYMENT) {
         if (state.person.isBlank()) return state.invalid("Συμπλήρωσε το πρόσωπο για τα δανεικά.")
+    }
+    if (state.kind == QuickEntryKind.REPAYMENT) {
+        state.lendingOutstanding?.let { debt ->
+            if (!debt.isFinite() || debt <= 0.005) {
+                return state.invalid("Δεν υπάρχει καταγεγραμμένη οφειλή για αυτό το πρόσωπο.")
+            }
+            if ((state.amount ?: 0.0) > debt + 0.01) {
+                return state.invalid("Η επιστροφή δεν μπορεί να ξεπερνά την οφειλή του προσώπου.")
+            }
+        }
     }
     if (state.kind == QuickEntryKind.LENDING && state.expectedReturnDateText.isNotBlank()) {
         val expected = runCatching { LocalDate.parse(state.expectedReturnDateText) }.getOrNull()

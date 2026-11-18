@@ -260,6 +260,74 @@ class QuickEntryCanonicalProjectionTest {
     }
 
     @Test
+    fun personalRepayment_preflightTracksCanonicalPersonDateAndOutstandingWithoutNewEvents() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement(
+            """
+            {"seed":{"accounts":[{"id":"bank-main","kind":"bank","name":"Τράπεζα"}],"lending":[]},
+             "state":{"events":[
+                {"id":"anna-lent","kind":"lending","date":"2026-11-03","person":"Άννα",
+                 "amount":70,"receivableDelta":70},
+                {"id":"nikos-lent","kind":"lending","date":"2026-11-05","person":"Νίκος",
+                 "amount":15,"receivableDelta":15},
+                {"id":"anna-return","kind":"repayment","date":"2026-11-08","person":"Άννα",
+                 "amount":20,"receivableDelta":-20}
+             ],"settings":{}}}
+            """.trimIndent(),
+        ).jsonObject)
+        val today = LocalDate.parse("2026-11-10")
+        val repayment = projectQuickEntryState(doc, today, QuickEntryUiState(
+            kind = QuickEntryKind.REPAYMENT, person = "Άννα",
+            accountId = "bank-main", dateText = today.toString(),
+            amountText = "45", dirty = true,
+        ))
+        assertEquals(50.0, repayment.lendingOutstanding ?: Double.NaN, 0.001)
+        assertTrue(repayment.canSubmitDraft())
+        val tooMuch = reduceQuickEntry(repayment, QuickEntryAction.AmountChanged("50,02"))
+        assertFalse(tooMuch.canSubmitDraft())
+        assertTrue(reduceQuickEntry(tooMuch, QuickEntryAction.Save).validationMessage
+            .orEmpty().contains("ξεπερνά την οφειλή"))
+
+        val otherPerson = reduceQuickEntryWithCanonicalStatements(
+            doc, repayment, QuickEntryAction.PersonChanged("Νίκος"), today,
+        )
+        assertEquals(15.0, otherPerson.lendingOutstanding ?: Double.NaN, 0.001)
+        assertFalse(otherPerson.canSubmitDraft())
+        val exact = reduceQuickEntry(otherPerson, QuickEntryAction.AmountChanged("15"))
+        assertTrue(exact.canSubmitDraft())
+
+        val beforeLoan = reduceQuickEntryWithCanonicalStatements(
+            doc, exact, QuickEntryAction.DateChanged("2026-11-04"), today,
+        )
+        assertEquals(0.0, beforeLoan.lendingOutstanding ?: Double.NaN, 0.001)
+        assertFalse(beforeLoan.canSubmitDraft())
+        assertTrue(reduceQuickEntry(beforeLoan, QuickEntryAction.Save).validationMessage
+            .orEmpty().contains("Δεν υπάρχει καταγεγραμμένη οφειλή"))
+
+        val annaEarlier = reduceQuickEntryWithCanonicalStatements(
+            doc, beforeLoan, QuickEntryAction.PersonChanged("Άννα"), today,
+        )
+        assertEquals(70.0, annaEarlier.lendingOutstanding ?: Double.NaN, 0.001)
+        assertTrue(annaEarlier.canSubmitDraft())
+        val restoredDate = reduceQuickEntryWithCanonicalStatements(
+            doc, annaEarlier, QuickEntryAction.DateChanged("2026-11-10"), today,
+        )
+        assertEquals(50.0, restoredDate.lendingOutstanding ?: Double.NaN, 0.001)
+        assertTrue(restoredDate.canSubmitDraft())
+
+        val unknown = reduceQuickEntryWithCanonicalStatements(
+            doc, restoredDate, QuickEntryAction.PersonChanged("Άγνωστος"), today,
+        )
+        assertEquals(0.0, unknown.lendingOutstanding ?: Double.NaN, 0.001)
+        assertFalse(unknown.canSubmitDraft())
+        val newLoan = reduceQuickEntryWithCanonicalStatements(
+            doc, unknown, QuickEntryAction.SelectKind(QuickEntryKind.LENDING), today,
+        )
+        assertTrue(newLoan.canSubmitDraft())
+        // Preflight is derived only: the source ledger and source rows are unchanged.
+        assertEquals(3, doc.state.array("events").size)
+    }
+
+    @Test
     fun creditPurchaseQuickEntry_isNotSilentlyConvertedToPayrollExpense() {
         val document = projectionFixture()
         val date = LocalDate.parse("2026-09-02")
