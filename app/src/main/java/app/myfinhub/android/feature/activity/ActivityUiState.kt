@@ -405,7 +405,9 @@ data class ActivityUiState(
         hasActiveDateFilter,
     ).count { it }
 
-    val hasActiveListScope: Boolean = !isAnalyticsScope && (query.isNotBlank() || activeFilterCount > 0)
+    // Web search preserves whitespace-only queries; empty and blank are not equivalent.
+    // Even a zero-result exact search must offer filter recovery.
+    val hasActiveListScope: Boolean = !isAnalyticsScope && (query.isNotEmpty() || activeFilterCount > 0)
 
     // Activity can contain hundreds of canonical events. Compute immutable projections once per
     // state instance instead of re-filtering every time Compose reads them.
