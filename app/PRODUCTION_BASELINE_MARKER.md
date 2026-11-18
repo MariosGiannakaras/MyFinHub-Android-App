@@ -38,3 +38,11 @@ The device recording and privacy-safe acceptance contract is
 be filled only from a future actually published and independently verified APK,
 never by guessing from this marker. Production finance writes and signing
 material are explicitly outside this UI/device-readiness checkpoint.
+
+## Source checkpoint for future owner-authorized physical S24 candidate — 2026-11-18
+
+The source baseline is merged Android `develop` commit `9e0345293da61bb0f54822c18c6592a619e67cc2` with PR #485 integrated and verified. This `android/d7-s24-physical-source-20261118` branch is a **nonfunctional source checkpoint**, leaving the canonical package, production signer, finance transport, local encrypted store, release automation, backend and sensitive data untouched.
+
+The exact final PR head must pass Project Tracking, Android CI, screenshot regression, both hosted S24 emulator shards and the aggregate; then it may remain **open and non-draft** as source input for a future, **separately and explicitly owner-authorized** protected publisher. Do not merge or close the source PR merely because CI passes: the production source gate requires that it remain open. Do not create a release request, trigger the protected publisher, assume a version name/code or publish an APK from generic continuation instructions.
+
+The latest **published** candidate remains `1.0.0-rc17` / `10016`, with its reported Play Protect block unresolved. No actual Samsung S24 Ultra acceptance can be inferred from a source PR or emulator. Follow `docs/PLAY_PROTECT_INCIDENT_20261114.md` and `docs/D7_S24_VIDEO_VALIDATION.md` for Google/physical checks; historical GET /api/data HTTP 400 and two unlinked credit purchases remain unresolved until new authoritative evidence. W6.4/D7/D8 remain open.
