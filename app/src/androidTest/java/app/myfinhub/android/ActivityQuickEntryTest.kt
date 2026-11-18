@@ -43,6 +43,13 @@ class ActivityQuickEntryTest {
         // Interact with the accessible control rather than tapping the label.
         composeRule.onNodeWithTag("quick_entry_date_picker")
             .performScrollTo().performClick()
+        // The calendar opens only after the animated IME has fully dismissed.
+        // Preserve the visible-dialog assertion, with a bounded wait for layout.
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            runCatching {
+                composeRule.onNodeWithText("Επιλογή ημερομηνίας").assertIsDisplayed()
+            }.isSuccess
+        }
         composeRule.onNodeWithText("Επιλογή ημερομηνίας").assertIsDisplayed()
         composeRule.onNodeWithText("Ακύρωση").performClick()
 
