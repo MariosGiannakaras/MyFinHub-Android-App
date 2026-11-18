@@ -27,3 +27,7 @@ Use the phone's **normal** display scale/font and connectivity. Record only sani
 Record the actual candidate release tag, code/name, published APK hash, test device model/Android version, original installed version, in-place update result, Play Protect result, real finance GET state, any observed error request ID (without credentials), credit purchase findings, offline/cache status and each user journey's PASS/FAIL/SKIPPED outcome. Attach sanitized video/screenshots to the relevant project issue.
 
 An **owner-observed PASS** is required before marking deployment D7 complete or W6.4 accepted. Successful hosted emulator tests, a published artifact or a phone Settings version label alone are insufficient. Production promotion/D8 is a separate decision. If any safety or finance-integrity gate fails, do not continue with financial writes or declare the build ready.
+
+## Current rc18 candidate observation — 2026-11-18
+
+The protected publisher released `v1.0.0-rc18` / `10017` (direct APK SHA-256 `40360b5678225300c7cd8f8fe1dd1f727cbb14dee9bd5dde2f33ace329fbdc0d`). The owner reports this candidate passed Google Play Protect on the Galaxy S24 Ultra. **Only the Play Protect result is reported:** real installed-version and in-place upgrade continuity, live finance GET, credit-purchase linkage and functional screen/video acceptance still require separate device evidence. D7/W6.4 are not complete.
