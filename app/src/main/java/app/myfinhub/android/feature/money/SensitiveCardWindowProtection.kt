@@ -7,6 +7,11 @@ import android.view.Window
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import java.util.WeakHashMap
@@ -54,4 +59,26 @@ internal fun ProtectSensitiveCardWindow(revealed: Boolean) {
         } else null
         onDispose { release?.invoke() }
     }
+}
+
+/**
+ * Keep the Activity protected while a revealed card can still be drawn by an outgoing
+ * Navigation3 scene or a dialog transition. Screen-level leases alone are not enough:
+ * the underlying card can outlive its composable owner during animated navigation.
+ *
+ * This is visual-capture protection only; no finance persistence or secret material
+ * is delayed or retained here. The grace period ends after the transition settles.
+ */
+@Composable
+internal fun ProtectSensitiveCardDuringNavigation(revealed: Boolean) {
+    var protectingTransition by remember { mutableStateOf(false) }
+    LaunchedEffect(revealed) {
+        if (revealed) {
+            protectingTransition = true
+        } else {
+            delay(1_500L)
+            protectingTransition = false
+        }
+    }
+    ProtectSensitiveCardWindow(revealed || protectingTransition)
 }

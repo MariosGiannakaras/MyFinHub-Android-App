@@ -57,6 +57,7 @@ import app.myfinhub.android.feature.money.canOpenCreditCardQuickEntry
 import app.myfinhub.android.feature.money.CanonicalSavingsScreen
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.MoneyUiState
+import app.myfinhub.android.feature.money.ProtectSensitiveCardDuringNavigation
 import app.myfinhub.android.feature.money.MoneyViewModel
 import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlan2026Screen
@@ -219,6 +220,10 @@ internal fun MyFinHubAppContent(
     // exposing them as mobile tabs or weakening installed-state migration.
     legacyTestInitialDestination: TopLevelDestination? = null,
 ) {
+    // A revealed card can still be drawn under an outgoing Nav3 scene or modal.
+    // Keep a root lease until animations settle, even if the Wallet subtree exits.
+    ProtectSensitiveCardDuringNavigation(cardSecretState is CardSecretUiState.Revealed)
+
     // Display server-owned provider names only for exact canonical provider IDs.
     // Never use a matching label as a surrogate owner ID or load an unverified URL.
     val homeProviderState = remember(homeState, financialProviderCatalog) {

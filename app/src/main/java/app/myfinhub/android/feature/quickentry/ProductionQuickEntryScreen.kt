@@ -352,7 +352,17 @@ fun ProductionQuickEntryScreen(
             }
 
             if (state.kind == QuickEntryKind.CARD_PAYMENT) {
-                state.cardPaymentDebt?.let { debt ->
+                // The optimistic write projection immediately settles the card debt.
+                // While the server still acknowledges the payment, zero debt must
+                // not appear as a false red validation failure to the owner.
+                if (mutationInFlight) {
+                    Text(
+                        "Η εξόφληση καταχωρίζεται…",
+                        modifier = Modifier.testTag("quick_entry_card_debt"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else state.cardPaymentDebt?.let { debt ->
                     val debtLabel = if (debt.isFinite() && debt > 0.005) {
                         "Οφειλή κάρτας: " +
                             String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €"

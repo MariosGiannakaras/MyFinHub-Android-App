@@ -94,6 +94,39 @@ class ProductionQuickEntryScreenTest {
     }
 
     @Test
+    fun cardPaymentOptimisticZeroDebtShowsPendingInsteadOfFalseRejection() {
+        var state by mutableStateOf(validState(QuickEntryKind.CARD_PAYMENT).copy(
+            amountText = "2", cardPaymentDebt = 2.0,
+        ))
+        var saving by mutableStateOf(false)
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(
+                    state = state, onAction = {}, onBack = {}, mutationInFlight = saving,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Οφειλή κάρτας: 2,00 €").assertExists()
+        composeRule.runOnIdle {
+            // Exactly the optimistic projection after a 2€ repayment.
+            state = state.copy(cardPaymentDebt = 0.0)
+            saving = true
+        }
+        composeRule.onNodeWithText("Καταχώριση…").assertIsNotEnabled()
+        composeRule.onNodeWithText("Η εξόφληση καταχωρίζεται…").assertExists()
+        composeRule.onNodeWithText(
+            "Δεν υπάρχει καταγεγραμμένη οφειλή για την επιλεγμένη ημερομηνία.",
+        ).assertDoesNotExist()
+        composeRule.runOnIdle { saving = false }
+        // Zero debt still blocks a NEW attempt after the pending write ends.
+        composeRule.onNodeWithText(
+            "Δεν υπάρχει καταγεγραμμένη οφειλή για την επιλεγμένη ημερομηνία.",
+        ).assertExists()
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+    }
+
+    @Test
     fun blockingSyncIssueDisablesSaveWithGuidanceButKeepsDraftEditable() {
         var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
         var blocked by mutableStateOf(true)
