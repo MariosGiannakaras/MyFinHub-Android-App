@@ -22,10 +22,14 @@ Android development changes. The marker itself changes no application behavior.
 An open, non-draft source PR with successful checks on its immutable final head
 is required by `scripts/phase6_release_source_gate.py` before a separately
 owner-authorized protected production publisher may sign a newer candidate.
-This PR additionally fixes an observed Quick Entry date-picker/keyboard
-visibility issue on the hosted S24 emulator by clearing the amount field's
-focus and hiding its soft keyboard before opening the date dialog. This
-runtime correction must pass exact-final-head UI validation before integration.
+This PR additionally fixes the Quick Entry date-picker/keyboard visibility
+race on the hosted S24 emulator: clear the amount field focus, request IME
+hide, and open the calendar only when IME insets reach zero. The existing
+instrumented visible-title test retains its assertion and waits a bounded
+five seconds for asynchronous dialog layout. A separate Budget Save test now
+uses its real Compose button action rather than Espresso's unstable window-
+focus-dependent keyboard close; its Save state and once-only checks remain.
+Both corrections require exact-final-head UI validation before integration.
 No signed APK is published, and no Play Protect clearance or owner S24 physical
 acceptance is inferred from this work.
 
