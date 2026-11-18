@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -55,6 +57,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -990,7 +993,18 @@ private fun ProductionDateChoice(
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
+    var pickerRequested by remember { mutableStateOf(false) }
     var pickerOpen by remember { mutableStateOf(false) }
+
+    // The IME animates out asynchronously. Wait until the calendar has the
+    // whole viewport rather than racing its layout against the keyboard.
+    LaunchedEffect(pickerRequested, imeBottom) {
+        if (pickerRequested && imeBottom == 0) {
+            pickerOpen = true
+            pickerRequested = false
+        }
+    }
     val displayValue = when {
         value.isBlank() && optional -> "Δεν έχει οριστεί"
         else -> value.toGreekDateLabel()
@@ -998,12 +1012,12 @@ private fun ProductionDateChoice(
 
     MyFinHubSelectorButton(
         label = label,
-        // A focused amount field can keep the IME in front of the calendar on
-        // compact emulator/phone windows. Dismiss it before presenting the dialog.
+        // A focused amount field can keep the IME over the calendar on
+        // compact windows; opening is deferred until IME insets reach zero.
         onClick = {
             focusManager.clearFocus()
             keyboardController?.hide()
-            pickerOpen = true
+            pickerRequested = true
         },
         modifier = Modifier
             .testTag(if (optional) "quick_entry_optional_date_picker" else "quick_entry_date_picker")
