@@ -295,6 +295,7 @@ fun ActivityLedgerScreen(
                         ) {
                             Text(
                                 "Προβολή μήνα · $monthText",
+                                modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
