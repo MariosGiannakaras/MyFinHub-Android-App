@@ -57,7 +57,7 @@ class ActivityReducerTest {
             transactionCount = 0, previousIncome = 0.0, previousExpense = 7.0,
             previousNet = -7.0, previousTransactionCount = 1,
         )
-        val scoped = ActivityUiState(items = listOf(row), monthOverview = month, monthSourceSelected = true)
+        val scoped = ActivityUiState(items = listOf(row)).selectOverviewMonth(month)
         assertTrue(scoped.showingOverviewMonth)
         assertTrue(scoped.scopeSourceItems.isEmpty())
         assertFalse(scoped.hasActiveListScope)
