@@ -31,3 +31,11 @@ An **owner-observed PASS** is required before marking deployment D7 complete or 
 ## Current rc18 candidate observation — 2026-11-18
 
 The protected publisher released `v1.0.0-rc18` / `10017` (direct APK SHA-256 `40360b5678225300c7cd8f8fe1dd1f727cbb14dee9bd5dde2f33ace329fbdc0d`). The owner reports this candidate passed Google Play Protect on the Galaxy S24 Ultra. **Only the Play Protect result is reported:** real installed-version and in-place upgrade continuity, live finance GET, credit-purchase linkage and functional screen/video acceptance still require separate device evidence. D7/W6.4 are not complete.
+
+## Owner S24 rc18 recording review — 2026-11-18 (D7 still pending)
+
+The private owner-supplied ~113-second screen recording shows MyFinHub `1.0.0-rc18` / build `10017` in Settings. A new **€2 credit-card purchase** appears in Activity, after which the card shows **€2 owed**; a **€2 repayment** later appears in Activity and the paying account balance drops accordingly. This is real **UI evidence**, not proof of an authoritative `GET /api/data`, successful in-place data migration or resolution of the two historical November 12 unlinked transactions.
+
+**Sensitive-card capture defect:** At approximately 100.5 seconds, during a Quick Entry discard/navigation transition, a revealed card face with full PAN, expiry and CVV became visible to the screen recorder underneath the dialog. This is a D7 privacy failure. NEVER upload the original recording, its unredacted frames or secret values to GitHub or public artifacts. The root capture flag must stay active through outgoing navigation/dialog animations, independently of a child Card screen's composable lifetime. PR #487 adds this protection plus instrumented regression; it is not yet proven on the real S24.
+
+**In-flight feedback defect:** Around 93 seconds, the optimistic card repayment makes projected debt zero while the write is still pending, incorrectly displaying a red no-debt warning. PR #487 replaces that misleading in-flight warning with neutral progress feedback without weakening debt preflight or save acknowledgment. Screen-recording blackouts alone do not establish safety or crashes. D7 6/8 and W6.4 5/6 (23/24) remain pending until a tested fixed candidate and new owner evidence.
