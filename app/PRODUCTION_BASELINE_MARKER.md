@@ -38,3 +38,9 @@ The device recording and privacy-safe acceptance contract is
 be filled only from a future actually published and independently verified APK,
 never by guessing from this marker. Production finance writes and signing
 material are explicitly outside this UI/device-readiness checkpoint.
+
+## Integrated S24 capture remediation source checkpoint — 2026-11-19
+
+The authoritative integrated source is `develop` commit `143732cf292aa3d5f22bd19c810766da9bb6616a` from squash PR #487. PR #487's immutable head `0f4d3c05178ae6281d696597dae790a3095a2212` passed all six required gates (tracking, Android, screenshot, both S24 emulator shards and aggregate). It adds app-root `FLAG_SECURE` retention while revealed card contents can remain drawn during navigation/dialog transitions; it also replaces a misleading transient zero-debt error during a pending card repayment with progress feedback. The signed rc18/10017 *does not contain either fix*.
+
+The branch `android/d7-s24-capture-candidate-source-20261119` is a source-only checkpoint for a separate guarded, same-production-signer S24 test candidate. Keep the corresponding source PR OPEN and NON-DRAFT with all six checks PASS on its immutable final head until the protected publisher consumes it. No new APK/signature, finance write, backend mutation, Play Protect result, or physical owner acceptance is represented by this marker. The publisher must determine the next versionCode and publish independently verified checksums. Production financial write protections and existing data remain intact.
