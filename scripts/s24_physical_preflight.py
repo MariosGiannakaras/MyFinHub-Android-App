@@ -15,9 +15,23 @@ import subprocess
 import sys
 
 PACKAGE = "app.myfinhub.android"
-LATEST_PUBLISHED_VERSION_CODE = 10012  # rc13, protected release 2026-11-10
-LATEST_PUBLISHED_VERSION_NAME = "1.0.0-rc13"
-LAST_KNOWN_SIGNED_VERSION_CODE = 10011  # previous rc12; lower bound for --expected-version-code
+# Public signed GitHub prerelease metadata, checked 2026-11-18.
+# These code/name pairs are only a read-only consistency allowlist: neither the
+# release listing nor an ADB-reported version proves APK signer, Play Protect
+# clearance, safe in-place update, source trust, or physical owner acceptance.
+# Update this allowlist against published immutable releases before assessing
+# a later candidate. Unknown future version codes fail expected-code matching.
+PUBLISHED_RELEASE_VERSION_NAMES = {
+    10011: "1.0.0-rc12",
+    10012: "1.0.0-rc13",
+    10013: "1.0.0-rc14",
+    10014: "1.0.0-rc15",
+    10015: "1.0.0-rc16",
+    10016: "1.0.0-rc17",
+}
+LATEST_PUBLISHED_VERSION_CODE = 10016
+LATEST_PUBLISHED_VERSION_NAME = PUBLISHED_RELEASE_VERSION_NAMES[LATEST_PUBLISHED_VERSION_CODE]
+LAST_KNOWN_SIGNED_VERSION_CODE = 10011  # rc12 lower bound; old candidates remain inspectable
 MODEL_PATTERN = re.compile(r"SM-S928[A-Z0-9]*\Z")
 VERSION_PATTERN = re.compile(r"[A-Za-z0-9._+-]{1,64}\Z")
 ANDROID_PATTERN = re.compile(r"[A-Za-z0-9.]{1,32}\Z")
@@ -110,6 +124,7 @@ def inspect(expected_version_code: int | None = None) -> dict[str, object]:
             "package": PACKAGE,
             "installation": "not_found",
             "candidate_check": "not_installed",
+            "play_protect": "not_assessed",
             "physical_acceptance": "not_assessed",
         }
         if expected_version_code is not None:
@@ -125,14 +140,13 @@ def inspect(expected_version_code: int | None = None) -> dict[str, object]:
 
     # A newer code alone does NOT establish trusted signer, source provenance,
     # safe in-place upgrade, or product/owner acceptance.
-    if version_code < LATEST_PUBLISHED_VERSION_CODE:
-        freshness = "older_than_published_rc13"
+    known_release_name = PUBLISHED_RELEASE_VERSION_NAMES.get(version_code)
+    if known_release_name is not None and version_name != known_release_name:
+        freshness = "unrecognized_build_requires_source_and_signer_verification"
+    elif version_code < LATEST_PUBLISHED_VERSION_CODE:
+        freshness = "older_than_published_rc17"
     elif version_code == LATEST_PUBLISHED_VERSION_CODE:
-        freshness = (
-            "published_rc13_version_only_requires_signer_and_owner_verification"
-            if version_name == LATEST_PUBLISHED_VERSION_NAME
-            else "unrecognized_build_requires_source_and_signer_verification"
-        )
+        freshness = "published_rc17_version_only_requires_signer_and_owner_verification"
     else:
         freshness = "newer_build_requires_source_and_signer_verification"
     result: dict[str, object] = {
@@ -144,16 +158,16 @@ def inspect(expected_version_code: int | None = None) -> dict[str, object]:
         "version_name": version_name,
         "version_code": version_code,
         "candidate_check": freshness,
+        "play_protect": "not_assessed",
         "physical_acceptance": "not_assessed",
     }
     if expected_version_code is not None:
         result["expected_version_code"] = expected_version_code
+        # Exact code alone must not validate a spoofed old release or an
+        # unknown future build. The latter needs an updated release allowlist.
         result["candidate_version_matches_expected"] = (
             version_code == expected_version_code
-            and (
-                version_code != LATEST_PUBLISHED_VERSION_CODE
-                or version_name == LATEST_PUBLISHED_VERSION_NAME
-            )
+            and PUBLISHED_RELEASE_VERSION_NAMES.get(expected_version_code) == version_name
         )
     return result
 
@@ -201,8 +215,8 @@ def main(argv: list[str] | None = None) -> int:
         print("D7 physical S24 read-only preflight (NOT owner acceptance)")
         for key, value in result.items():
             print(f"{key}: {value}")
-        print("The installed signer, release source, in-place data continuity,")
-        print("and all real-device user journeys require separate owner verification.")
+        print("APK signer, release source, Play Protect, in-place data continuity,")
+        print("and real-device user journeys require separate owner verification.")
     return 0
 
 
