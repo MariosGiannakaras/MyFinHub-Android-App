@@ -29,6 +29,50 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun whitespaceOnlySearchIsActiveAndRecoverableWithoutChangingRealRows() {
+        val row = ActivityItem(
+            "real", "7 Νοε", ActivityKind.EXPENSE, "Αγορά", "", -12.0,
+            "Μετρητά", "Τρόφιμα", rawDate = "2026-11-07",
+            note = "Καφές", canonicalSourceOrdinal = 0,
+        )
+        val state = ActivityUiState(items = listOf(row), query = "   ")
+        assertTrue(state.visibleItems.isEmpty())
+        assertTrue(state.hasActiveListScope)
+        assertEquals(0, state.activeFilterCount)
+        val clear = reduceActivity(state, ActivityAction.ClearFilters)
+        assertEquals("", clear.query)
+        assertFalse(clear.hasActiveListScope)
+        assertEquals(listOf("real"), clear.visibleItems.map { it.id })
+        assertEquals(listOf(row), clear.items)
+    }
+
+    @Test
+    fun monthWithNoRowsCanExitWhileFilterOnlyResetPreservesSource() {
+        val row = ActivityItem(
+            "previous", "21 Οκτ", ActivityKind.EXPENSE, "Παλιά κίνηση", "", -7.0,
+            "Μετρητά", "Άλλο", rawDate = "2026-10-21",
+        )
+        val month = ActivityMonthlyOverview(
+            month = "2026-11", income = 0.0, expense = 0.0, net = 0.0,
+            transactionCount = 0, previousIncome = 0.0, previousExpense = 7.0,
+            previousNet = -7.0, previousTransactionCount = 1,
+        )
+        val scoped = ActivityUiState(items = listOf(row)).selectOverviewMonth(month)
+        assertTrue(scoped.showingOverviewMonth)
+        assertTrue(scoped.scopeSourceItems.isEmpty())
+        assertFalse(scoped.hasActiveListScope)
+        val cleared = reduceActivity(scoped, ActivityAction.ClearSearchAndFilters)
+        assertFalse(cleared.showingOverviewMonth)
+        assertEquals(listOf("previous"), cleared.visibleItems.map { it.id })
+        assertEquals(listOf(row), cleared.items)
+        assertEquals(month, cleared.monthOverview)
+        val searched = scoped.copy(query = "   ")
+        assertTrue(reduceActivity(searched, ActivityAction.ClearFilters).showingOverviewMonth)
+        assertEquals(listOf("previous"),
+            reduceActivity(searched, ActivityAction.ClearSearchAndFilters).visibleItems.map { it.id })
+    }
+
+    @Test
     fun invalidImportedMoneyRemainsVisibleButNeverGetsTrustworthyFilteredTotals() {
         val bad = ActivityItem(
             id = "invalid", dateLabel = "30 Οκτ", kind = ActivityKind.EXPENSE,

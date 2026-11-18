@@ -277,6 +277,35 @@ fun ActivityLedgerScreen(
                         }
                     }
                 }
+                // A source month is independent of ordinary filters. Make the
+                // selected month and route to full history visible even with the summary collapsed.
+                if (state.showingOverviewMonth && state.scopeSourceItems.isNotEmpty()) {
+                    val monthText = state.monthOverview?.month?.let { raw ->
+                        runCatching {
+                            YearMonth.parse(raw).atDay(1).format(
+                                DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("el-GR")),
+                            )
+                        }.getOrDefault(raw)
+                    }.orEmpty()
+                    item(key = "month-source-indicator") {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().testTag("activity_month_source_indicator"),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                "Προβολή μήνα · $monthText",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            TextButton(
+                                onClick = { onAction(ActivityAction.ClearSearchAndFilters) },
+                                modifier = Modifier.testTag("activity_show_all_history"),
+                            ) { Text("Όλο το ιστορικό") }
+                        }
+                    }
+                }
                 // Month analysis is secondary to search and the transaction list.
                 // Keep it available without occupying the top half of a compact phone.
                 state.monthOverview?.let { overview ->
@@ -393,11 +422,16 @@ fun ActivityLedgerScreen(
                             } else "Δεν υπάρχουν καταχωρισμένες κινήσεις.",
                             actionLabel = when {
                                 analyticsScope -> null
-                                state.hasActiveListScope -> "Επαναφορά φίλτρων"
+                                // Resetting filters retains the selected source; exit an empty month.
+                                state.showingOverviewMonth -> "Όλο το ιστορικό"
+                                state.hasActiveListScope -> "Καθαρισμός αναζήτησης και φίλτρων"
                                 else -> "Νέα κίνηση"
                             },
                             onAction = when {
                                 analyticsScope -> null
+                                state.showingOverviewMonth -> {
+                                    { onAction(ActivityAction.ClearSearchAndFilters) }
+                                }
                                 state.hasActiveListScope -> { { onAction(ActivityAction.ClearFilters) } }
                                 else -> onOpenQuickEntry
                             },
