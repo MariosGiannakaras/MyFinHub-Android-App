@@ -690,7 +690,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     fun onQuickEntryAction(action: QuickEntryAction) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
-        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        // A sync issue blocks finance writes, not safe local edits to the draft.
+        // Otherwise editable fields silently ignore input while Save still looks actionable.
+        if (ready.saving || mutationLaunchInFlight) return
         if (action != QuickEntryAction.Save) {
             mutableState.value = ready.copy(
                 projection = ready.projection.copy(
@@ -704,6 +706,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             )
             return
         }
+
+        if (ready.issue != null) return
 
         val preview = reduceQuickEntry(ready.projection.quickEntryState, QuickEntryAction.Save)
         mutableState.value = ready.copy(projection = ready.projection.copy(quickEntryState = preview))

@@ -716,6 +716,7 @@ private fun FinanceProductSurface(
                     quickEntryState = projection.quickEntryState,
                     onQuickEntryAction = onQuickEntryAction,
                     quickEntryMutationInFlight = state.saving,
+                    quickEntryMutationBlocked = state.issue != null,
                     moneyState = projection.moneyState,
                     cardSecretState = cardSecretState,
                     cardSecretCleanupState = cardSecretCleanupState,

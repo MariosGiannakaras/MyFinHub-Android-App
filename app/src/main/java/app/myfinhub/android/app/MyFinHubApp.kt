@@ -137,6 +137,7 @@ internal fun MyFinHubAppContent(
     quickEntryState: QuickEntryUiState = QuickEntryUiState(),
     onQuickEntryAction: (QuickEntryAction) -> Unit = {},
     quickEntryMutationInFlight: Boolean = false,
+    quickEntryMutationBlocked: Boolean = false,
     moneyState: MoneyUiState = MoneyUiState(),
     financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord> = emptyList(),
     recurringServiceAssets: List<app.myfinhub.android.core.network.RecurringServiceAssetRecord> = emptyList(),
@@ -529,6 +530,7 @@ internal fun MyFinHubAppContent(
                             onAction = onQuickEntryAction,
                             onBack = { activeBackStack.removeLastOrNull() },
                             mutationInFlight = quickEntryMutationInFlight,
+                            mutationBlocked = quickEntryMutationBlocked,
                             categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         )
                     }
