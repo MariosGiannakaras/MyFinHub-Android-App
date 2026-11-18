@@ -125,6 +125,8 @@ data class QuickEntryUiState(
     val creditStatements: List<QuickEntryStatementOption> = emptyList(),
     /** Canonical bank-matched repayment sources; null only before a real finance projection. */
     val cardPaymentSourceAccountIds: Set<String>? = null,
+    /** The selected card's canonical debt at the draft date; null only before finance projection. */
+    val cardPaymentDebt: Double? = null,
     val person: String = "",
     val expectedReturnDateText: String = "",
     val actualBalanceText: String = "",
@@ -528,6 +530,16 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
 
     if (state.kind.needsCard && state.creditCards.none { it.id == state.cardId }) {
         return state.invalid("Διάλεξε ενεργή πιστωτική κάρτα.")
+    }
+    if (state.kind == QuickEntryKind.CARD_PAYMENT) {
+        state.cardPaymentDebt?.let { debt ->
+            if (!debt.isFinite() || debt <= 0.005) {
+                return state.invalid("Η συγκεκριμένη κάρτα δεν έχει τρέχουσα οφειλή.")
+            }
+            if ((state.amount ?: 0.0) > debt + 0.01) {
+                return state.invalid("Η πληρωμή ξεπερνά την οφειλή της συγκεκριμένης κάρτας.")
+            }
+        }
     }
     if (state.kind == QuickEntryKind.CARD_PAYMENT && state.statementId.isNotBlank()) {
         // A statement ID is a global linkage key: no first-match fallback

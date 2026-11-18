@@ -10,6 +10,7 @@ import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.canonicalStatementSourceIdCounts
 import app.myfinhub.android.core.data.matchesFinancialProvider
+import app.myfinhub.android.core.data.creditDebtForCardAt
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.feature.quickentry.QuickEntryAccountOption
@@ -110,6 +111,7 @@ internal fun projectQuickEntryState(
     // Web recommendedPayableStatement precedence: due > closed > open.
     // Only the user may choose a link; never silently allocate a repayment.
     val creditStatements = projectPayableCreditStatements(document, selectedCard, selectedAsOf)
+    val cardPaymentDebt = projectCardPaymentDebt(document, selectedCard, selectedAsOf)
     val selectedStatementId = base.statementId.takeIf { id ->
         creditStatements.count { it.id == id && it.cardId == selectedCard } == 1
     }.orEmpty()
@@ -152,6 +154,7 @@ internal fun projectQuickEntryState(
         statementId = selectedStatementId,
         creditStatements = creditStatements,
         cardPaymentSourceAccountIds = cardPaymentSources,
+        cardPaymentDebt = cardPaymentDebt,
         recurringId = linkedRecurring?.id.orEmpty(),
         splitParts = splitParts,
         accounts = accountOptions,
@@ -192,6 +195,7 @@ internal fun reduceQuickEntryWithCanonicalStatements(
             reduced.copy(
                 fromAccountId = fromId,
                 cardPaymentSourceAccountIds = cardPaymentSources,
+                cardPaymentDebt = projectCardPaymentDebt(document, reduced.cardId, asOf),
                 creditStatements = projectPayableCreditStatements(
                     document, reduced.cardId, asOf,
                 ),
@@ -217,6 +221,17 @@ private fun projectCardPaymentSourceAccountIds(
         .filter { it.kind != "credit" && it.matchesFinancialProvider(card.bankId) }
         .map { it.id }.toSet()
 }
+
+/**
+ * Match the canonical guarded credit-payment mutation's as-of debt formula,
+ * including existing legacy card ownership rules. Zero debt remains an explicit
+ * value and must not be confused with an unknown/uncalculated UI state.
+ */
+private fun projectCardPaymentDebt(
+    document: CanonicalFinanceDocument,
+    cardId: String,
+    asOf: String,
+): Double = document.creditDebtForCardAt(cardId, asOf)
 
 /** Server-sourced statement IDs must remain unique across every physical source row. */
 private fun projectPayableCreditStatements(

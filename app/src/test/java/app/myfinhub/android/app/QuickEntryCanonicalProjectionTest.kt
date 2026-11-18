@@ -154,7 +154,10 @@ class QuickEntryCanonicalProjectionTest {
                 {"id":"piraeus-card","kind":"credit","active":true,"bankId":"piraeus","network":"visa"},
                 {"id":"alpha-card","kind":"credit","active":true,"bankId":"alpha","network":"mastercard"},
                 {"id":"unlinked-card","kind":"credit","active":true,"bankId":"","network":"visa"}
-             ],"events":[],"settings":{"defaultExpenseAccount":"alpha-account"}}}
+             ],"events":[
+                {"id":"piraeus-charge","kind":"card_purchase","date":"2026-11-01","amount":20,"cardId":"piraeus-card"},
+                {"id":"alpha-charge","kind":"card_purchase","date":"2026-11-02","amount":30,"cardId":"alpha-card"}
+             ],"settings":{"defaultExpenseAccount":"alpha-account"}}}
             """.trimIndent(),
         ).jsonObject)
         val today = LocalDate.parse("2026-11-18")
@@ -203,6 +206,57 @@ class QuickEntryCanonicalProjectionTest {
         )
         assertEquals("piraeus-account", restored.fromAccountId)
         assertTrue(restored.canSubmitDraft())
+    }
+
+
+    @Test
+    fun creditPaymentDebt_matchesCanonicalAsOfAndBlocksZeroOrOverpaymentBeforeSubmit() {
+        val doc = projectionFixture()
+        val today = LocalDate.parse("2026-09-02")
+        val payment = projectQuickEntryState(doc, today, QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PAYMENT,
+            cardId = "credit-one",
+            fromAccountId = "bank-main",
+            dateText = today.toString(),
+            amountText = "25",
+            dirty = true,
+        ))
+        assertEquals(40.0, payment.cardPaymentDebt ?: Double.NaN, 0.001)
+        assertTrue(payment.canSubmitDraft())
+
+        val excessive = reduceQuickEntry(payment, QuickEntryAction.AmountChanged("40,02"))
+        assertFalse(excessive.canSubmitDraft())
+        assertTrue(reduceQuickEntry(excessive, QuickEntryAction.Save)
+            .validationMessage.orEmpty().contains("ξεπερνά την οφειλή"))
+        // Exactly the recorded debt is permitted by the canonical write boundary.
+        val exact = reduceQuickEntry(payment, QuickEntryAction.AmountChanged("40"))
+        assertTrue(exact.canSubmitDraft())
+
+        val beforePurchase = reduceQuickEntryWithCanonicalStatements(
+            doc, payment, QuickEntryAction.DateChanged("2026-08-31"), today,
+        )
+        assertEquals(0.0, beforePurchase.cardPaymentDebt ?: Double.NaN, 0.001)
+        assertEquals("25", beforePurchase.amountText)
+        assertFalse(beforePurchase.canSubmitDraft())
+        assertTrue(reduceQuickEntry(beforePurchase, QuickEntryAction.Save)
+            .validationMessage.orEmpty().contains("δεν έχει τρέχουσα οφειλή"))
+
+        val restoredDate = reduceQuickEntryWithCanonicalStatements(
+            doc, beforePurchase, QuickEntryAction.DateChanged("2026-09-02"), today,
+        )
+        assertEquals(40.0, restoredDate.cardPaymentDebt ?: Double.NaN, 0.001)
+        assertTrue(restoredDate.canSubmitDraft())
+
+        val asPurchase = reduceQuickEntryWithCanonicalStatements(
+            doc, beforePurchase, QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE), today,
+        )
+        assertEquals(QuickEntryKind.CARD_PURCHASE, asPurchase.kind)
+        assertTrue(asPurchase.canSubmitDraft())
+        val backToPayment = reduceQuickEntryWithCanonicalStatements(
+            doc, asPurchase, QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT), today,
+        )
+        assertEquals(0.0, backToPayment.cardPaymentDebt ?: Double.NaN, 0.001)
+        assertFalse(backToPayment.canSubmitDraft())
     }
 
     @Test
