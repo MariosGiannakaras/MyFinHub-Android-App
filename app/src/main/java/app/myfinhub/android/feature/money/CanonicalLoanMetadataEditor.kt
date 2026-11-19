@@ -3,6 +3,7 @@ package app.myfinhub.android.feature.money
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -252,9 +254,24 @@ fun CanonicalLoanMetadataEditor(
                     }
                 }
                 if (kind == "loan" && initial == null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = recurring, enabled = !mutationBlocked,
-                            onCheckedChange = { recurring = it })
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .toggleable(
+                                value = recurring,
+                                enabled = !mutationBlocked,
+                                role = Role.Checkbox,
+                                onValueChange = { recurring = it },
+                            ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        Checkbox(
+                            checked = recurring,
+                            enabled = !mutationBlocked,
+                            onCheckedChange = null,
+                        )
                         Text("Μακροχρόνια περιοδική υποχρέωση")
                     }
                 }

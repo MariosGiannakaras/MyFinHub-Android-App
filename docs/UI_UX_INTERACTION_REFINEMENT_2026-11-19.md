@@ -110,3 +110,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Record all three recent UI refinement commits in canonical project tracking.
 - Keep the pre-existing finance Web-parity, signed-APK, device acceptance, and project progress fields unchanged.
 - Source is deliberately unvalidated: no compilation, CI, tests, static analysis, lint, screenshots or physical acceptance. No pull request, merge, APK or release.
+
+## Checkpoint 12 — card-entry density and financial choice accessibility
+
+- Card creation: replace the large explanatory card with a concise, persistent privacy/synchronization note. Convert the four metadata selection buttons to compact native clickable rows with clear labels, selected values and a trailing chevron. Retain selection callbacks, test tags, minimum geometry and the untouched PAN/expiry/CVV inputs and encrypted-vault contracts.
+- Loan payments: replace account names prefixed by a visual tick with full-width 48dp radio-selection rows, readable at enlarged font sizes and accessible as selected/unselected choices. Preserve eligible account filtering, explicit payer/destination selection, payment preview and confirm-only financial posting.
+- Loan metadata: make the long-term recurring checkbox label a single tappable target, with one checkbox interaction instead of separate row/control targets. Preserve the original boolean state and validation/write callback.
+- No builds, tests, lint, static analysis, or physical UI validation were executed by instruction.

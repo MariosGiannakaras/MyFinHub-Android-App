@@ -17,7 +17,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,7 +41,6 @@ import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
-import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.util.UUID
 
@@ -162,13 +160,12 @@ fun CanonicalCardCreateScreen(
                 .padding(MyFinHubSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "Το προφίλ της κάρτας συγχρονίζεται με το οικονομικό σου αρχείο. Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα σε αυτή τη συσκευή και εμφανίζονται πλήρως στις κάρτες.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                "Το προφίλ συγχρονίζεται με το MyFinHub. Αριθμός, λήξη και CVV φυλάσσονται " +
+                    "κρυπτογραφημένα στη συσκευή και εμφανίζονται μόνο στα ασφαλή στοιχεία κάρτας.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
 
             OutlinedTextField(
                 value = nickname,
@@ -413,26 +410,36 @@ private fun CardCreateSelectionField(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    OutlinedButton(
+    Surface(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+            .heightIn(min = MyFinHubDesignMetrics.textFieldMinHeight)
             .testTag(testTag),
-        enabled = enabled,
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(
+                horizontal = MyFinHubSpacing.md,
+                vertical = MyFinHubSpacing.xs,
+            ),
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             }
             Icon(
                 imageVector = MyFinHubIcons.ChevronDown,
                 contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
             )
         }
