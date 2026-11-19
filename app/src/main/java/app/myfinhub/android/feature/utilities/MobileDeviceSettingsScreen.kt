@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.utilities
 
 import android.content.Intent
+import android.content.Context
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,8 +50,25 @@ fun MobileDeviceSettingsScreen(
     val context = LocalContext.current
     val updater = LocalUpdateController.current
     val largeFont = LocalDensity.current.fontScale >= 1.3f
-    var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
-    var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    val preferences = remember(context) {
+        context.applicationContext.getSharedPreferences(
+            AppAppearancePreference.PREFERENCES_NAME,
+            Context.MODE_PRIVATE,
+        )
+    }
+    var appearance by remember(context) { mutableStateOf(AppAppearancePreference.read(context)) }
+    var amountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    // Home has a quick privacy toggle: keep a retained Settings route in sync.
+    DisposableEffect(preferences) {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            when (key) {
+                AppAppearancePreference.KEY -> appearance = AppAppearancePreference.read(context)
+                AmountVisibilityPreference.KEY -> amountsVisible = AmountVisibilityPreference.read(context)
+            }
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -188,7 +207,8 @@ fun MobileDeviceSettingsScreen(
             onLogout?.let { logout ->
                 TextButton(
                     onClick = logout,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                 ) {
                     Text(
                         "Αποσύνδεση από αυτή τη συσκευή",

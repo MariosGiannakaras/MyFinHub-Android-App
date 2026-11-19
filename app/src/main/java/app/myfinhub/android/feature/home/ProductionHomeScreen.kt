@@ -573,21 +573,33 @@ private fun HomePrimaryAccountCard(
                                 else "Μεταβολή 30 ημερών: κρυφό ποσό"
                         })
             }
-            // Desktop Web uses a shared amount/chart zone; on compact screens
-            // the amount overlays the left while the chart fills the right.
-            // Monetary privacy never removes the chart or exposes EUR via semantics.
-            Box(modifier = Modifier.fillMaxWidth().height(82.dp)) {
-                HomeAccountTrendChart(
-                    account = account,
-                    modifier = Modifier.fillMaxWidth(.67f).align(Alignment.BottomEnd),
-                )
-                Text(
-                    if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.TopStart),
-                )
+            // At enlarged fonts, avoid overlaying the amount on top of the history curve.
+            // Keep the same real Web-style chart and masked amount in both layouts.
+            val balanceLabel = if (amountsVisible) formatHomeEuro(account.balance) else "•••• €"
+            if (enlarged) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                    Text(
+                        balanceLabel,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    HomeAccountTrendChart(account = account, modifier = Modifier.fillMaxWidth())
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxWidth().height(83.dp)) {
+                    HomeAccountTrendChart(
+                        account = account,
+                        modifier = Modifier.fillMaxWidth(.67f).align(Alignment.BottomEnd),
+                    )
+                    Text(
+                        balanceLabel,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(Alignment.TopStart),
+                    )
+                }
             }
             if (savings) {
                 Text(
@@ -613,20 +625,36 @@ private fun HomePrimaryAccountCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-            ) {
+            val quickEntryAction: @Composable (Modifier) -> Unit = { modifier ->
                 TextButton(
                     onClick = onQuickEntry,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                    modifier = modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                         .testTag("home_account_quick_entry_${account.id}")
-                        .semantics { contentDescription = if (savings) "Μεταφορά για ${account.name}" else "Νέα κίνηση για ${account.name}" },
+                        .semantics {
+                            contentDescription = if (savings) "Μεταφορά για ${account.name}"
+                                else "Νέα κίνηση για ${account.name}"
+                        },
                 ) { Text(if (savings) "Μεταφορά" else "Νέα κίνηση") }
+            }
+            val transactionsAction: @Composable (Modifier) -> Unit = { modifier ->
                 TextButton(
                     onClick = onTransactions,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                    modifier = modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                 ) { Text("Συναλλαγές") }
+            }
+            if (enlarged) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                    quickEntryAction(Modifier.fillMaxWidth())
+                    transactionsAction(Modifier.fillMaxWidth())
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                ) {
+                    quickEntryAction(Modifier.weight(1f))
+                    transactionsAction(Modifier.weight(1f))
+                }
             }
         }
     }

@@ -138,3 +138,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - When a goal already exists, retain a compact secondary "Νέος στόχος αποταμίευσης" action. Preserve existing goal progress and all advisory cards without changing calculations.
 - Flatten the no-goal explanatory card into a short empty state; make goal deletion visibly destructive (and muted when blocked) while retaining the confirmation dialog and identity checks.
 - No validation commands were executed. Device review and release remain separate pending gates.
+
+## Checkpoint 16 — responsive core journeys and Settings preference consistency
+
+- Home: the three canonical primary account cards retain all verified trends, comparison/target context, IBAN and contextual actions. At Android 130%+ font, display the masked balance above the full-width real trend chart instead of overlaying the two. Stack account actions without changing either callback. Standard-font Web-style card layout remains intact.
+- Activity month overview: arrange income, expense and net values in readable full-width rows at enlarged font scales; place the month label and accessible prev/next actions on separate rows at that size. Keep existing data scope, count, privacy masking, date navigation, summaries and test tags.
+- Settings: subscribe to the existing device SharedPreferences changes so the appearance and amount-visibility selection reflect changes from other active UI routes, including the Home privacy button. Preserve local-only storage and current callbacks. Enforce a minimum target for logout.
+- Source-only commit; no builds, lint, automated tests, screenshot diffs or device verification were run.

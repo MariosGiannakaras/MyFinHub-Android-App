@@ -575,6 +575,7 @@ private fun ActivityMonthlyOverviewSurface(
         }
         return "$arrow ${kotlin.math.abs(change)}% από προηγ. μήνα"
     }
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     val countChange = overview.transactionCount - overview.previousTransactionCount
     val countComparison = when {
         countChange == 0 -> "Κινήσεις: ίδιο πλήθος με τον προηγούμενο μήνα"
@@ -592,41 +593,83 @@ private fun ActivityMonthlyOverviewSurface(
             modifier = Modifier.padding(MyFinHubSpacing.md),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Σύνοψη μήνα · $monthLabel", style = MaterialTheme.typography.titleMedium)
-                Row {
+            val monthNavigation: @Composable () -> Unit = {
+                Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                     TextButton(
                         onClick = { onNavigateMonth(-1) },
-                        modifier = Modifier.testTag("activity_previous_month")
+                        modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .testTag("activity_previous_month")
                             .semantics { contentDescription = "Προηγούμενος μήνας" },
-                    ) { Text("‹") }
+                    ) { Text(if (largeFont) "Προηγούμενος" else "‹") }
                     TextButton(
                         onClick = { onNavigateMonth(1) },
-                        modifier = Modifier.testTag("activity_next_month")
+                        modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .testTag("activity_next_month")
                             .semantics { contentDescription = "Επόμενος μήνας" },
-                    ) { Text("›") }
+                    ) { Text(if (largeFont) "Επόμενος" else "›") }
                 }
             }
-            // A compact three-part summary keeps the numbers scannable on S24.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-            ) {
-                listOf(
-                    "Έσοδα" to formatActivityTotalEuro(overview.income),
-                    "Έξοδα" to formatActivityTotalEuro(overview.expense),
-                    "Καθαρό" to formatSignedEuro(overview.net),
-                ).forEach { (label, amount) ->
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(label, style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(amountVisibilityText(amount, amountsVisible),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold)
+            if (largeFont) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                    Text("Σύνοψη μήνα · $monthLabel", style = MaterialTheme.typography.titleMedium)
+                    monthNavigation()
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Σύνοψη μήνα · $monthLabel", style = MaterialTheme.typography.titleMedium)
+                    monthNavigation()
+                }
+            }
+            // Three columns at normal font; full-width value rows at enlarged font.
+            val summaryMetrics = listOf(
+                "Έσοδα" to formatActivityTotalEuro(overview.income),
+                "Έξοδα" to formatActivityTotalEuro(overview.expense),
+                "Καθαρό" to formatSignedEuro(overview.net),
+            )
+            if (largeFont) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    summaryMetrics.forEach { (label, amount) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                amountVisibilityText(amount, amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                ) {
+                    summaryMetrics.forEach { (label, amount) ->
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                amountVisibilityText(amount, amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
                     }
                 }
             }
