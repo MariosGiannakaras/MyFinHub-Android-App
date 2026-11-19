@@ -1327,7 +1327,7 @@
   "ui_ux_refresh_20261119": {
     "branch": "android/ui-ux-interaction-refresh-20261119",
     "scope": "Live three-tab Android companion and its reachable detail, editor, settings and support surfaces; no finance/backend/release changes.",
-    "status": "in_progress_source_only",
+    "status": "source_implemented_unvalidated",
     "validation": "Not run (owner explicitly prohibited builds, tests, static analysis, lint and validation commands).",
     "checkpoints": [
       {
@@ -1350,8 +1350,66 @@
           "app/src/main/java/app/myfinhub/android/feature/money/WalletAccountsScreens.kt",
           "app/src/main/java/app/myfinhub/android/feature/money/CanonicalCardDetailScreen.kt"
         ]
+      },
+      {
+        "id": "UI3",
+        "status": "implemented_unvalidated",
+        "summary": "Home primary chart/amount and per-account actions reflow at 150% font; recent labels wrap. Account detail prioritizes balance. Quick Entry type chips wrap, notes truly collapse, and split secondary actions shrink. Attention detail, card-create copy and diagnostics presentation become more compact; credit limit metrics stack at larger fonts.",
+        "files": [
+          "app/src/main/java/app/myfinhub/android/feature/home/ProductionHomeScreen.kt",
+          "app/src/main/java/app/myfinhub/android/feature/home/HomeAttentionDetailScreen.kt",
+          "app/src/main/java/app/myfinhub/android/feature/money/CanonicalAccountDetailScreen.kt",
+          "app/src/main/java/app/myfinhub/android/feature/money/CanonicalCardDetailScreen.kt",
+          "app/src/main/java/app/myfinhub/android/feature/money/CanonicalCardCreateScreen.kt",
+          "app/src/main/java/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreen.kt",
+          "app/src/main/java/app/myfinhub/android/feature/utilities/ProductionDiagnosticsScreen.kt",
+          "app/src/main/java/app/myfinhub/android/feature/utilities/ProductionDiagnosticsCard.kt"
+        ]
       }
     ],
-    "next_action": "Review Home, Account detail, Quick Entry and support screens; finish safe presentation refinements. Validation explicitly prohibited."
+    "next_action": "Source pass stopped. No builds, tests, lint, static-analysis or validation commands may run under the owner instruction. No PR, merge, release or APK publication performed.",
+    "route_inventory": {
+      "production_roots": [
+        "Home",
+        "Activity",
+        "Money (Cards-only companion)"
+      ],
+      "secondary_and_contextual": [
+        "HomeAttention",
+        "Settings",
+        "NoticeHistory",
+        "Diagnostics",
+        "Accounts",
+        "AccountDetail",
+        "ActivityDetail",
+        "ActivityEdit",
+        "CategoryActivity",
+        "QuickEntry",
+        "NetPosition",
+        "CardCreate",
+        "CardDetail",
+        "CardSecureDetails",
+        "Savings",
+        "Loans",
+        "Lending",
+        "PlanScheduled"
+      ],
+      "retained_without_promotion": [
+        "Plan",
+        "PlanForecast",
+        "PlanRecurring",
+        "PlanRecurringManage",
+        "PlanBudgets",
+        "Insights"
+      ],
+      "session_surfaces": [
+        "Auth login",
+        "MFA",
+        "PIN enrollment",
+        "PIN/biometric unlock",
+        "loading/error/offline/pending"
+      ],
+      "review_basis": "Route/presentation source inspection and existing documented contracts; no running UI, emulator, accessibility audit, or physical-device verification."
+    }
   }
 }

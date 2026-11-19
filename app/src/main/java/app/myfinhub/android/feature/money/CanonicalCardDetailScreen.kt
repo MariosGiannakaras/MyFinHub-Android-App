@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
@@ -100,6 +101,7 @@ fun CanonicalCardDetailScreen(
 ) {
     val storedAmountsVisible = rememberAmountVisibilityPreference()
     val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     var cardPickerOpen by remember(cardId) { mutableStateOf(false) }
     var showAllActivity by remember(cardId) { mutableStateOf(false) }
     var removeDialogOpen by remember(cardId) { mutableStateOf(false) }
@@ -198,13 +200,23 @@ fun CanonicalCardDetailScreen(
                             )
                         }
                         creditFinancial?.limit?.let { limit ->
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                CardMetric("Πιστωτικό όριο", creditWorkspaceMoney(limit, amountsVisible))
-                                CardMetric(
-                                    "Διαθέσιμη πίστωση",
-                                    creditWorkspaceOptionalMoney(creditFinancial?.available, amountsVisible),
-                                    Alignment.End,
-                                )
+                            if (largeFont) {
+                                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                                    CardMetric("Πιστωτικό όριο", creditWorkspaceMoney(limit, amountsVisible))
+                                    CardMetric(
+                                        "Διαθέσιμη πίστωση",
+                                        creditWorkspaceOptionalMoney(creditFinancial?.available, amountsVisible),
+                                    )
+                                }
+                            } else {
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    CardMetric("Πιστωτικό όριο", creditWorkspaceMoney(limit, amountsVisible))
+                                    CardMetric(
+                                        "Διαθέσιμη πίστωση",
+                                        creditWorkspaceOptionalMoney(creditFinancial?.available, amountsVisible),
+                                        Alignment.End,
+                                    )
+                                }
                             }
                         }
                     }

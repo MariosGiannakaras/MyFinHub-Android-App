@@ -156,13 +156,11 @@ fun CanonicalCardCreateScreen(
                 .padding(MyFinHubSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "Το προφίλ της κάρτας συγχρονίζεται με το οικονομικό σου αρχείο. Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα σε αυτή τη συσκευή και εμφανίζονται πλήρως στις κάρτες.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                "Τα πλήρη στοιχεία της κάρτας προστατεύονται στο ασφαλές card vault και εμφανίζονται μόνο στην ειδική οθόνη στοιχείων.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
 
             OutlinedTextField(
                 value = nickname,

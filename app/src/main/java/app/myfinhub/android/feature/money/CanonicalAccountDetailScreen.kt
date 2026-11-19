@@ -210,6 +210,11 @@ fun CanonicalAccountDetailScreen(
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                         Text("Τρέχον υπόλοιπο", style = MaterialTheme.typography.labelLarge)
+                        MyFinHubAmountText(
+                            text = if (amountsVisible) formatAccountEuro(account.balance) else "•••• €",
+                            tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
+                            style = MaterialTheme.typography.headlineMedium,
+                        )
                         if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
                             AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
                             if (accountMetadataLoaded && amountsVisible &&
@@ -226,16 +231,7 @@ fun CanonicalAccountDetailScreen(
                                 }
                             }
                         }
-                        MyFinHubAmountText(
-                            text = if (amountsVisible) formatAccountEuro(account.balance) else "•••• €",
-                            tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                            style = MaterialTheme.typography.headlineMedium,
-                        )
-                        Text(
-                            "Οι κινήσεις παρακάτω είναι φιλτραρισμένες σε αυτόν τον λογαριασμό.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+
                     }
                 }
             }

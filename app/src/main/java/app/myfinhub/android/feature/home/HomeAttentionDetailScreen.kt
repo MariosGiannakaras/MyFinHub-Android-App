@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -29,7 +30,6 @@ import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
-import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -146,19 +146,9 @@ fun HomeAttentionDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 icon = if (opensActivity) MyFinHubIcons.Activity else MyFinHubIcons.Plan,
             )
+            TextButton(onClick = onMarkReviewed) { Text("Απόκρυψη προσωρινά") }
             Text(
-                "Το άνοιγμα της σχετικής ενότητας δεν καταχωρίζει πληρωμή και δεν αλλάζει οικονομικά δεδομένα από μόνο του.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            MyFinHubOutlinedAction(
-                label = "Απόκρυψη για τώρα",
-                onClick = onMarkReviewed,
-                modifier = Modifier.fillMaxWidth(),
-                icon = null,
-            )
-            Text(
-                "Η απόκρυψη αφορά την τρέχουσα προβολή. Δεν σημαίνει ότι η υποχρέωση πληρώθηκε ή ολοκληρώθηκε.",
+                "Το άνοιγμα ή η προσωρινή απόκρυψη δεν καταχωρίζει πληρωμή ούτε ολοκλήρωση υποχρέωσης.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

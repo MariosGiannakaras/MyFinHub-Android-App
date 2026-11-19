@@ -149,7 +149,7 @@ fun ProductionHomeScreen(
                 end = MyFinHubDesignMetrics.screenHorizontalPadding,
                 bottom = MyFinHubDesignMetrics.productSnackbarBottomClearance,
             ),
-            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
         ) {
             if (financeCacheMode) {
                 item(key = "home-finance-cache") {
@@ -289,7 +289,7 @@ private fun HomeRecentSection(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(item.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
+                                Text(item.title, style = MaterialTheme.typography.bodyLarge, maxLines = 2)
                                 Text(
                                     item.dateLabel,
                                     style = MaterialTheme.typography.bodySmall,
@@ -582,18 +582,31 @@ private fun HomePrimaryAccountCard(
             // Desktop Web uses a shared amount/chart zone; on compact screens
             // the amount overlays the left while the chart fills the right.
             // Monetary privacy never removes the chart or exposes EUR via semantics.
-            Box(modifier = Modifier.fillMaxWidth().height(82.dp)) {
-                HomeAccountTrendChart(
-                    account = account,
-                    modifier = Modifier.fillMaxWidth(.67f).align(Alignment.BottomEnd),
-                )
+            if (enlarged) {
                 Text(
                     if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.TopStart),
                 )
+                HomeAccountTrendChart(
+                    account = account,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } else {
+                Box(modifier = Modifier.fillMaxWidth().height(82.dp)) {
+                    HomeAccountTrendChart(
+                        account = account,
+                        modifier = Modifier.fillMaxWidth(.67f).align(Alignment.BottomEnd),
+                    )
+                    Text(
+                        if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(Alignment.TopStart),
+                    )
+                }
             }
             if (savings) {
                 Text(
@@ -619,20 +632,35 @@ private fun HomePrimaryAccountCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-            ) {
-                TextButton(
-                    onClick = onQuickEntry,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
-                        .testTag("home_account_quick_entry_${account.id}")
-                        .semantics { contentDescription = if (savings) "Μεταφορά για ${account.name}" else "Νέα κίνηση για ${account.name}" },
-                ) { Text(if (savings) "Μεταφορά" else "Νέα κίνηση") }
-                TextButton(
-                    onClick = onTransactions,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                ) { Text("Συναλλαγές") }
+            if (enlarged) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                    TextButton(
+                        onClick = onQuickEntry,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .testTag("home_account_quick_entry_${account.id}")
+                            .semantics { contentDescription = if (savings) "Μεταφορά για ${account.name}" else "Νέα κίνηση για ${account.name}" },
+                    ) { Text(if (savings) "Μεταφορά" else "Νέα κίνηση") }
+                    TextButton(
+                        onClick = onTransactions,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    ) { Text("Συναλλαγές") }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                ) {
+                    TextButton(
+                        onClick = onQuickEntry,
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                            .testTag("home_account_quick_entry_${account.id}")
+                            .semantics { contentDescription = if (savings) "Μεταφορά για ${account.name}" else "Νέα κίνηση για ${account.name}" },
+                    ) { Text(if (savings) "Μεταφορά" else "Νέα κίνηση") }
+                    TextButton(
+                        onClick = onTransactions,
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                    ) { Text("Συναλλαγές") }
+                }
             }
         }
     }

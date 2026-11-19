@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -71,7 +72,6 @@ import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubMotion
-import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -216,9 +216,10 @@ fun ProductionQuickEntryScreen(
             }
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             if (state.kind in FastKinds) {
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                 ) {
                     FastKinds.forEach { kind ->
                         FilterChip(
@@ -229,10 +230,9 @@ fun ProductionQuickEntryScreen(
                     }
                 }
                 if (showCreditPurchaseShortcut(state.kind, state.creditCards.isNotEmpty())) {
-                    OutlinedButton(
+                    TextButton(
                         onClick = { onAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE)) },
-                        modifier = Modifier.fillMaxWidth()
-                            .testTag("quick_entry_credit_purchase_shortcut"),
+                        modifier = Modifier.testTag("quick_entry_credit_purchase_shortcut"),
                     ) {
                         Text("Αγορά με πιστωτική")
                     }

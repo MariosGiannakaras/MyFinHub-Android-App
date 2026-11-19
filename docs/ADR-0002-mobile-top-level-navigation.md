@@ -43,3 +43,23 @@ This is an **unvalidated source checkpoint**: no builds, tests, lint, screenshot
 - The three-tab companion Cards route keeps Quick Entry in the page header. The selected credit card retains purchase and payoff entry but avoids a second oversized primary card/action surface; debit cards do not show an irrelevant debt summary.
 - Card detail keeps distinct purchase and payment actions; unavailable repayment is explained without a disabled full-width button. Card switching remains discoverable and separate from sensitive details.
 - All changes are authored source only; no screen was rendered, built or executed in this pass.
+
+### Existing screen and interaction inventory
+
+Production navigation remains **Αρχική / Κινήσεις / Κάρτες**, as recorded above. The source-only review used the route definitions, NavDisplay wiring, screen implementations and existing mobile design contract. This is a source inspection, not rendered-screen or accessibility verification.
+
+| Surface | Source-level treatment |
+| --- | --- |
+| Home, three primary account cards, secondary accounts, recent transactions | Preserve primary-account Web matching graphs, account semantics, privacy and contextual actions; reduce section gaps, wrap recent labels and separate chart from amount when font size grows |
+| Home attention and contextual Plan Scheduled entry | Preserve real attention navigation, reviewed-only semantics and canonical obligation state; replace oversized temporary-dismiss action and repeated disclaimer with concise copy |
+| Activity history/search/filter/month summary/category drilldown | Keep search/scope/month/filter state and canonical projection; move New entry into an adaptive header; never conflate filtered list with whole-month summary |
+| Activity read detail, edit and deletion | Preserve read detail, existing partial editable fields, dirty state, confirmation and mutation barriers; no new finance operations |
+| Quick Entry all twelve existing kinds, Split | Retain single editor, prefilled context, sticky Save, blocked-sync warning and canonical actions; wrap type chips and compact secondary entry actions; ensure note can collapse while its draft remains unchanged |
+| Accounts, account detail, net position | Keep account grouping, actual balances, histories and source-aware net figures; put account balance ahead of optional IBAN actions and remove repeated scoped-ledger explanation |
+| Cards companion, card detail, card switcher | Keep explicit stable-card selection, credit amount and contextual purchase/payment; move global Quick Entry to header, reduce duplicate identity/secondary controls and stack credit metrics at large font |
+| Secure card details, card create, metadata editing and removal | Preserve protected vault/auth/clipboard/window lifecycle, delete confirmation and distinct persistence contracts; card creation explanatory copy is compact and avoids implying secrets appear on overview |
+| Settings, update checker, Android notifications, notices and diagnostics | Replace large cards/secondary buttons with accessible settings rows; preserve local preference persistence, updater state/fail-closed rejection and safe support codes; collapse optional diagnostics |
+| Auth login, MFA, local PIN/biometric, loading/empty/error/pending | Leave security-sensitive logic and existing state-specific controls intact; these are not navigation shortcuts or candidates for redundant-action removal |
+| Savings, loan/lending detail, Plan/forecast/recurring/budgets, Insights | Retain source/route identities and contextual navigation compatibility. Reporting/administration remain Web-owned for the production three-tab companion; do not reintroduce these as primary destinations |
+
+**Scope and evidence:** Source presentation only. No raw owner recordings, payment-card records, canonical financial calculations, offline queue, auth, updater verification logic, backend contracts, signing, publisher identity, package identity or release workflow was changed. No build, test, static analysis, lint, screenshot comparison, emulator run or physical S24 acceptance was performed. No PR, release or APK was created. Source commits remain on the feature branch until separately integrated through the repository workflow.
