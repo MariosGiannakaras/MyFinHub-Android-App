@@ -1442,6 +1442,21 @@
         "sha": "a17a05bd90d21cb484418d07dc4e3eb4846cedce",
         "focus": "Large-font Quick Entry split-part action layout and divider-separated part fields",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "468330057cec734dc0a2f5be3a69316fb518731e",
+        "focus": "Responsive Insights period selector and monthly operating report financial rows",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "291a220abec4f30b02f088bab01ba653a91d1936",
+        "focus": "Shared native search clear action in Account Detail and simplified empty state",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "087d43b7987826c6dfca2cb8818492493ab9da0a",
+        "focus": "Responsive Insights month navigation and secondary chart details disclosure",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
