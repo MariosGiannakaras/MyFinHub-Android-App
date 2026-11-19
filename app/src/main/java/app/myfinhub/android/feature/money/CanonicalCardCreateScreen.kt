@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.network.FinancialProviderRecord
 import app.myfinhub.android.core.ui.FinancialProvider
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -413,7 +415,10 @@ private fun CardCreateSelectionField(
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().testTag(testTag),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+            .testTag(testTag),
         enabled = enabled,
     ) {
         Row(

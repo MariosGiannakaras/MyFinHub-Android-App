@@ -50,7 +50,6 @@ internal fun UpdateSettingsCard(
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             when (state) {
                 UpdateUiState.Idle -> {
-                    StatusText("Έλεγξε αν υπάρχει νεότερη εγκεκριμένη έκδοση.")
                     UpdateSecondaryAction("Έλεγχος για ενημερώσεις", onCheck)
                 }
                 UpdateUiState.Checking -> {

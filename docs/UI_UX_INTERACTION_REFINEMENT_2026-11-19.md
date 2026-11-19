@@ -95,3 +95,11 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Card detail: remove a redundant nested card around credit actions, retain the prominent payable action and render secondary or disabled actions as compact text buttons with the original callbacks and test tags. Keep the unavailable-payment reason and all secure-card data untouched.
 - Card creation: replace four repeated "Αλλαγή" text labels on bottom-sheet selectors with a consistent, non-verbal dropdown chevron. Preserve labels, selected values, touch behavior and the sensitive-card input contract.
 - Source-only edits, committed without automated checks, builds, lint or device verification.
+
+## Checkpoint 10 — budget row actions and field sizing
+
+- Consolidate category and subcategory budget edit/delete controls into one reusable responsive action row: compact on ordinary phones, stacked when the Android font scale is enlarged. Preserve source-ID uniqueness gates, blocked-mutation conditions, exact existing test tags, and both destructive confirmation dialogs.
+- Maintain secondary destructive styling rather than treating Delete like a primary financial operation.
+- Apply the design-system minimum touch target to existing card-create selection fields without changing PAN/expiry/CVV input or storage behavior.
+- Remove repeated idle-state update instruction text when the actual update-check action already communicates its purpose; no state-machine or update verification changes.
+- No tests, builds, static analysis, screenshot tooling or lint executed.

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -1467,24 +1468,18 @@ fun CanonicalBudget2026Screen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            TextButton(
-                                onClick = { editingCategoryBudget = budget },
-                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
-                                    budget.id.isNotBlank() &&
-                                    state.categoryBudgets.count { it.name == budget.name } == 1 &&
-                                    state.categoryBudgets.count { it.id == budget.id } == 1,
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("s7_category_budget_edit_" + budget.id),
-                            ) { Text("Επεξεργασία ορίου") }
-                            TextButton(
-                                onClick = { deletingCategoryBudget = budget },
-                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
-                                    budget.id.isNotBlank() &&
-                                    state.categoryBudgets.count { it.name == budget.name } == 1 &&
-                                    state.categoryBudgets.count { it.id == budget.id } == 1,
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("s7_category_budget_delete_" + budget.id),
-                            ) { Text("Διαγραφή ορίου") }
+                            val categoryBudgetWritable =
+                                !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                budget.id.isNotBlank() &&
+                                state.categoryBudgets.count { it.name == budget.name } == 1 &&
+                                state.categoryBudgets.count { it.id == budget.id } == 1
+                            BudgetRowActions(
+                                enabled = categoryBudgetWritable,
+                                onEdit = { editingCategoryBudget = budget },
+                                onDelete = { deletingCategoryBudget = budget },
+                                editTag = "s7_category_budget_edit_" + budget.id,
+                                deleteTag = "s7_category_budget_delete_" + budget.id,
+                            )
                             if (metrics == null) {
                                 Text(
                                     "Μη έγκυρα οικονομικά δεδομένα ορίου · δεν εμφανίζεται πρόοδος.",
@@ -1621,22 +1616,18 @@ fun CanonicalBudget2026Screen(
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
-                            TextButton(
-                                onClick = { editingSubcategoryBudget = budget },
-                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
-                                    budget.id.isNotBlank() && budget.category != null &&
-                                    budget.subcategory != null &&
-                                    state.subcategoryBudgets.count { it.id == budget.id } == 1,
-                                modifier = Modifier.testTag("s7_subcategory_budget_edit_$index"),
-                            ) { Text("Επεξεργασία ορίου") }
-                            TextButton(
-                                onClick = { deletingSubcategoryBudget = budget },
-                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
-                                    budget.id.isNotBlank() && budget.category != null &&
-                                    budget.subcategory != null &&
-                                    state.subcategoryBudgets.count { it.id == budget.id } == 1,
-                                modifier = Modifier.testTag("s7_subcategory_budget_delete_$index"),
-                            ) { Text("Διαγραφή ορίου") }
+                            val subcategoryBudgetWritable =
+                                !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                budget.id.isNotBlank() && budget.category != null &&
+                                budget.subcategory != null &&
+                                state.subcategoryBudgets.count { it.id == budget.id } == 1
+                            BudgetRowActions(
+                                enabled = subcategoryBudgetWritable,
+                                onEdit = { editingSubcategoryBudget = budget },
+                                onDelete = { deletingSubcategoryBudget = budget },
+                                editTag = "s7_subcategory_budget_edit_$index",
+                                deleteTag = "s7_subcategory_budget_delete_$index",
+                            )
                             Text(
                                 "Το όριο δεν δημιουργεί νέα οικονομική κίνηση.",
                                 style = MaterialTheme.typography.bodySmall,
@@ -1821,6 +1812,52 @@ fun CanonicalBudget2026Screen(
                 editingCategoryBudget = null
             },
         )
+    }
+}
+
+/** Compact but readable edit/delete controls for existing category and subcategory budgets. */
+@Composable
+private fun BudgetRowActions(
+    enabled: Boolean,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    editTag: String,
+    deleteTag: String,
+) {
+    val editAction: @Composable (Modifier) -> Unit = { modifier ->
+        TextButton(
+            onClick = onEdit,
+            enabled = enabled,
+            modifier = modifier
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                .testTag(editTag),
+        ) { Text("Επεξεργασία") }
+    }
+    val deleteAction: @Composable (Modifier) -> Unit = { modifier ->
+        TextButton(
+            onClick = onDelete,
+            enabled = enabled,
+            modifier = modifier
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                .testTag(deleteTag),
+        ) { Text("Διαγραφή", color = MaterialTheme.colorScheme.error) }
+    }
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+        ) {
+            editAction(Modifier.fillMaxWidth())
+            deleteAction(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        ) {
+            editAction(Modifier.weight(1f))
+            deleteAction(Modifier.weight(1f))
+        }
     }
 }
 
