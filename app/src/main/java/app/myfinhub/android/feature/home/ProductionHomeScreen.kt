@@ -106,6 +106,10 @@ fun ProductionHomeScreen(
     val primaryAccounts = homePrimaryAccounts(state.accounts)
     val primaryIds = primaryAccounts.mapTo(mutableSetOf(), HomeAccount::id)
     val secondaryAccounts = state.accounts.filterNot { it.id in primaryIds }
+    val accountIdCounts = state.accounts.groupingBy(HomeAccount::id).eachCount()
+    val canAddressAccount: (String) -> Boolean = { id ->
+        id.isNotBlank() && id == id.trim() && accountIdCounts[id] == 1
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -174,6 +178,7 @@ fun ProductionHomeScreen(
             item {
                 HomePrimaryAccountsSection(
                     accounts = primaryAccounts,
+                    canAddressAccount = canAddressAccount,
                     amountsVisible = amountsVisible,
                     accountMetadata = accountMetadata,
                     accountMetadataLoaded = accountMetadataLoaded,
@@ -197,6 +202,7 @@ fun ProductionHomeScreen(
                 item {
                     HomeSecondaryAccountsSection(
                         accounts = secondaryAccounts,
+                        canAddressAccount = canAddressAccount,
                         amountsVisible = amountsVisible,
                         onOpenAccount = onOpenAccount,
                     )
@@ -270,37 +276,67 @@ private fun HomeRecentSection(
         Column(modifier = Modifier.fillMaxWidth().testTag("home_recent_summary")) {
             Column {
                 items.forEachIndexed { index, item ->
+                    val largeFont = LocalDensity.current.fontScale >= 1.3f
+                    val amountTone = when (item.tone) {
+                        HomeRecentTone.INCOME -> FinanceTone.Income
+                        HomeRecentTone.EXPENSE -> FinanceTone.Expense
+                        HomeRecentTone.TRANSFER -> FinanceTone.Transfer
+                    }
+                    val recentIdentity: @Composable (Modifier) -> Unit = { modifier ->
+                        Column(modifier = modifier) {
+                            Text(
+                                item.title,
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = if (largeFont) 3 else 2,
+                            )
+                            Text(
+                                item.dateLabel,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    val recentAmount: @Composable () -> Unit = {
+                        MyFinHubAmountText(
+                            text = if (amountsVisible) formatHomeEuro(item.amount) else "•••• €",
+                            tone = amountTone,
+                        )
+                    }
                     Surface(
                         onClick = { onOpen(item.id) },
                         enabled = canOpen(item.id),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                             .testTag("home_recent_${item.id}"),
                         color = MaterialTheme.colorScheme.surface,
                     ) {
-                        Row(
-                            modifier = Modifier.padding(
-                                horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
-                                vertical = MyFinHubDesignMetrics.rowVerticalPadding,
-                            ),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(item.title, style = MaterialTheme.typography.bodyLarge, maxLines = 2)
-                                Text(
-                                    item.dateLabel,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                        if (largeFont) {
+                            Column(
+                                modifier = Modifier.padding(
+                                    horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                                    vertical = MyFinHubDesignMetrics.rowVerticalPadding,
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                recentIdentity(Modifier.fillMaxWidth())
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End,
+                                ) { recentAmount() }
                             }
-                            MyFinHubAmountText(
-                                text = if (amountsVisible) formatHomeEuro(item.amount) else "•••• €",
-                                tone = when (item.tone) {
-                                    HomeRecentTone.INCOME -> FinanceTone.Income
-                                    HomeRecentTone.EXPENSE -> FinanceTone.Expense
-                                    HomeRecentTone.TRANSFER -> FinanceTone.Transfer
-                                },
-                            )
+                        } else {
+                            Row(
+                                modifier = Modifier.padding(
+                                    horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                                    vertical = MyFinHubDesignMetrics.rowVerticalPadding,
+                                ),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                recentIdentity(Modifier.weight(1f))
+                                recentAmount()
+                            }
                         }
                     }
                     if (index != items.lastIndex) {
@@ -344,7 +380,8 @@ private fun HomeAttentionRow(
     val tone = if (item.tone == HomeAttentionTone.URGENT) FinanceTone.Attention else FinanceTone.Neutral
     Surface(
         onClick = onOpen,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
         color = MaterialTheme.colorScheme.surface,
     ) {
         Row(
@@ -387,6 +424,7 @@ private fun HomeAttentionRow(
 @Composable
 private fun HomePrimaryAccountsSection(
     accounts: List<HomeAccount>,
+    canAddressAccount: (String) -> Boolean,
     amountsVisible: Boolean,
     accountMetadata: Map<String, AccountMetadataRecord>,
     accountMetadataLoaded: Boolean,
@@ -412,11 +450,13 @@ private fun HomePrimaryAccountsSection(
                     }
                 }
             } else {
+                val unambiguousId = canAddressAccount(account.id)
                 HomePrimaryAccountCard(
                     account = account,
                     amountsVisible = amountsVisible,
-                    ibanRecord = accountMetadata[account.id],
-                    accountMetadataLoaded = accountMetadataLoaded,
+                    canAddressAccount = unambiguousId,
+                    ibanRecord = if (unambiguousId) accountMetadata[account.id] else null,
+                    accountMetadataLoaded = accountMetadataLoaded && unambiguousId,
                     onQuickEntry = {
                         if (onAccountQuickEntry != null) onAccountQuickEntry(account.id, role)
                         else onQuickEntry()
@@ -514,6 +554,7 @@ private fun HomeChartLegendMarker(label: String, color: Color, dashed: Boolean =
 private fun HomePrimaryAccountCard(
     account: HomeAccount,
     amountsVisible: Boolean,
+    canAddressAccount: Boolean,
     ibanRecord: AccountMetadataRecord?,
     accountMetadataLoaded: Boolean,
     onQuickEntry: () -> Unit,
@@ -625,9 +666,18 @@ private fun HomePrimaryAccountCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            if (!canAddressAccount) {
+                Text(
+                    "Μη μοναδική ή κενή ταυτότητα · οι ενέργειες λογαριασμού δεν είναι διαθέσιμες.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("home_primary_account_identity_warning_${account.primaryRole}"),
+                )
+            }
             val quickEntryAction: @Composable (Modifier) -> Unit = { modifier ->
                 TextButton(
                     onClick = onQuickEntry,
+                    enabled = canAddressAccount,
                     modifier = modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                         .testTag("home_account_quick_entry_${account.id}")
                         .semantics {
@@ -639,6 +689,7 @@ private fun HomePrimaryAccountCard(
             val transactionsAction: @Composable (Modifier) -> Unit = { modifier ->
                 TextButton(
                     onClick = onTransactions,
+                    enabled = canAddressAccount,
                     modifier = modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                 ) { Text("Συναλλαγές") }
             }
@@ -764,6 +815,7 @@ private fun HomeAccountTrendChart(account: HomeAccount, modifier: Modifier = Mod
 @Composable
 private fun HomeSecondaryAccountsSection(
     accounts: List<HomeAccount>,
+    canAddressAccount: (String) -> Boolean,
     amountsVisible: Boolean,
     onOpenAccount: (String) -> Unit,
 ) {
@@ -772,7 +824,23 @@ private fun HomeSecondaryAccountsSection(
         MyFinHubSectionCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
             Column {
                 accounts.forEachIndexed { index, account ->
-                    HomeAccountRow(account, amountsVisible) { onOpenAccount(account.id) }
+                    val unambiguousId = canAddressAccount(account.id)
+                    HomeAccountRow(
+                        account = account,
+                        amountsVisible = amountsVisible,
+                        canOpen = unambiguousId,
+                        onClick = { if (unambiguousId) onOpenAccount(account.id) },
+                    )
+                    if (!unambiguousId) {
+                        Text(
+                            "Μη μοναδική ή κενή ταυτότητα · δεν είναι δυνατή η ασφαλής προβολή λογαριασμού.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .padding(horizontal = MyFinHubDesignMetrics.rowHorizontalPadding)
+                                .testTag("home_secondary_account_identity_warning_$index"),
+                        )
+                    }
                     if (index != accounts.lastIndex) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
@@ -786,6 +854,7 @@ private fun HomeSecondaryAccountsSection(
 private fun HomeAccountRow(
     account: HomeAccount,
     amountsVisible: Boolean,
+    canOpen: Boolean,
     onClick: () -> Unit,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -793,14 +862,15 @@ private fun HomeAccountRow(
     val tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense
     Surface(
         onClick = onClick,
+        enabled = canOpen,
         modifier = Modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
-                contentDescription = if (amountsVisible) {
+                contentDescription = (if (amountsVisible) {
                     "${account.name}, $amountText"
                 } else {
                     "${account.name}, ποσό κρυφό"
-                }
+                }) + if (canOpen) "" else ", μη διαθέσιμη ασφαλής προβολή"
             },
         color = MaterialTheme.colorScheme.surface,
     ) {
