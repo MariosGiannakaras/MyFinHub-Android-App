@@ -806,21 +806,36 @@ private fun ProductionSplitEditor(
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
     ) {
         Text("Κατανομή ποσού", style = MaterialTheme.typography.titleMedium)
+        val largeFont = LocalDensity.current.fontScale >= 1.3f
         state.splitParts.forEachIndexed { index, part ->
             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
+                val partLabel: @Composable () -> Unit = {
                     Text("Μέρος ${index + 1}", style = MaterialTheme.typography.labelLarge)
+                }
+                val removePart: @Composable () -> Unit = {
                     if (state.splitParts.size > 2) {
                         TextButton(
                             onClick = { onAction(QuickEntryAction.RemoveSplitPart(part.id)) },
-                            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            modifier = Modifier
+                                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                 .semantics {
                                     contentDescription = "Αφαίρεση μέρους ${index + 1}"
                                 },
                         ) { Text("Αφαίρεση") }
+                    }
+                }
+                if (largeFont) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                        partLabel()
+                        removePart()
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        partLabel()
+                        removePart()
                     }
                 }
                 MyFinHubOutlinedField(
@@ -879,6 +894,9 @@ private fun ProductionSplitEditor(
                         imeAction = ImeAction.Next,
                     ),
                 )
+                if (index != state.splitParts.lastIndex) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
             }
         }
         MyFinHubOutlinedAction(

@@ -217,3 +217,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Observe changes to the privacy preference through the same shared observer as Home and other read surfaces; no new setting or finance persistence is introduced.
 - For split transaction rows with removable parts, preserve the existing guarded RemoveSplitPart action but provide a 48dp tap target and an accessible name identifying the exact part number.
 - Remains source-only and unvalidated, with no builds/tests/lint/static analysis/screenshots/device verification.
+
+## Checkpoint 27 — responsive multi-part Quick Entry editor
+
+- On large Android font scales (130%+), separate each split-part label from the guarded Remove action instead of forcing both into one narrow row; ordinary font sizes retain the compact horizontal header.
+- Add thin dividers between consecutive split parts so amount, category, subcategory and note fields clearly belong to their own part. Preserve the minimum two-part invariant, original source part IDs, all inputs, validation and callback semantics.
+- No new financial mutation or defaults. Source-only, with no builds, tests, lint, static analysis, screenshot comparison or physical device validation.
