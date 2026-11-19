@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +60,7 @@ import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
 import app.myfinhub.android.core.network.certifiedBrandAsset
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSectionHeading
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -1506,12 +1508,11 @@ fun CanonicalLendingScreen(
                         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
                         Text("Πρόσωπα", style = MaterialTheme.typography.titleMedium)
-                        OutlinedTextField(
+                        MyFinHubSearchField(
                             value = query,
                             onValueChange = { query = it; peopleLimit = 24 },
-                            label = { Text("Αναζήτηση προσώπου") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth().testTag("lending_person_search"),
+                            placeholder = "Αναζήτηση προσώπου",
+                            modifier = Modifier.testTag("lending_person_search"),
                         )
                         if (focusPerson != null) {
                             TextButton(
@@ -1529,26 +1530,53 @@ fun CanonicalLendingScreen(
                     val balance = matches.singleOrNull()?.amount
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                MyFinHubIconBadge(MyFinHubIcons.Income, FinanceTone.Income, null)
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(person, style = MaterialTheme.typography.titleMedium)
-                                    Text(
-                                        if (balance == null) "Ιστορικό χωρίς ενεργή απαίτηση"
-                                        else "Ενεργή απαίτηση",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                            val personIdentity: @Composable (Modifier) -> Unit = { modifier ->
+                                Row(
+                                    modifier = modifier,
+                                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    MyFinHubIconBadge(MyFinHubIcons.Income, FinanceTone.Income, null)
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(person, style = MaterialTheme.typography.titleMedium)
+                                        Text(
+                                            if (balance == null) "Ιστορικό χωρίς ενεργή απαίτηση"
+                                            else "Ενεργή απαίτηση",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                 }
+                            }
+                            val personAmount: @Composable () -> Unit = {
                                 if (balance != null) {
                                     MyFinHubAmountText(
                                         amountVisibilityText(formatCanonicalEuro(balance), amountsVisible),
                                         FinanceTone.Income,
                                     )
+                                }
+                            }
+                            if (LocalDensity.current.fontScale >= 1.3f) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                ) {
+                                    personIdentity(Modifier.fillMaxWidth())
+                                    if (balance != null) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.End,
+                                        ) { personAmount() }
+                                    }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    personIdentity(Modifier.weight(1f))
+                                    personAmount()
                                 }
                             }
                             if (person != focusPerson) {

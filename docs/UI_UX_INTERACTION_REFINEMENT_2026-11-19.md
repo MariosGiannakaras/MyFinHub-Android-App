@@ -277,3 +277,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - In the real Card Create bottom-sheet picker, show the shared native search field only when the certified-issuer/provider option catalog exceeds eight entries. Filter by provider label or canonical provider ID with case-insensitive matching; no source IDs are normalized, discarded or reordered outside the displayed filter.
 - An empty filtered search shows "Δεν βρέθηκε εκδότης" and keeps the original selected provider unchanged. The existing field clears its query without dismissing the sheet. Standard small option pickers (type/network/form factor) remain unchanged and all original selection tags and callbacks are retained.
 - This is only a UI lookup over the already supplied session catalog, not a change to card/vault creation, bank identity or security contracts. No build, tests, lint, static analysis or device acceptance was performed.
+
+## Checkpoint 37 — lending person search and readable receivable identities
+
+- Lending person selector now reuses the shared native search field, giving an in-field one-tap clear action. The search still uses the same exact person filter and resets the initial displayed-person limit to 24 on query edits; existing test tags and selected-person/history filters are unchanged.
+- For 130%+ system fonts, show long person names and their status above the read-only outstanding amount. Normal fonts retain the original compact identity-plus-amount row. A person without a unique active receivable still has no implied balance, and amount visibility continues to obey the existing device preference.
+- All original person/source identities, repayment/lending callbacks, duplicate-identity fences and projected history remain intact. No builds, tests, lint, static analysis, screenshots or physical-device acceptance were performed.
