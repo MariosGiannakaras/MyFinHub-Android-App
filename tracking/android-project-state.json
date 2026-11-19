@@ -1365,6 +1365,20 @@
       {
         "sha": "ca65b875cff791e1492e46ffb59ab0f37a377cec",
         "focus": "Responsive category and subcategory budget action rows; card picker touch targets; compact update idle state"
+      },
+      {
+        "sha": "959bc1460b117e4ffb0ebe97d319ab77312a4da4",
+        "focus": "Card-create form density, one-tap accessible loan payee selection and loan toggle"
+      },
+      {
+        "sha": "fdd4277656ec5c76714c9b6370f944ad1c4a6ae7",
+        "focus": "Flat Savings history, compact Loans sorting and Lending filter controls"
+      },
+      {
+        "sha": null,
+        "ref": "android/ui-ux-interaction-redesign-20261119",
+        "focus": "Lending selected-person affordance and flat read-only history",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",

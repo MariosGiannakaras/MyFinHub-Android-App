@@ -1530,11 +1530,19 @@ fun CanonicalLendingScreen(
                                     )
                                 }
                             }
-                            TextButton(
-                                onClick = { selectedPerson = person; historyLimit = 30 },
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("lending_select_person"),
-                            ) { Text(if (person == focusPerson) "✓ Επιλεγμένο πρόσωπο" else "Προβολή κινήσεων") }
+                            if (person != focusPerson) {
+                                TextButton(
+                                    onClick = { selectedPerson = person; historyLimit = 30 },
+                                    modifier = Modifier.testTag("lending_select_person"),
+                                ) { Text("Προβολή κινήσεων") }
+                            } else {
+                                Text(
+                                    "Επιλεγμένο πρόσωπο",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.testTag("lending_select_person"),
+                                )
+                            }
                             if (person == focusPerson) {
                                 state.confirmedLendingPlans.filter { it.person == person }
                                     .forEach { confirmedPlan ->
@@ -1645,9 +1653,10 @@ fun CanonicalLendingScreen(
                 }
                 if (visibleHistory.isEmpty()) {
                     item {
-                        MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                            Text("Δεν υπάρχουν κινήσεις με αυτά τα φίλτρα.")
-                        }
+                        Text(
+                            "Δεν υπάρχουν κινήσεις με αυτά τα φίλτρα.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
                 // Imported event IDs may repeat. The index is only a stable render
@@ -1667,35 +1676,48 @@ fun CanonicalLendingScreen(
                     val accountLabel = history.accountId?.let { accountId ->
                         state.accounts.singleOrNull { it.id == accountId }?.name
                     }
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                "${history.personLabel} · ${history.date}",
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                            Text(typeLabel, style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            if (history.note.isNotBlank()) {
-                                Text(history.note, style = MaterialTheme.typography.bodySmall)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = MyFinHubSpacing.xs),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "${history.personLabel} · ${history.date}",
+                                    style = MaterialTheme.typography.titleSmall,
+                                )
+                                Text(
+                                    typeLabel,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                             MyFinHubAmountText(
                                 text = amountVisibilityText(formatCanonicalEuro(history.amount), amountsVisible),
                                 tone = tone,
                             )
+                        }
+                        if (history.note.isNotBlank()) {
+                            Text(history.note, style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text(
+                            "Ιστορικό υπόλοιπο κινήσεων: " +
+                                amountVisibilityText(formatCanonicalEuro(history.runningOutstanding), amountsVisible),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (accountLabel != null || history.origin == "legacy") {
                             Text(
-                                "Ιστορικό υπόλοιπο κινήσεων: " +
-                                    amountVisibilityText(formatCanonicalEuro(history.runningOutstanding), amountsVisible),
+                                accountLabel ?: "Ιστορικό χωρίς λογαριασμό",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                            if (accountLabel != null || history.origin == "legacy") {
-                                Text(
-                                    accountLabel ?: "Ιστορικό χωρίς λογαριασμό",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
                         }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
                 if (visibleHistory.size > historyLimit) {

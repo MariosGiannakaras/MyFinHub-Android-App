@@ -124,3 +124,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Loans sorting is a flat control group rather than a card nested between the hero and results; retain all four sort modes, the direction switch, pagination resets, tags and payment/editor behavior.
 - Lending person selection and history filters are flat. The "show all" action appears only when a person is selected; no inactive all-people button consumes space on the default overview. Keep the existing query, selected person, filter state and history semantics.
 - No domain finance, mutation, backend or persistence code was modified. UI changes remain unvalidated by instruction (no build, automated tests, lint or other checks).
+
+## Checkpoint 14 — Lending item hierarchy and read-only history
+
+- A selected person now has a noninteractive status label instead of an active button that selected the same person again and reset pagination. Unselected person rows retain the existing one-tap "Προβολή κινήσεων" action, identity, amounts and accessible tags.
+- Historical lending transactions display as flat, divider-separated rows. Preserve every displayed note, original amount, direction, historical outstanding balance, account label, imported legacy marker and the indexed source identity; no history becomes a write target.
+- Empty filtered history uses a compact explanatory message instead of a large card. Existing query/filter/clear and safe mutation flows remain unchanged.
+- Source-only changes; no automated checks, static analysis, builds, lint, screenshot or device tests were run.
