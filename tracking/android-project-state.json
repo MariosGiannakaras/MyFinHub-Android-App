@@ -1477,6 +1477,21 @@
         "sha": "1243a6ab51bc3ceb6d1fd3473095f61eb28fee96",
         "focus": "Pending-sync counterparty identity action disabled; unique selected identity announced",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "a3b75a3b83536bcff93ef4f8988c549cdb885acc",
+        "focus": "Loan metadata editor empty payer action disabled, selected kind/account/category states and minimum touch targets",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "4fdcee0d91adc9cb87a823a7ecc690316e3098dd",
+        "focus": "Searchable large certified-provider card-creation picker without changing canonical issuer IDs",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "0a30de796837ebe77ed38740fbe4325b4a044126",
+        "focus": "Shared Lending person search clear and large-font receivable identity/amount rows",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
