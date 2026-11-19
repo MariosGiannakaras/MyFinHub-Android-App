@@ -81,6 +81,8 @@ import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.core.data.canonicalCounterpartySuggestion
+import app.myfinhub.android.feature.utilities.amountVisibilityText
+import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -134,6 +136,7 @@ fun ProductionQuickEntryScreen(
     var advancedMenuOpen by remember { mutableStateOf(false) }
     var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
+    val amountsVisible = rememberAmountVisibilityPreference()
     val savedLocally = state.awaitingSync
     val canSubmit = remember(state, mutationBlocked) {
         !mutationBlocked && state.canSubmitDraft()
@@ -379,8 +382,10 @@ fun ProductionQuickEntryScreen(
                     )
                 } else state.cardPaymentDebt?.let { debt ->
                     val debtLabel = if (debt.isFinite() && debt > 0.005) {
-                        "Οφειλή κάρτας: " +
-                            String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €"
+                        "Οφειλή κάρτας: " + amountVisibilityText(
+                            String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €",
+                            amountsVisible,
+                        )
                     } else {
                         "Δεν υπάρχει καταγεγραμμένη οφειλή για την επιλεγμένη ημερομηνία."
                     }
@@ -496,7 +501,10 @@ fun ProductionQuickEntryScreen(
                     val available = debt.isFinite() && debt > 0.005
                     val overpaid = available && (state.amount ?: 0.0) > debt + 0.01
                     val formatted = if (available) {
-                        String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €"
+                        amountVisibilityText(
+                            String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €",
+                            amountsVisible,
+                        )
                     } else ""
                     Text(
                         text = when {
@@ -806,9 +814,13 @@ private fun ProductionSplitEditor(
                 ) {
                     Text("Μέρος ${index + 1}", style = MaterialTheme.typography.labelLarge)
                     if (state.splitParts.size > 2) {
-                        TextButton(onClick = { onAction(QuickEntryAction.RemoveSplitPart(part.id)) }) {
-                            Text("Αφαίρεση")
-                        }
+                        TextButton(
+                            onClick = { onAction(QuickEntryAction.RemoveSplitPart(part.id)) },
+                            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                .semantics {
+                                    contentDescription = "Αφαίρεση μέρους ${index + 1}"
+                                },
+                        ) { Text("Αφαίρεση") }
                     }
                 }
                 MyFinHubOutlinedField(

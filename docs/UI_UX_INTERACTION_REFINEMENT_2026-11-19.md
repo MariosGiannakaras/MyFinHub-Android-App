@@ -210,3 +210,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Retain the selected label and add selected accessibility semantics to the full-width, minimum-48dp choice rows. No new financial options or default accounts are introduced.
 - Add a clear action only to the optional Quick Entry expected-return date once it has a value. Clear through the already-existing `DateChanged("")`-style callback, leaving the required transaction date, picker/IME handling, validation and save behavior unchanged.
 - Unvalidated source-only checkpoint: no compilation, tests, lint, static analysis, screenshots, or device testing executed.
+
+## Checkpoint 26 — Quick Entry source-balance privacy and split removal target
+
+- Quick Entry may show canonical card debt and a person's outstanding receivable as supporting payment context. Apply the existing device-local privacy preference to those source amounts so the editor does not reveal a hidden balance merely by opening a payment/repayment flow. Keep user-entered amount fields editable and visible, and retain all underlying debt/overpayment validation and posting checks.
+- Observe changes to the privacy preference through the same shared observer as Home and other read surfaces; no new setting or finance persistence is introduced.
+- For split transaction rows with removable parts, preserve the existing guarded RemoveSplitPart action but provide a 48dp tap target and an accessible name identifying the exact part number.
+- Remains source-only and unvalidated, with no builds/tests/lint/static analysis/screenshots/device verification.
