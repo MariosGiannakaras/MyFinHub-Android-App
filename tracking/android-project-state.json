@@ -1404,9 +1404,23 @@
         "status": "source_committed_unvalidated"
       },
       {
-        "sha": null,
-        "ref": "android/ui-ux-interaction-redesign-20261119",
+        "sha": "9abeec851cb55370c11bb2b5dcdffe5123f958a3",
         "focus": "Decimal and integer keyboards for loan, installment and card payoff amount inputs",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "685cea0df30c35691b96df60b23cb29185c2418c",
+        "focus": "Wallet card companion action hierarchy and responsive credit statement details",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "e46c29fd6ed939a47cc7814bb0f51b1b7326729b",
+        "focus": "Responsive Activity filter actions and selected-state Quick Entry accessibility",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "697415f053d88aef3828e5d4475f3b86b0c617e6",
+        "focus": "Wallet section selection semantics and active card label at 130% font",
         "status": "source_committed_unvalidated"
       }
     ],
