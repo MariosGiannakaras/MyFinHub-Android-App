@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -116,6 +117,7 @@ internal fun CanonicalCardStatementHistorySection(
     var expandedId by remember(card.id) { mutableStateOf<String?>(null) }
     val filtered = filteredCardStatements(scopedStatements, activeFilter)
     val payableCount = filteredCardStatements(scopedStatements, CardStatementFilter.PAYABLE).size
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     // Never eagerly render a potentially unbounded historical card statement.
     var linkedLimit by remember(card.id, expandedId) { mutableIntStateOf(15) }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
@@ -129,30 +131,42 @@ internal fun CanonicalCardStatementHistorySection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (scopedStatements.size > 1) {
-                // Two large, native touch targets instead of a dense desktop ledger toolbar.
-                Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                    FilterChip(
-                        selected = activeFilter == CardStatementFilter.ALL,
-                        onClick = {
-                            activeFilter = CardStatementFilter.ALL
-                            visibleLimit = 8
-                            expandedId = null
-                        },
-                        label = { Text("Όλες") },
-                        modifier = Modifier.heightIn(min = 48.dp)
-                            .testTag("card_statement_filter_all"),
-                    )
-                    FilterChip(
-                        selected = activeFilter == CardStatementFilter.PAYABLE,
-                        onClick = {
-                            activeFilter = CardStatementFilter.PAYABLE
-                            visibleLimit = 8
-                            expandedId = null
-                        },
-                        label = { Text("Πληρωτέες ($payableCount)") },
-                        modifier = Modifier.heightIn(min = 48.dp)
-                            .testTag("card_statement_filter_payable"),
-                    )
+                val statementFilterAction: @Composable (CardStatementFilter, String, String, Modifier) -> Unit =
+                    { filter, label, tag, modifier ->
+                        FilterChip(
+                            selected = activeFilter == filter,
+                            onClick = {
+                                activeFilter = filter
+                                visibleLimit = 8
+                                expandedId = null
+                            },
+                            label = { Text(label) },
+                            modifier = modifier
+                                .heightIn(min = 48.dp)
+                                .testTag(tag),
+                        )
+                    }
+                if (largeFont) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        statementFilterAction(
+                            CardStatementFilter.ALL, "Όλες", "card_statement_filter_all",
+                            Modifier.fillMaxWidth(),
+                        )
+                        statementFilterAction(
+                            CardStatementFilter.PAYABLE, "Πληρωτέες ($payableCount)",
+                            "card_statement_filter_payable", Modifier.fillMaxWidth(),
+                        )
+                    }
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                        statementFilterAction(
+                            CardStatementFilter.ALL, "Όλες", "card_statement_filter_all", Modifier,
+                        )
+                        statementFilterAction(
+                            CardStatementFilter.PAYABLE, "Πληρωτέες ($payableCount)",
+                            "card_statement_filter_payable", Modifier,
+                        )
+                    }
                 }
             }
             if (filtered.isEmpty()) {
@@ -229,21 +243,18 @@ internal fun CanonicalCardStatementHistorySection(
                                 )
                             }
                             shown.forEachIndexed { rowIndex, row ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                        .testTag("card_statement_linked_row_${index}_$rowIndex"),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                ) {
+                                val linkedIdentity: @Composable (Modifier) -> Unit = { modifier ->
                                     if (row.openActivityId != null) {
                                         TextButton(
                                             onClick = { onOpenActivity(row.openActivityId) },
-                                            modifier = Modifier.weight(1f)
+                                            modifier = modifier
+                                                .heightIn(min = 48.dp)
                                                 .testTag("card_statement_event_${index}_$rowIndex"),
                                         ) {
                                             Text("${row.kindLabel} · ${row.displayTitle}")
                                         }
                                     } else {
-                                        Column(modifier = Modifier.weight(1f)) {
+                                        Column(modifier = modifier) {
                                             Text(
                                                 "${row.kindLabel} · ${row.displayTitle}",
                                                 style = MaterialTheme.typography.bodySmall,
@@ -257,11 +268,34 @@ internal fun CanonicalCardStatementHistorySection(
                                             )
                                         }
                                     }
-                                    row.amount?.let { amount ->
-                                        Text(
-                                            statementHistoryEuro(amount, amountsVisible),
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
+                                }
+                                if (largeFont) {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth()
+                                            .testTag("card_statement_linked_row_${index}_$rowIndex"),
+                                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                    ) {
+                                        linkedIdentity(Modifier.fillMaxWidth())
+                                        row.amount?.let { amount ->
+                                            Text(
+                                                statementHistoryEuro(amount, amountsVisible),
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth()
+                                            .testTag("card_statement_linked_row_${index}_$rowIndex"),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        linkedIdentity(Modifier.weight(1f))
+                                        row.amount?.let { amount ->
+                                            Text(
+                                                statementHistoryEuro(amount, amountsVisible),
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
+                                        }
                                     }
                                 }
                             }

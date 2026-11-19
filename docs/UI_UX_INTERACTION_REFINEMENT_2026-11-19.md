@@ -176,3 +176,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Leave ISO dates on a keyboard capable of entering hyphens and keep all current parsing, validation, cent-precision checks, lender/borrower selection, confirmation and save callbacks exactly as before. Keyboard type is an input affordance, not a new restriction.
 - Preserve encrypted card data, Web canonical finance contracts, installment payment preview and read-only simulation semantics.
 - No builds, tests, static analysis, lint or device verification were executed.
+
+## Checkpoint 21 — credit companion actions and statement details
+
+- In the actual Wallet card companion pane, promote the payable credit-debt action when payable; otherwise promote purchase entry and leave the unavailable payment secondary/disabled. Preserve the exact established payment/purchase callbacks, existing test tags, source-identity checks and quick-entry gates.
+- In card-detail statement history, stack All/Payable filter chips at 130%+ font without changing the selected filter, batch limit or expanded statement ID.
+- At enlarged fonts, give linked statement identities and monetary amounts separate full-width rows, retaining the exact original amount privacy, canonical linked IDs, non-clickable unsafe-row behavior and navigation tags.
+- All work remains source-only. No build, tests, lint, static analysis, visual comparison or device acceptance were executed.

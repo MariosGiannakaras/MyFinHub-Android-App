@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -595,17 +596,40 @@ private fun LazyListScope.walletCardsContent(
                                     ?: "Μη διαθέσιμο ποσό",
                                 style = MaterialTheme.typography.titleLarge,
                             )
-                            OutlinedButton(
-                                onClick = { onAddCreditPurchase(active.id) },
-                                enabled = canOpenCreditCardQuickEntry(active, payment = false),
-                                modifier = Modifier.fillMaxWidth().testTag("card_companion_purchase"),
-                            ) { Text("Αγορά με πιστωτική") }
-                            OutlinedButton(
-                                onClick = { onPayCreditCard(active.id) },
-                                enabled = canOpenCreditCardQuickEntry(active, payment = true) &&
-                                    (creditSnapshot?.outstanding ?: 0.0) > 0.005,
-                                modifier = Modifier.fillMaxWidth().testTag("card_companion_payment"),
-                            ) { Text("Εξόφληση πιστωτικής") }
+                            val canRecordPurchase =
+                                canOpenCreditCardQuickEntry(active, payment = false)
+                            val canPayCredit =
+                                canOpenCreditCardQuickEntry(active, payment = true) &&
+                                    (creditSnapshot?.outstanding ?: 0.0) > 0.005
+                            if (canPayCredit) {
+                                FilledTonalButton(
+                                    onClick = { onPayCreditCard(active.id) },
+                                    enabled = canPayCredit,
+                                    modifier = Modifier.fillMaxWidth()
+                                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag("card_companion_payment"),
+                                ) { Text("Εξόφληση πιστωτικής") }
+                                TextButton(
+                                    onClick = { onAddCreditPurchase(active.id) },
+                                    enabled = canRecordPurchase,
+                                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag("card_companion_purchase"),
+                                ) { Text("Αγορά με πιστωτική") }
+                            } else {
+                                FilledTonalButton(
+                                    onClick = { onAddCreditPurchase(active.id) },
+                                    enabled = canRecordPurchase,
+                                    modifier = Modifier.fillMaxWidth()
+                                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag("card_companion_purchase"),
+                                ) { Text("Αγορά με πιστωτική") }
+                                TextButton(
+                                    onClick = { onPayCreditCard(active.id) },
+                                    enabled = false,
+                                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag("card_companion_payment"),
+                                ) { Text("Εξόφληση πιστωτικής") }
+                            }
                         } else {
                             Text(
                                 "Οι αγορές χρεωστικής ή προπληρωμένης καταχωρίζονται ως κινήσεις λογαριασμού.",
