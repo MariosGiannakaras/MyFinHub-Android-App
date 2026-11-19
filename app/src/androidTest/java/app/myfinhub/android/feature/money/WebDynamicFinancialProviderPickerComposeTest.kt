@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.core.network.FinancialProviderRecord
 import app.myfinhub.android.designsystem.MyFinHubTheme
@@ -30,7 +31,8 @@ class WebDynamicFinancialProviderPickerComposeTest {
             )
         } }
         compose.onNodeWithTag("card_create_provider").performClick()
-        compose.onNodeWithText("Νέα Τράπεζα").performClick()
+        compose.onNodeWithTag("card_create_provider_search").performTextInput("Νέα Τράπεζα")
+        compose.onNodeWithTag("card_create_provider_owner-bank").performClick()
         compose.onNodeWithText("Νέα Τράπεζα").assertIsDisplayed()
     }
 
@@ -47,7 +49,8 @@ class WebDynamicFinancialProviderPickerComposeTest {
             )
         } }
         compose.onNodeWithTag("card_create_provider").performClick()
-        compose.onNodeWithText("Custom Verified Bank").performClick()
+        compose.onNodeWithTag("card_create_provider_search").performTextInput("Custom Verified Bank")
+        compose.onNodeWithTag("card_create_provider_custom").performClick()
         compose.onNodeWithText("Custom Verified Bank").assertIsDisplayed()
     }
 

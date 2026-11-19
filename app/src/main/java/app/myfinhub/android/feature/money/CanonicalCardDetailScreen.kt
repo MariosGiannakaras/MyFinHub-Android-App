@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -31,6 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
@@ -162,12 +166,7 @@ fun CanonicalCardDetailScreen(
                         } else {
                             MyFinHubIconBadge(MyFinHubIcons.Card, FinanceTone.Transfer, null)
                         }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(card.nickname, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                            provider?.institutionLabel?.let {
-                                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
+                        Spacer(modifier = Modifier.weight(1f))
                         Text(canonicalCardMaskedLastFour(card.last4) ?: "••••", style = MaterialTheme.typography.labelLarge)
                     }
                     Text(
@@ -196,13 +195,29 @@ fun CanonicalCardDetailScreen(
                             )
                         }
                         creditFinancial?.limit?.let { limit ->
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                CardMetric("Πιστωτικό όριο", creditWorkspaceMoney(limit, amountsVisible))
-                                CardMetric(
-                                    "Διαθέσιμη πίστωση",
-                                    creditWorkspaceOptionalMoney(creditFinancial?.available, amountsVisible),
-                                    Alignment.End,
-                                )
+                            if (LocalDensity.current.fontScale >= 1.3f) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                ) {
+                                    CardMetric("Πιστωτικό όριο", creditWorkspaceMoney(limit, amountsVisible))
+                                    CardMetric(
+                                        "Διαθέσιμη πίστωση",
+                                        creditWorkspaceOptionalMoney(creditFinancial?.available, amountsVisible),
+                                    )
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    CardMetric("Πιστωτικό όριο", creditWorkspaceMoney(limit, amountsVisible))
+                                    CardMetric(
+                                        "Διαθέσιμη πίστωση",
+                                        creditWorkspaceOptionalMoney(creditFinancial?.available, amountsVisible),
+                                        Alignment.End,
+                                    )
+                                }
                             }
                         }
                     }
@@ -210,9 +225,11 @@ fun CanonicalCardDetailScreen(
             }
 
             if (isCredit) {
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                        Text("Ενέργειες πιστωτικής", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                ) {
+                    Text("Ενέργειες πιστωτικής", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         if (hasPayableCreditDebt(creditFinancial?.outstanding)) {
                             MyFinHubPrimaryAction(
                                 label = "Πληρωμή κάρτας",
@@ -220,7 +237,10 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
                                 icon = null,
                             )
-                            OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
+                            TextButton(
+                                onClick = onAddPurchase,
+                                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                            ) {
                                 Text("Καταχώριση αγοράς")
                             }
                         } else {
@@ -230,10 +250,12 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.fillMaxWidth().testTag("card_detail_purchase_primary"),
                                 icon = null,
                             )
-                            OutlinedButton(
+                            TextButton(
                                 onClick = onPayCard,
                                 enabled = false,
-                                modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
+                                modifier = Modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("card_detail_payment_action"),
                             ) { Text("Πληρωμή κάρτας") }
                             Text(
                                 if (creditFinancial?.outstanding == null)
@@ -245,7 +267,6 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.testTag("card_detail_payment_unavailable_reason"),
                             )
                         }
-                    }
                 }
 
                 if (!companionMode) {
@@ -512,40 +533,80 @@ private fun CardActivitySection(
                 visibleActivity.forEachIndexed { index, item ->
                     val openId = canonicalCardActivityOpenId(item.id, activityIdCounts, fullActivityIdCounts)
                     val identityWarning = canonicalCardActivityIdentityWarning(item.id, activityIdCounts, fullActivityIdCounts)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 52.dp)
-                            .clickable(enabled = openId != null) { openId?.let(onOpenActivity) }
-                            .testTag(
-                                if (openId != null) "card_activity_${item.id}"
-                                else "card_activity_unavailable_$index",
-                            ),
-                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        MyFinHubIconBadge(
-                            icon = if (item.kind == MoneyCardActivityKind.PAYMENT) MyFinHubIcons.Income else MyFinHubIcons.Card,
-                            tone = if (item.kind == MoneyCardActivityKind.PAYMENT) FinanceTone.Income else FinanceTone.Expense,
-                            contentDescription = null,
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(item.title, style = MaterialTheme.typography.titleMedium)
-                            Text(item.dateLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            identityWarning?.let { warning ->
-                                Text(warning, style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error)
+                    val isPayment = item.kind == MoneyCardActivityKind.PAYMENT
+                    val rowTone = if (isPayment) FinanceTone.Income else FinanceTone.Expense
+                    val rowIdentity: @Composable (Modifier) -> Unit = { modifier ->
+                        Row(
+                            modifier = modifier,
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            MyFinHubIconBadge(
+                                icon = if (isPayment) MyFinHubIcons.Income else MyFinHubIcons.Card,
+                                tone = rowTone,
+                                contentDescription = null,
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.title, style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    item.dateLabel,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                identityWarning?.let { warning ->
+                                    Text(
+                                        warning,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                }
                             }
                         }
+                    }
+                    val rowAmount: @Composable () -> Unit = {
                         MyFinHubAmountText(
                             text = creditWorkspaceSignedMoney(item.amount, amountsVisible),
-                            tone = if (item.kind == MoneyCardActivityKind.PAYMENT) FinanceTone.Income else FinanceTone.Expense,
+                            tone = rowTone,
                         )
+                    }
+                    val rowModifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                        .clickable(enabled = openId != null) { openId?.let(onOpenActivity) }
+                        .testTag(
+                            if (openId != null) "card_activity_${item.id}"
+                            else "card_activity_unavailable_$index",
+                        )
+                    if (LocalDensity.current.fontScale >= 1.3f) {
+                        Column(
+                            modifier = rowModifier.padding(vertical = MyFinHubSpacing.xs),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                        ) {
+                            rowIdentity(Modifier.fillMaxWidth())
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                            ) { rowAmount() }
+                        }
+                    } else {
+                        Row(
+                            modifier = rowModifier,
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            rowIdentity(Modifier.weight(1f))
+                            rowAmount()
+                        }
                     }
                     if (index != visibleActivity.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
                 if (card.activity.size > 5) {
-                    TextButton(onClick = onToggleAll) {
+                    TextButton(
+                        onClick = onToggleAll,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                    ) {
                         Text(if (showAll) "Λιγότερες κινήσεις" else "Δες όλες τις κινήσεις (${card.activity.size})")
                     }
                 }
@@ -567,25 +628,39 @@ private fun CardPickerSheet(
     val ownerCatalog = LocalFinancialProviderCatalog.current
     val surfaceTone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f)
         "dark" else "light"
+    val cardIdCounts = cards.groupingBy { it.id }.eachCount()
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(
-                start = MyFinHubSpacing.lg,
-                end = MyFinHubSpacing.lg,
-                bottom = MyFinHubSpacing.xl,
-            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 540.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    start = MyFinHubSpacing.lg,
+                    end = MyFinHubSpacing.lg,
+                    bottom = MyFinHubSpacing.xl,
+                ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
         ) {
             Text("Επίλεξε κάρτα", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             cards.forEach { option ->
+                val uniqueIdentity = option.id.isNotBlank() &&
+                    option.id == option.id.trim() && cardIdCounts[option.id] == 1
+                val isSelected = uniqueIdentity && option.id == selectedCardId
                 val optionProvider = financialProviderForCard(option.bankId, option.nickname)
                 val optionRecord = ownerCatalog.firstOrNull { it.id == option.bankId }
                 val optionCertified = optionRecord?.certifiedBrandAsset("logo", surfaceTone)
                 Surface(
-                    onClick = { onSelect(option.id) },
-                    modifier = Modifier.fillMaxWidth().testTag("card_picker_${option.id}"),
+                    onClick = { if (uniqueIdentity) onSelect(option.id) },
+                    enabled = uniqueIdentity,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                        .semantics { selected = isSelected }
+                        .testTag("card_picker_${option.id}"),
                     shape = MaterialTheme.shapes.small,
-                    color = if (option.id == selectedCardId) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                    color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
+                        else MaterialTheme.colorScheme.surface,
                 ) {
                     Row(
                         modifier = Modifier.padding(MyFinHubSpacing.md),
@@ -609,6 +684,20 @@ private fun CardPickerSheet(
                                 "${canonicalCardMaskedLastFour(option.last4) ?: "••••"} · ${option.kind}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (!uniqueIdentity) {
+                                Text(
+                                    "Μη μοναδική ή κενή ταυτότητα · δεν μπορεί να επιλεγεί.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                        }
+                        if (isSelected) {
+                            Text(
+                                "Επιλεγμένο",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }

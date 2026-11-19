@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -62,6 +63,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -75,15 +77,19 @@ import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.core.data.canonicalCounterpartySuggestion
+import app.myfinhub.android.feature.utilities.amountVisibilityText
+import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 private val FastKinds = listOf(
     QuickEntryKind.EXPENSE,
@@ -127,9 +133,12 @@ fun ProductionQuickEntryScreen(
     categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     var noteExpanded by rememberSaveable { mutableStateOf(false) }
+    // A prefilled note starts open; an explicit user toggle must still be respected.
+    var noteVisibilityChosen by rememberSaveable { mutableStateOf(false) }
     var advancedMenuOpen by remember { mutableStateOf(false) }
     var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
+    val amountsVisible = rememberAmountVisibilityPreference()
     val savedLocally = state.awaitingSync
     val canSubmit = remember(state, mutationBlocked) {
         !mutationBlocked && state.canSubmitDraft()
@@ -216,22 +225,33 @@ fun ProductionQuickEntryScreen(
             }
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             if (state.kind in FastKinds) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                ) {
-                    FastKinds.forEach { kind ->
-                        FilterChip(
-                            selected = state.kind == kind,
-                            onClick = { onAction(QuickEntryAction.SelectKind(kind)) },
-                            label = { Text(kind.label) },
-                        )
+                val quickKindChip: @Composable (QuickEntryKind, Modifier) -> Unit = { kind, modifier ->
+                    FilterChip(
+                        selected = state.kind == kind,
+                        onClick = { onAction(QuickEntryAction.SelectKind(kind)) },
+                        label = { Text(kind.label) },
+                        modifier = modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                    )
+                }
+                if (LocalDensity.current.fontScale >= 1.3f) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                    ) {
+                        FastKinds.forEach { quickKindChip(it, Modifier.fillMaxWidth()) }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        FastKinds.forEach { quickKindChip(it, Modifier) }
                     }
                 }
                 if (showCreditPurchaseShortcut(state.kind, state.creditCards.isNotEmpty())) {
-                    OutlinedButton(
+                    TextButton(
                         onClick = { onAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                             .testTag("quick_entry_credit_purchase_shortcut"),
                     ) {
                         Text("Αγορά με πιστωτική")
@@ -364,8 +384,10 @@ fun ProductionQuickEntryScreen(
                     )
                 } else state.cardPaymentDebt?.let { debt ->
                     val debtLabel = if (debt.isFinite() && debt > 0.005) {
-                        "Οφειλή κάρτας: " +
-                            String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €"
+                        "Οφειλή κάρτας: " + amountVisibilityText(
+                            String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €",
+                            amountsVisible,
+                        )
                     } else {
                         "Δεν υπάρχει καταγεγραμμένη οφειλή για την επιλεγμένη ημερομηνία."
                     }
@@ -481,7 +503,10 @@ fun ProductionQuickEntryScreen(
                     val available = debt.isFinite() && debt > 0.005
                     val overpaid = available && (state.amount ?: 0.0) > debt + 0.01
                     val formatted = if (available) {
-                        String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €"
+                        amountVisibilityText(
+                            String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", debt) + " €",
+                            amountsVisible,
+                        )
                     } else ""
                     Text(
                         text = when {
@@ -537,11 +562,18 @@ fun ProductionQuickEntryScreen(
                 )
             }
 
-            TextButton(onClick = { noteExpanded = !noteExpanded }) {
-                Text(if (noteExpanded) "Απόκρυψη σημείωσης" else "Προσθήκη σημείωσης")
+            val noteVisible = if (noteVisibilityChosen) noteExpanded else state.note.isNotBlank()
+            TextButton(
+                onClick = {
+                    noteExpanded = !noteVisible
+                    noteVisibilityChosen = true
+                },
+                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            ) {
+                Text(if (noteVisible) "Απόκρυψη σημείωσης" else if (state.note.isNotBlank()) "Εμφάνιση σημείωσης" else "Προσθήκη σημείωσης")
             }
             AnimatedVisibility(
-                visible = noteExpanded || state.note.isNotBlank(),
+                visible = noteVisible,
                 enter = fadeIn(tween(MyFinHubMotion.QuickDurationMillis)) +
                     expandVertically(tween(MyFinHubMotion.StandardDurationMillis)),
                 exit = fadeOut(tween(MyFinHubMotion.QuickDurationMillis)) +
@@ -606,7 +638,15 @@ private fun CompactChoice(
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
-    val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second ?: "Επιλογή"
+    val identityCounts = choices.groupingBy { it.first }.eachCount()
+    val selectedLabel = when {
+        identityCounts[selectedId]?.let { it > 1 } == true -> "Η επιλογή δεν είναι μοναδική"
+        else -> choices.firstOrNull { it.first == selectedId }?.second ?: when {
+            choices.isEmpty() -> "Δεν υπάρχουν διαθέσιμες επιλογές"
+            selectedId.isNotBlank() -> "Η επιλογή δεν είναι πλέον διαθέσιμη"
+            else -> "Επιλογή"
+        }
+    }
 
     MyFinHubSelectorButton(
         label = label,
@@ -616,7 +656,7 @@ private fun CompactChoice(
             contentDescription = "$label: $selectedLabel. Αλλαγή επιλογής"
         },
     ) {
-        choiceIcon?.invoke(selectedId)?.let { vector ->
+        choiceIcon?.takeIf { identityCounts[selectedId] == 1 }?.invoke(selectedId)?.let { vector ->
             Icon(imageVector = vector, contentDescription = null, modifier = Modifier.size(20.dp))
         }
         Text(selectedLabel, modifier = Modifier.weight(1f))
@@ -652,11 +692,11 @@ private fun CompactChoice(
             ) {
                 Text(label, style = MaterialTheme.typography.titleLarge)
                 if (searchable) {
-                    MyFinHubOutlinedField(
+                    MyFinHubSearchField(
                         value = query,
                         onValueChange = { query = it },
-                        label = "Αναζήτηση",
-                        singleLine = true,
+                        placeholder = "Αναζήτηση επιλογής",
+                        modifier = Modifier.testTag("quick_entry_choice_search"),
                     )
                 }
                 LazyColumn(
@@ -665,26 +705,44 @@ private fun CompactChoice(
                         .heightIn(max = 420.dp),
                     contentPadding = PaddingValues(bottom = MyFinHubSpacing.sm),
                 ) {
-                    items(filteredChoices, key = { it.first }) { (id, text) ->
+                    // Imported source IDs may repeat. Render every option without using
+                    // an ambiguous external ID as the sole Compose LazyColumn key.
+                    itemsIndexed(
+                        filteredChoices,
+                        key = { index, choice -> "choice-$index-${choice.first}" },
+                    ) { _, (id, text) ->
+                        val uniqueIdentity = identityCounts[id] == 1
                         val vector = choiceIcon?.invoke(id)
                         ListItem(
                             headlineContent = { Text(text) },
                             leadingContent = if (vector == null) null else {
                                 { Icon(imageVector = vector, contentDescription = null) }
                             },
-                            supportingContent = subtitles[id]?.let { subtitle ->
+                            supportingContent = if (!uniqueIdentity) {
+                                {
+                                    Text(
+                                        "Μη μοναδική ταυτότητα · δεν μπορεί να επιλεγεί",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                }
+                            } else subtitles[id]?.let { subtitle ->
                                 { Text(subtitle) }
                             },
-                            trailingContent = if (id == selectedId) {
+                            trailingContent = if (uniqueIdentity && id == selectedId) {
                                 { Text("Επιλεγμένο", color = MaterialTheme.colorScheme.primary) }
                             } else {
                                 null
                             },
-                            modifier = Modifier.clickable {
-                                onSelected(id)
-                                sheetOpen = false
-                                query = ""
-                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                .clickable(enabled = uniqueIdentity) {
+                                    onSelected(id)
+                                    sheetOpen = false
+                                    query = ""
+                                }
+                                .semantics { selected = uniqueIdentity && id == selectedId },
                         )
                         HorizontalDivider()
                     }
@@ -739,7 +797,11 @@ private fun AdvancedKindSheet(
                         } else {
                             null
                         },
-                        modifier = Modifier.clickable { onSelected(kind) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .clickable { onSelected(kind) }
+                            .semantics { selected = kind == selectedKind },
                     )
                     HorizontalDivider()
                 }
@@ -759,17 +821,36 @@ private fun ProductionSplitEditor(
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
     ) {
         Text("Κατανομή ποσού", style = MaterialTheme.typography.titleMedium)
+        val largeFont = LocalDensity.current.fontScale >= 1.3f
         state.splitParts.forEachIndexed { index, part ->
             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
+                val partLabel: @Composable () -> Unit = {
                     Text("Μέρος ${index + 1}", style = MaterialTheme.typography.labelLarge)
+                }
+                val removePart: @Composable () -> Unit = {
                     if (state.splitParts.size > 2) {
-                        TextButton(onClick = { onAction(QuickEntryAction.RemoveSplitPart(part.id)) }) {
-                            Text("Αφαίρεση")
-                        }
+                        TextButton(
+                            onClick = { onAction(QuickEntryAction.RemoveSplitPart(part.id)) },
+                            modifier = Modifier
+                                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                .semantics {
+                                    contentDescription = "Αφαίρεση μέρους ${index + 1}"
+                                },
+                        ) { Text("Αφαίρεση") }
+                    }
+                }
+                if (largeFont) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                        partLabel()
+                        removePart()
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        partLabel()
+                        removePart()
                     }
                 }
                 MyFinHubOutlinedField(
@@ -828,6 +909,9 @@ private fun ProductionSplitEditor(
                         imeAction = ImeAction.Next,
                     ),
                 )
+                if (index != state.splitParts.lastIndex) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
             }
         }
         MyFinHubOutlinedAction(
@@ -972,10 +1056,14 @@ internal fun DateEntryField(
                         pickerOpen = false
                     },
                     enabled = pickerState.selectedDateMillis != null,
+                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                 ) { Text("Επιλογή") }
             },
             dismissButton = {
-                TextButton(onClick = { pickerOpen = false }) { Text("Ακύρωση") }
+                TextButton(
+                    onClick = { pickerOpen = false },
+                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                ) { Text("Ακύρωση") }
             },
         ) {
             GreekDatePicker(
@@ -1007,10 +1095,11 @@ private fun ProductionDateChoice(
     var pickerRequested by remember { mutableStateOf(false) }
     var pickerOpen by remember { mutableStateOf(false) }
 
-    // The IME animates out asynchronously. Wait until the calendar has the
-    // whole viewport rather than racing its layout against the keyboard.
+    // Prefer opening after the keyboard closes, but do not strand the user
+    // when an OEM IME or emulator fails to report a final zero inset.
     LaunchedEffect(pickerRequested, imeBottom) {
-        if (pickerRequested && imeBottom == 0) {
+        if (pickerRequested) {
+            if (imeBottom > 0) delay(600)
             pickerOpen = true
             pickerRequested = false
         }
@@ -1042,6 +1131,15 @@ private fun ProductionDateChoice(
         )
     }
 
+    if (optional && value.isNotBlank()) {
+        TextButton(
+            onClick = { onValueChange("") },
+            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                .testTag("quick_entry_optional_date_clear")
+                .semantics { contentDescription = "Καθαρισμός: $label" },
+        ) { Text("Καθαρισμός ημερομηνίας") }
+    }
+
     if (pickerOpen) {
         val pickerState = remember(value) {
             DatePickerState(
@@ -1060,12 +1158,16 @@ private fun ProductionDateChoice(
                         pickerOpen = false
                     },
                     enabled = pickerState.selectedDateMillis != null,
+                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                 ) {
                     Text("Επιλογή")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { pickerOpen = false }) {
+                TextButton(
+                    onClick = { pickerOpen = false },
+                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                ) {
                     Text("Ακύρωση")
                 }
             },

@@ -1323,5 +1323,247 @@
         "evidence": []
       }
     ]
+  },
+  "ui_ux_refinement_2026_11_19": {
+    "branch": "android/ui-ux-interaction-redesign-20261119",
+    "base_branch": "develop",
+    "status": "ci_verified_unmerged_pending_owner_acceptance",
+    "scope": "Android existing UI screens and interactions; no backend or releases",
+    "checkpoints": [
+      {
+        "sha": "0514298e41d8b06bb2731fcc78974b489239ee16",
+        "focus": "Shared visual density, Settings, update actions"
+      },
+      {
+        "sha": "621c8d4676924a32f57a5f63c64d0387d2af42ab",
+        "focus": "Home, Wallet, Plan, Analysis, notices and diagnostics"
+      },
+      {
+        "sha": "0fe799044017248270f3b31271552a7992abafc1",
+        "focus": "Quick Entry, Activity, Card details, account tap targets and login"
+      },
+      {
+        "sha": "9213c45d3860211f615f7f7ab0447625a816160d",
+        "focus": "Recurring/scheduled action hierarchy, account balance and attention details"
+      },
+      {
+        "sha": "f1a966815562c6dd3853fa818ee02d6afcacbb83",
+        "focus": "Real Wallet route/navigation, flat archived/empty rows and recurring overview"
+      },
+      {
+        "sha": "6ee814aef238d3b7c2a107638cb73f4ca6de99ae",
+        "focus": "Settings accessibility, 150% IBAN actions, Wallet card-create hierarchy"
+      },
+      {
+        "sha": "f856cc23337902a860c02edbdb3d58d9bbb005b3",
+        "focus": "Activity detail destructive-action discoverability; compact budget month selection; clearer recurring-payment action"
+      },
+      {
+        "sha": "1d1d36d6c2a6581d7498e2a21fc0551d0fe6280d",
+        "focus": "Quick Entry note disclosure, contextual credit-card action layout, card picker affordances"
+      },
+      {
+        "sha": "ca65b875cff791e1492e46ffb59ab0f37a377cec",
+        "focus": "Responsive category and subcategory budget action rows; card picker touch targets; compact update idle state"
+      },
+      {
+        "sha": "959bc1460b117e4ffb0ebe97d319ab77312a4da4",
+        "focus": "Card-create form density, one-tap accessible loan payee selection and loan toggle"
+      },
+      {
+        "sha": "fdd4277656ec5c76714c9b6370f944ad1c4a6ae7",
+        "focus": "Flat Savings history, compact Loans sorting and Lending filter controls"
+      },
+      {
+        "sha": "279e942727de39d7bb01582b84e60ba2f577caef",
+        "focus": "Lending selected-person affordance and flat read-only history",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "3fdf22e743f0026054577bc8fba1a8f3143a8106",
+        "focus": "Savings goal create hierarchy, compact empty state and destructive action semantics",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "3dd389b6d6815dd10b975ae0c7cb12556ac2c405",
+        "focus": "Responsive Home account charts/actions, Activity monthly overview and Settings local preference observation"
+      },
+      {
+        "sha": "6b56d48597eee054defae1f3fb434c8969463f4f",
+        "focus": "Wallet inline credit-card action hierarchy, 150% statement filters, Activity filter accessibility",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "370b42ba7651d8bee7a814a2b6104e5459e91f83",
+        "focus": "One-tap native search clear with preserved finance filters and 48dp Activity filter controls",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "9879e5162c5ffc532196613b1f3efe20199f7712",
+        "focus": "Scrollable card provider and metadata picker, large-font selected state and reachability",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "9abeec851cb55370c11bb2b5dcdffe5123f958a3",
+        "focus": "Decimal and integer keyboards for loan, installment and card payoff amount inputs",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "685cea0df30c35691b96df60b23cb29185c2418c",
+        "focus": "Wallet card companion action hierarchy and responsive credit statement details",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "e46c29fd6ed939a47cc7814bb0f51b1b7326729b",
+        "focus": "Responsive Activity filter actions and selected-state Quick Entry accessibility",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "697415f053d88aef3828e5d4475f3b86b0c617e6",
+        "focus": "Wallet section selection semantics and active card label at 130% font",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "6097848b7e7d34100445f82ec9a6186cd808624a",
+        "focus": "Disambiguate Compose Wallet section selected semantics; no behavior changes",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "745aaf1a58cbc4064feba3e1b3709d9ab64f25cf",
+        "focus": "Quick Entry stale source selection awareness, duplicate-safe option rendering, clear optional expected-return date",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "d7d90fe3ebfb5876ba2b0d4b9857c8325a375d1d",
+        "focus": "Quick Entry canonical debt source masking under privacy preference and accessible split-part removal",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "a17a05bd90d21cb484418d07dc4e3eb4846cedce",
+        "focus": "Large-font Quick Entry split-part action layout and divider-separated part fields",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "468330057cec734dc0a2f5be3a69316fb518731e",
+        "focus": "Responsive Insights period selector and monthly operating report financial rows",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "291a220abec4f30b02f088bab01ba653a91d1936",
+        "focus": "Shared native search clear action in Account Detail and simplified empty state",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "087d43b7987826c6dfca2cb8818492493ab9da0a",
+        "focus": "Responsive Insights month navigation and secondary chart details disclosure",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "75ff3e18d62f5931fc623419b41ad1a0a7315024",
+        "focus": "Plan 30-day forecast read-only monetary drilldown rows at large font",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "73404ba1ba1ef2fa3935793eb7e24364e6e07e6a",
+        "focus": "Keep urgent Plan obligations prominent and flatten only remaining planned entries",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "a90ade986124f6a946624a90880cfeba0d488625",
+        "focus": "Responsive Activity split-detail amounts and Forecast movement rows at large font",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "1243a6ab51bc3ceb6d1fd3473095f61eb28fee96",
+        "focus": "Pending-sync counterparty identity action disabled; unique selected identity announced",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "a3b75a3b83536bcff93ef4f8988c549cdb885acc",
+        "focus": "Loan metadata editor empty payer action disabled, selected kind/account/category states and minimum touch targets",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "4fdcee0d91adc9cb87a823a7ecc690316e3098dd",
+        "focus": "Searchable large certified-provider card-creation picker without changing canonical issuer IDs",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "0a30de796837ebe77ed38740fbe4325b4a044126",
+        "focus": "Shared Lending person search clear and large-font receivable identity/amount rows",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "e33a595e90621a8451a5bbd12c8fdbad16e6c67c",
+        "focus": "Self-loan payment disallows selecting identical savings source and destination in the UI",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "809eb145af52ec3dada40593f4e43dca4f925b85",
+        "focus": "Mask PAN and CVV entered in Card Create while preserving secret vault write contracts",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "fd60e10706781d626fdfae30b506f0316f286401",
+        "focus": "Loan payment forms distinguish unavailable eligible payer/savings targets from missing selection",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "93670ce858ecbe746f7a664c5e5f858865035d7b",
+        "focus": "Wallet duplicate-safe source list keys, account/archive mutation guards, and Quick Entry unique option identity gating",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "691a80c1328a2b1a19e8375e7c319a17f7dd021d",
+        "focus": "Responsive Activity month/filter/sort controls, duplicate-safe legacy/activity dropdowns, and credit statement large-font rows",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "e1ba873b92c01c6615dac8d03a5d9956d0c63a6f",
+        "focus": "Home account-scoped navigation identity guards and readable large-font recent activity",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "2c41bb0616ea8f38c966ed8701ccb116344e9fc0",
+        "focus": "Preserve every Home account source row when IDs collide with primary accounts",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "660d69679bff919f0d66eba49e81f98febbb2500",
+        "focus": "Loans sorting and Lending filters wrap naturally, readable lending history rows at large font",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "e754627f8ff6450516ff81e22d1e7c09c9fd1783",
+        "focus": "Budget month selection hit targets, responsive remaining amount, selected category menu semantics",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "4490d2cfef8d52fb51cd3139475945f06370f616",
+        "focus": "Quick Entry search uses native shared field and both calendar variants use 48dp actions",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "29e69ef44843a64e8db75af3997565c876c49a7a",
+        "focus": "Credit statement history payoff/dates/purchases/payments readable at enlarged font and link paging touch target",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "53c0061b201a3e9c774064209f37032ec4aff0d6",
+        "focus": "Card Detail responsive credit amounts, scrolling identity-safe selector, and activity accessibility geometry",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "d3cce19a742aeff3c5baee85fe7c67b57de49574",
+        "focus": "Wallet active-card duplicate-ID fallback preserves all rows and blocks unsafe secret/action routing",
+        "status": "source_committed_unvalidated"
+      }
+    ],
+    "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
+    "validation": "pr_490_source_head_9a36918f8bce6e99f9af79dc8a25e796e75222a5_six_exact_head_checks_passed_2026_11_19; verify final head checks again before merge",
+    "owner_device_acceptance": "not_claimed",
+    "pull_request": 490,
+    "release_created": false,
+    "merging_to_develop": "not_performed_pending_explicit_owner_approval"
   }
 }

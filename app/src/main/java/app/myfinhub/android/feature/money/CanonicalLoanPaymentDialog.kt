@@ -2,12 +2,17 @@ package app.myfinhub.android.feature.money
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,6 +22,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
 import app.myfinhub.android.core.data.moneyToCents
 import app.myfinhub.android.core.data.centsToMoney
 import app.myfinhub.android.feature.utilities.amountVisibilityText
@@ -155,6 +163,7 @@ fun CanonicalLoanPaymentDialog(
                         value = amount, onValueChange = { amount = it },
                         label = { Text("Ποσό επιστροφής") },
                         modifier = Modifier.fillMaxWidth().testTag("loan_payment_amount"),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         singleLine = true,
                     )
                 } else {
@@ -162,46 +171,55 @@ fun CanonicalLoanPaymentDialog(
                         value = count, onValueChange = { count = it },
                         label = { Text("Πλήθος δόσεων (έως ${loan.remainingInstallments})") },
                         modifier = Modifier.fillMaxWidth().testTag("loan_payment_count"),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                     )
                 }
                 Text("Λογαριασμός πληρωμής", style = MaterialTheme.typography.labelLarge)
                 if (usable.none { it.id == source }) {
                     Text(
-                        "Επίλεξε ρητά διαθέσιμο λογαριασμό πληρωμής.",
+                        if (usable.isEmpty())
+                            "Δεν υπάρχει διαθέσιμος μοναδικός λογαριασμός πληρωμής."
+                        else "Επίλεξε ρητά διαθέσιμο λογαριασμό πληρωμής.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.testTag("loan_payment_payer_required"),
                     )
                 }
                 usable.forEach { acc ->
-                    TextButton(
+                    LoanAccountChoiceRow(
+                        name = acc.name,
+                        selected = source == acc.id,
+                        testTag = "loan_payment_source_" + acc.id,
                         onClick = {
                             source = acc.id
-                            // A previously selected destination cannot also
-                            // become the payer of the same internal transfer.
+                            // Source and savings destination may not be identical.
                             if (loan.isSelfLoan && saving == source) saving = ""
                         },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                            .testTag("loan_payment_source_" + acc.id),
-                    ) { Text((if (source == acc.id) "✓ " else "") + acc.name) }
+                    )
                 }
                 if (loan.isSelfLoan) {
                     Text("Λογαριασμός αποταμίευσης",style=MaterialTheme.typography.labelLarge)
                     if (savings.none { it.id == saving && it.id != source }) {
                         Text(
-                            "Επίλεξε ρητά διαφορετικό αποταμιευτικό λογαριασμό.",
+                            if (savings.none { it.id != source })
+                                "Δεν υπάρχει διαθέσιμος αποταμιευτικός λογαριασμός διαφορετικός από την πηγή."
+                            else "Επίλεξε ρητά διαφορετικό αποταμιευτικό λογαριασμό.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.testTag("loan_payment_savings_required"),
                         )
                     }
                     savings.forEach { acc ->
-                        TextButton(
+                        val distinctFromPayer = acc.id != source
+                        LoanAccountChoiceRow(
+                            name = if (distinctFromPayer) acc.name
+                                else acc.name + " · Ίδιος με λογαριασμό πληρωμής",
+                            selected = saving == acc.id && distinctFromPayer,
+                            enabled = distinctFromPayer,
+                            testTag = "loan_payment_savings_" + acc.id,
                             onClick = { saving = acc.id },
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                .testTag("loan_payment_savings_" + acc.id),
-                        ) { Text((if (saving == acc.id) "✓ " else "") + acc.name) }
+                        )
                     }
                 }
                 Text(
@@ -236,4 +254,38 @@ fun CanonicalLoanPaymentDialog(
             TextButton(onClick = onDismiss) { Text("Ακύρωση") }
         },
     )
+}
+
+/** Full-row single-tap selection with a visible and announced selected state. */
+@Composable
+private fun LoanAccountChoiceRow(
+    name: String,
+    selected: Boolean,
+    testTag: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .selectable(
+                selected = selected,
+                enabled = enabled,
+                role = Role.RadioButton,
+                onClick = onClick,
+            )
+            .testTag(testTag)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        RadioButton(selected = selected, enabled = enabled, onClick = null)
+        Text(
+            name,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }

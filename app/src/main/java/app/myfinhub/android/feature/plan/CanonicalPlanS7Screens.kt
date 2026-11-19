@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -36,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,6 +54,7 @@ import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSettingsLinkRow
 import app.myfinhub.android.designsystem.MyFinHubSectionHeading
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
@@ -204,74 +208,49 @@ fun CanonicalPlan2026Screen(
                 BudgetS7LinkCard(state = state, amountsVisible = amountsVisible, onClick = onOpenBudget)
             }
             item("savings-link") {
-                MyFinHubActionCard(
+                MyFinHubSettingsLinkRow(
+                    label = "Στόχοι αποταμίευσης",
+                    supporting = "Υπόλοιπα και πρόοδος στόχων",
                     onClick = onOpenSavings,
-                    modifier = Modifier.fillMaxWidth().testTag("s7_savings_link"),
-                ) {
-                    MyFinHubSectionHeading(
-                        title = "Στόχοι αποταμίευσης",
-                        subtitle = "Υπόλοιπα, πρόοδος και διαχείριση στόχου",
-                        icon = MyFinHubIcons.Savings,
-                        tone = FinanceTone.Savings,
-                    )
-                }
+                    modifier = Modifier.testTag("s7_savings_link"),
+                )
             }
             item("loans-link") {
-                MyFinHubActionCard(
+                MyFinHubSettingsLinkRow(
+                    label = "Δάνεια και οφειλές",
+                    supporting = "Δόσεις και αποπληρωμές",
                     onClick = onOpenLoans,
-                    modifier = Modifier.fillMaxWidth().testTag("s7_loans_link"),
-                ) {
-                    MyFinHubSectionHeading(
-                        title = "Δάνεια και οφειλές",
-                        subtitle = "Υπόλοιπα, δόσεις και αποπληρωμές",
-                        icon = MyFinHubIcons.Account,
-                        tone = FinanceTone.Neutral,
-                    )
-                }
+                    modifier = Modifier.testTag("s7_loans_link"),
+                )
             }
             item("lending-link") {
-                MyFinHubActionCard(
+                MyFinHubSettingsLinkRow(
+                    label = "Χρήματα που μου οφείλουν",
+                    supporting = "Απαιτήσεις και επιστροφές",
                     onClick = onOpenLending,
-                    modifier = Modifier.fillMaxWidth().testTag("s7_lending_link"),
-                ) {
-                    MyFinHubSectionHeading(
-                        title = "Χρήματα που μου οφείλουν",
-                        subtitle = "Απαιτήσεις και επιστροφές",
-                        icon = MyFinHubIcons.Money,
-                        tone = FinanceTone.Neutral,
-                    )
-                }
+                    modifier = Modifier.testTag("s7_lending_link"),
+                )
             }
             item("recurring-management-link") {
-                MyFinHubActionCard(
+                MyFinHubSettingsLinkRow(
+                    label = "Πάγια & συνδρομές",
+                    supporting = "Επαναλαμβανόμενες χρεώσεις",
                     onClick = onOpenRecurring,
-                    modifier = Modifier.fillMaxWidth().testTag("s7_recurring_management_link"),
-                ) {
-                    MyFinHubSectionHeading(
-                        title = "Πάγια & συνδρομές",
-                        subtitle = "Προβολή επαναλαμβανόμενων χρεώσεων",
-                        icon = MyFinHubIcons.Plan,
-                        tone = FinanceTone.Neutral,
-                    )
-                }
+                    modifier = Modifier.testTag("s7_recurring_management_link"),
+                )
             }
 
-            // Entry is always available: a first planned payment must be reachable.
+            // A first planned payment must remain reachable from an empty Plan.
             item("scheduled-management") {
-                    MyFinHubActionCard(
-                        onClick = onOpenScheduled,
-                        modifier = Modifier.fillMaxWidth().testTag("s7_scheduled_management_link"),
-                    ) {
-                        MyFinHubSectionHeading(
-                            title = "Προγραμματισμένες κινήσεις",
-                            subtitle = if (state.scheduledManageItems.isEmpty())
-                                "Νέος προγραμματισμός και ιστορικό"
-                            else "Επιβεβαίωση, παράλειψη και ιστορικό",
-                            icon = MyFinHubIcons.Plan,
-                            tone = FinanceTone.Neutral,
-                        )
-                    }
-                }
+                MyFinHubSettingsLinkRow(
+                    label = "Προγραμματισμένες κινήσεις",
+                    supporting = if (state.scheduledManageItems.isEmpty())
+                        "Νέος προγραμματισμός και ιστορικό"
+                    else "Επιβεβαίωση, παράλειψη και ιστορικό",
+                    onClick = onOpenScheduled,
+                    modifier = Modifier.testTag("s7_scheduled_management_link"),
+                )
+            }
             if (remaining.isNotEmpty()) {
                 item("remaining-heading") {
                     MyFinHubSectionHeading(
@@ -295,7 +274,12 @@ fun CanonicalPlan2026Screen(
                     itemsIndexed(group, key = { index, item ->
                         "remaining-${plannedItemSourceKey(item)}-row-$index"
                     }) { _, item ->
-                        PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
+                        PlanS7Row(
+                            item = item,
+                            amountsVisible = amountsVisible,
+                            glyphOverrides = state.categoryGlyphOverrides,
+                            emphasized = false,
+                        )
                     }
                 }
             } else if (urgent.isEmpty()) {
@@ -418,15 +402,17 @@ private fun BudgetS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onClic
 }
 
 @Composable
-private fun PlanS7Row(item: PlannedItem, amountsVisible: Boolean, glyphOverrides: Map<String, String> = emptyMap()) {
+private fun PlanS7Row(
+    item: PlannedItem,
+    amountsVisible: Boolean,
+    glyphOverrides: Map<String, String> = emptyMap(),
+    emphasized: Boolean = true,
+) {
     val tone = planS7Tone(item.flow)
     val icon = planS7Icon(item, glyphOverrides)
     val amountText = planS7Amount(item, amountsVisible)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
-
-    MyFinHubSectionCard(
-        modifier = Modifier.fillMaxWidth().testTag("s7_plan_item_${plannedItemSourceKey(item)}"),
-    ) {
+    val rowContent: @Composable () -> Unit = {
         if (largeFont) {
             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                 Row(
@@ -451,8 +437,21 @@ private fun PlanS7Row(item: PlannedItem, amountsVisible: Boolean, glyphOverrides
             }
         }
     }
+    val rowModifier = Modifier.fillMaxWidth()
+        .testTag("s7_plan_item_${plannedItemSourceKey(item)}")
+    if (emphasized) {
+        // Keep urgent items prominent without giving every future source a card.
+        MyFinHubSectionCard(modifier = rowModifier) { rowContent() }
+    } else {
+        Column(
+            modifier = rowModifier.padding(vertical = MyFinHubSpacing.xs),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        ) {
+            rowContent()
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        }
+    }
 }
-
 @Composable
 private fun PlanS7Identity(item: PlannedItem, modifier: Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
@@ -757,15 +756,10 @@ private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible
                     .testTag("s7_forecast_point_" + window.days + "_" + index),
                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(point.dateIso, style = MaterialTheme.typography.bodySmall)
-                    Text(amountVisibilityText(formatPlanS7Euro(point.portfolio), amountsVisible),
-                        style = MaterialTheme.typography.bodySmall)
-                }
+                ForecastS7AmountLine(
+                    label = point.dateIso,
+                    value = amountVisibilityText(formatPlanS7Euro(point.portfolio), amountsVisible),
+                )
                 if (point.balancesByAccount.isNotEmpty()) {
                     var showDailyAccounts by rememberSaveable(window.days, point.dateIso) {
                         mutableStateOf(false)
@@ -781,17 +775,14 @@ private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible
                     if (showDailyAccounts) {
                         window.accountBreakdown.forEach { account ->
                             point.balancesByAccount[account.accountId]?.let { balance ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                        .testTag("s7_forecast_point_account_" +
-                                            window.days + "_" + index + "_" + account.accountId),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(account.accountLabel, style = MaterialTheme.typography.bodySmall)
-                                    Text(amountVisibilityText(formatPlanS7Euro(balance), amountsVisible),
-                                        style = MaterialTheme.typography.bodySmall)
-                                }
+                                ForecastS7AmountLine(
+                                    label = account.accountLabel,
+                                    value = amountVisibilityText(formatPlanS7Euro(balance), amountsVisible),
+                                    modifier = Modifier.testTag(
+                                        "s7_forecast_point_account_" +
+                                            window.days + "_" + index + "_" + account.accountId,
+                                    ),
+                                )
                             }
                         }
                     }
@@ -853,45 +844,56 @@ private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible
                     .testTag("s7_forecast_movement_" + window.days + "_" + index),
                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
+                val movementIdentity: @Composable (Modifier) -> Unit = { modifier ->
+                    Column(modifier = modifier) {
                         Text(movement.label.ifBlank { "Χωρίς περιγραφή" },
                             style = MaterialTheme.typography.bodySmall)
                         Text((sourceLabels[movement.source] ?: movement.source) +
                             " · " + movement.dateIso, style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    val delta = movement.portfolioDelta
-                    val amount = if (kotlin.math.abs(delta) < 0.005) "0€ καθαρά"
-                        else (if (delta > 0.0) "+" else "−") +
-                            formatPlanS7Euro(kotlin.math.abs(delta))
-                    Text(amountVisibilityText(amount, amountsVisible),
-                        style = MaterialTheme.typography.bodySmall)
                 }
-                movement.accountImpacts.forEachIndexed { legIndex, impact ->
+                val delta = movement.portfolioDelta
+                val amount = if (kotlin.math.abs(delta) < 0.005) "0€ καθαρά"
+                    else (if (delta > 0.0) "+" else "−") +
+                        formatPlanS7Euro(kotlin.math.abs(delta))
+                val amountLabel = amountVisibilityText(amount, amountsVisible)
+                if (LocalDensity.current.fontScale >= 1.3f) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                    ) {
+                        movementIdentity(Modifier.fillMaxWidth())
+                        Text(amountLabel, style = MaterialTheme.typography.bodySmall)
+                    }
+                } else {
                     Row(
-                        modifier = Modifier.fillMaxWidth()
-                            .testTag("s7_forecast_movement_account_" +
-                                window.days + "_" + index + "_" + legIndex),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(impact.accountLabel, style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        val prefix = when {
-                            impact.delta > 0.0 -> "+"
-                            impact.delta < 0.0 -> "−"
-                            else -> ""
-                        }
-                        Text(amountVisibilityText(
+                        movementIdentity(Modifier.weight(1f))
+                        Text(amountLabel, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                movement.accountImpacts.forEachIndexed { legIndex, impact ->
+                    val prefix = when {
+                        impact.delta > 0.0 -> "+"
+                        impact.delta < 0.0 -> "−"
+                        else -> ""
+                    }
+                    ForecastS7AmountLine(
+                        label = impact.accountLabel,
+                        value = amountVisibilityText(
                             prefix + formatPlanS7Euro(kotlin.math.abs(impact.delta)),
                             amountsVisible,
-                        ), style = MaterialTheme.typography.bodySmall)
-                    }
+                        ),
+                        modifier = Modifier.testTag(
+                            "s7_forecast_movement_account_" +
+                                window.days + "_" + index + "_" + legIndex,
+                        ),
+                        mutedLabel = true,
+                    )
                 }
             }
         }
@@ -910,6 +912,41 @@ private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+/** Same financial source line; flexible layout only when Android font scale is enlarged. */
+@Composable
+private fun ForecastS7AmountLine(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    mutedLabel: Boolean = false,
+) {
+    val labelColor = if (mutedLabel) MaterialTheme.colorScheme.onSurfaceVariant
+        else MaterialTheme.colorScheme.onSurface
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(
+            modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
+        ) {
+            Text(label, style = MaterialTheme.typography.bodySmall, color = labelColor)
+            Text(value, style = MaterialTheme.typography.bodySmall)
+        }
+    } else {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodySmall,
+                color = labelColor,
+            )
+            Text(value, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 
@@ -1245,41 +1282,53 @@ fun CanonicalBudget2026Screen(
         ) {
             if (onShiftBudgetMonth != null) {
                 item("budget-month-selector") {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
-                        .testTag("s7_budget_month_selector")) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                "Περίοδος: " + state.budgetMonthLabel,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                "Κάθε μήνας έχει δικά του συνολικά όρια, όρια κατηγοριών " +
-                                    "και υποκατηγοριών. Η αλλαγή μήνα δεν αποθηκεύει οικονομική κίνηση.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (onSelectBudgetMonth != null) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().testTag("s7_budget_month_selector"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        Text(
+                            "Περίοδος: " + state.budgetMonthLabel,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        if (onSelectBudgetMonth != null) {
+                            TextButton(
+                                enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
+                                onClick = {
+                                    selectedMonthDraft = state.budgetSelectedMonthIso
+                                    selectBudgetMonthOpen = true
+                                },
+                                modifier = Modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("s7_budget_pick_month"),
+                            ) { Text("Επιλογή μήνα") }
+                        }
+                        val monthNavigationEnabled =
+                            !dirty && !saveRequested && !mutationInFlight && !mutationBlocked
+                        val shiftAction: @Composable (Int, String, String, Modifier) -> Unit =
+                            { shift, label, testTag, modifier ->
                                 TextButton(
-                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
-                                    onClick = {
-                                        selectedMonthDraft = state.budgetSelectedMonthIso
-                                        selectBudgetMonthOpen = true
-                                    },
-                                    modifier = Modifier.fillMaxWidth().testTag("s7_budget_pick_month"),
-                                ) { Text("Επιλογή συγκεκριμένου μήνα") }
+                                    enabled = monthNavigationEnabled,
+                                    onClick = { onShiftBudgetMonth(shift) },
+                                    modifier = modifier
+                                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag(testTag),
+                                ) { Text(label) }
                             }
-                            Row(modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween) {
-                                TextButton(
-                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
-                                    onClick = { onShiftBudgetMonth(-1) },
-                                    modifier = Modifier.testTag("s7_budget_previous_month"),
-                                ) { Text("‹ Προηγούμενος") }
-                                TextButton(
-                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
-                                    onClick = { onShiftBudgetMonth(1) },
-                                    modifier = Modifier.testTag("s7_budget_next_month"),
-                                ) { Text("Επόμενος ›") }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                shiftAction(-1, "Προηγούμενος μήνας", "s7_budget_previous_month", Modifier.fillMaxWidth())
+                                shiftAction(1, "Επόμενος μήνας", "s7_budget_next_month", Modifier.fillMaxWidth())
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                shiftAction(-1, "Προηγούμενος", "s7_budget_previous_month", Modifier)
+                                shiftAction(1, "Επόμενος", "s7_budget_next_month", Modifier)
                             }
                         }
                     }
@@ -1299,12 +1348,35 @@ fun CanonicalBudget2026Screen(
                                 icon = MyFinHubIcons.Savings,
                                 tone = FinanceTone.Savings,
                             )
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (progress.remaining >= 0.0) "Υπόλοιπο" else "Υπέρβαση")
+                            val remainingLabel = if (progress.remaining >= 0.0) "Υπόλοιπο" else "Υπέρβαση"
+                            val remainingAmount: @Composable () -> Unit = {
                                 MyFinHubAmountText(
-                                    amountVisibilityText(formatPlanS7Euro(abs(progress.remaining)), amountsVisible),
+                                    amountVisibilityText(
+                                        formatPlanS7Euro(abs(progress.remaining)),
+                                        amountsVisible,
+                                    ),
                                     if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
                                 )
+                            }
+                            if (LocalDensity.current.fontScale >= 1.3f) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                                ) {
+                                    Text(remainingLabel)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End,
+                                    ) { remainingAmount() }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(remainingLabel)
+                                    remainingAmount()
+                                }
                             }
                             if (progress.progress <= 0f) {
                                 HorizontalDivider(
@@ -1483,24 +1555,18 @@ fun CanonicalBudget2026Screen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            TextButton(
-                                onClick = { editingCategoryBudget = budget },
-                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
-                                    budget.id.isNotBlank() &&
-                                    state.categoryBudgets.count { it.name == budget.name } == 1 &&
-                                    state.categoryBudgets.count { it.id == budget.id } == 1,
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("s7_category_budget_edit_" + budget.id),
-                            ) { Text("Επεξεργασία ορίου") }
-                            TextButton(
-                                onClick = { deletingCategoryBudget = budget },
-                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
-                                    budget.id.isNotBlank() &&
-                                    state.categoryBudgets.count { it.name == budget.name } == 1 &&
-                                    state.categoryBudgets.count { it.id == budget.id } == 1,
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("s7_category_budget_delete_" + budget.id),
-                            ) { Text("Διαγραφή ορίου") }
+                            val categoryBudgetWritable =
+                                !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                budget.id.isNotBlank() &&
+                                state.categoryBudgets.count { it.name == budget.name } == 1 &&
+                                state.categoryBudgets.count { it.id == budget.id } == 1
+                            BudgetRowActions(
+                                enabled = categoryBudgetWritable,
+                                onEdit = { editingCategoryBudget = budget },
+                                onDelete = { deletingCategoryBudget = budget },
+                                editTag = "s7_category_budget_edit_" + budget.id,
+                                deleteTag = "s7_category_budget_delete_" + budget.id,
+                            )
                             if (metrics == null) {
                                 Text(
                                     "Μη έγκυρα οικονομικά δεδομένα ορίου · δεν εμφανίζεται πρόοδος.",
@@ -1637,22 +1703,18 @@ fun CanonicalBudget2026Screen(
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
-                            TextButton(
-                                onClick = { editingSubcategoryBudget = budget },
-                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
-                                    budget.id.isNotBlank() && budget.category != null &&
-                                    budget.subcategory != null &&
-                                    state.subcategoryBudgets.count { it.id == budget.id } == 1,
-                                modifier = Modifier.testTag("s7_subcategory_budget_edit_$index"),
-                            ) { Text("Επεξεργασία ορίου") }
-                            TextButton(
-                                onClick = { deletingSubcategoryBudget = budget },
-                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
-                                    budget.id.isNotBlank() && budget.category != null &&
-                                    budget.subcategory != null &&
-                                    state.subcategoryBudgets.count { it.id == budget.id } == 1,
-                                modifier = Modifier.testTag("s7_subcategory_budget_delete_$index"),
-                            ) { Text("Διαγραφή ορίου") }
+                            val subcategoryBudgetWritable =
+                                !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                budget.id.isNotBlank() && budget.category != null &&
+                                budget.subcategory != null &&
+                                state.subcategoryBudgets.count { it.id == budget.id } == 1
+                            BudgetRowActions(
+                                enabled = subcategoryBudgetWritable,
+                                onEdit = { editingSubcategoryBudget = budget },
+                                onDelete = { deletingSubcategoryBudget = budget },
+                                editTag = "s7_subcategory_budget_edit_$index",
+                                deleteTag = "s7_subcategory_budget_delete_$index",
+                            )
                             Text(
                                 "Το όριο δεν δημιουργεί νέα οικονομική κίνηση.",
                                 style = MaterialTheme.typography.bodySmall,
@@ -1840,6 +1902,58 @@ fun CanonicalBudget2026Screen(
     }
 }
 
+/** Compact but readable edit/delete controls for existing category and subcategory budgets. */
+@Composable
+private fun BudgetRowActions(
+    enabled: Boolean,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    editTag: String,
+    deleteTag: String,
+) {
+    val editAction: @Composable (Modifier) -> Unit = { modifier ->
+        TextButton(
+            onClick = onEdit,
+            enabled = enabled,
+            modifier = modifier
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                .testTag(editTag),
+        ) { Text("Επεξεργασία") }
+    }
+    val deleteAction: @Composable (Modifier) -> Unit = { modifier ->
+        TextButton(
+            onClick = onDelete,
+            enabled = enabled,
+            modifier = modifier
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                .testTag(deleteTag),
+        ) {
+            Text(
+                "Διαγραφή",
+                color = if (enabled) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+            )
+        }
+    }
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+        ) {
+            editAction(Modifier.fillMaxWidth())
+            deleteAction(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        ) {
+            editAction(Modifier.weight(1f))
+            deleteAction(Modifier.weight(1f))
+        }
+    }
+}
+
 @Composable
 private fun CanonicalCategoryBudgetEditor(
     initial: CategoryBudget?,
@@ -1877,15 +1991,23 @@ private fun CanonicalCategoryBudgetEditor(
                         onClick = { categoryMenuOpen = true },
                         enabled = !mutationBlocked,
                         modifier = Modifier.fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                             .testTag("s7_category_editor_select"),
                     ) { Text(if (category.isBlank()) "Επίλεξε κατηγορία εξόδων" else "Αλλαγή: $category") }
                     DropdownMenu(
                         expanded = categoryMenuOpen,
                         onDismissRequest = { categoryMenuOpen = false },
                     ) {
-                        categories.forEach { item ->
+                        // Category names, not list positions, are the existing editor values.
+                        // Avoid duplicate visible choices while preserving exact category strings.
+                        categories.distinct().forEach { item ->
+                            val isCurrentCategory = item == category
                             DropdownMenuItem(
                                 text = { Text(item) },
+                                trailingIcon = if (isCurrentCategory) {
+                                    { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                                } else null,
+                                modifier = Modifier.semantics { selected = isCurrentCategory },
                                 onClick = { category = item; categoryMenuOpen = false },
                             )
                         }

@@ -114,13 +114,11 @@ class NativeFinanceJourneysComposeTest {
         rule.onNodeWithContentDescription("Πίσω").performClick()
         rule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
 
-        rule.onNodeWithText("Περισσότερα").performClick()
         rule.onNodeWithText("Διαγραφή κίνησης").performClick()
         rule.onNodeWithText("Διαγραφή κίνησης;").assertIsDisplayed()
         rule.runOnIdle { assertNull(action) }
         rule.onNodeWithText("Ακύρωση").performClick()
         rule.runOnIdle { assertNull(action) }
-        rule.onNodeWithText("Περισσότερα").performClick()
         rule.onNodeWithText("Διαγραφή κίνησης").performClick()
         rule.onNodeWithText("Διαγραφή").performClick()
         rule.runOnIdle { assertEquals(ActivityAction.Delete(row.id), action) }

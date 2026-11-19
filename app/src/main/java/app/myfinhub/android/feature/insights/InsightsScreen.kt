@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -98,39 +100,55 @@ fun InsightsScreen(
             }
             if (isCalendarMonth) {
                 item("historical-calendar-month-navigation") {
-                    MyFinHubSectionCard(
+                    Column(
                         modifier = Modifier.fillMaxWidth().testTag("insights_report_month_nav"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                "Μήνας αναφοράς · " +
-                                    (if (historicIndex >= 0) scope.label else "Τρέχων"),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                "Η σύγκριση αφορά πραγματικούς ημερολογιακούς μήνες, " +
-                                    "όχι αυθαίρετα κυλιόμενα διαστήματα.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
+                        Text(
+                            "Μήνας αναφοράς · " +
+                                (if (historicIndex >= 0) scope.label else "Τρέχων"),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        Text(
+                            "Σύγκριση ημερολογιακών μηνών.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        val earlier = if (historicIndex < 0) state.historicalMonths.firstOrNull()
+                            else state.historicalMonths.getOrNull(historicIndex + 1)
+                        val later = if (historicIndex <= 0) state.periods
+                            .firstOrNull { it.id == INSIGHTS_PERIOD_MONTH }
+                            else state.historicalMonths.getOrNull(historicIndex - 1)
+                        val previousAction: @Composable (Modifier) -> Unit = { modifier ->
+                            TextButton(
+                                enabled = earlier != null,
+                                onClick = { earlier?.let { onPeriodSelected(it.id) } },
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("insights_report_previous_month"),
+                            ) { Text("Προηγούμενος") }
+                        }
+                        val nextAction: @Composable (Modifier) -> Unit = { modifier ->
+                            TextButton(
+                                enabled = later != null && historicIndex >= 0,
+                                onClick = { later?.let { onPeriodSelected(it.id) } },
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("insights_report_next_month"),
+                            ) { Text("Επόμενος") }
+                        }
+                        if (largeFont) {
+                            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                                previousAction(Modifier.fillMaxWidth())
+                                nextAction(Modifier.fillMaxWidth())
+                            }
+                        } else {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
-                                val earlier = if (historicIndex < 0) state.historicalMonths.firstOrNull()
-                                    else state.historicalMonths.getOrNull(historicIndex + 1)
-                                val later = if (historicIndex <= 0) state.periods
-                                    .firstOrNull { it.id == INSIGHTS_PERIOD_MONTH }
-                                    else state.historicalMonths.getOrNull(historicIndex - 1)
-                                TextButton(
-                                    enabled = earlier != null,
-                                    onClick = { earlier?.let { onPeriodSelected(it.id) } },
-                                    modifier = Modifier.testTag("insights_report_previous_month"),
-                                ) { Text("Προηγούμενος") }
-                                TextButton(
-                                    enabled = later != null && historicIndex >= 0,
-                                    onClick = { later?.let { onPeriodSelected(it.id) } },
-                                    modifier = Modifier.testTag("insights_report_next_month"),
-                                ) { Text("Επόμενος") }
+                                previousAction(Modifier)
+                                nextAction(Modifier)
                             }
                         }
                     }
@@ -141,20 +159,10 @@ fun InsightsScreen(
             }
             onOpenNetPosition?.let { open ->
                 item("net-position-link") {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                            Text("Συνολική οικονομική εικόνα", style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                "Λογαριασμοί, απαιτήσεις και υποχρεώσεις μαζί, με ανάλυση υπολογισμού.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            TextButton(
-                                onClick = open,
-                                modifier = Modifier.fillMaxWidth().testTag("insights_net_position"),
-                            ) { Text("Καθαρή οικονομική θέση") }
-                        }
-                    }
+                    TextButton(
+                        onClick = open,
+                        modifier = Modifier.fillMaxWidth().testTag("insights_net_position"),
+                    ) { Text("Καθαρή οικονομική θέση") }
                 }
             }
             if (scope.operationalReport != null) {
@@ -454,13 +462,25 @@ private fun OperationalReportCard(
                 }
                 if (detailsExpanded) {
                     report.accountBalances.forEachIndexed { index, account ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                                .testTag("insights_operational_account_" + index),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(account.label, modifier = Modifier.weight(1f))
-                            Text(amountVisibilityText(formatEuro(account.balance), amountsVisible))
+                        val amount = amountVisibilityText(formatEuro(account.balance), amountsVisible)
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("insights_operational_account_" + index),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                Text(account.label)
+                                Text(amount, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("insights_operational_account_" + index),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(account.label, modifier = Modifier.weight(1f))
+                                Text(amount)
+                            }
                         }
                     }
                 }
@@ -473,12 +493,27 @@ private fun OperationalReportCard(
 private fun OperationalReportAmountLine(
     title: String, value: Double, amountsVisible: Boolean,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(title, modifier = Modifier.weight(1f))
-        Text(amountVisibilityText(formatEuro(value), amountsVisible))
+    val amount = amountVisibilityText(formatEuro(value), amountsVisible)
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+        ) {
+            Text(title, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                amount,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(title, modifier = Modifier.weight(1f))
+            Text(amount)
+        }
     }
 }
 
@@ -489,10 +524,17 @@ private fun PeriodSelector(
     onPeriodSelected: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-        Text("Περίοδος", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(
+        Text(
+            "Περίοδος",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        // A wrapped period selector keeps all historical scope choices reachable
+        // without compressing Greek labels into three fixed-width chips.
+        FlowRow(
             modifier = Modifier.fillMaxWidth().testTag("insights_period_selector"),
             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
         ) {
             periods.forEach { period ->
                 FilterChip(
@@ -500,7 +542,9 @@ private fun PeriodSelector(
                         (period.id == INSIGHTS_PERIOD_MONTH && selectedPeriodId.startsWith("report:")),
                     onClick = { onPeriodSelected(period.id) },
                     label = { Text(period.label) },
-                    modifier = Modifier.weight(1f).testTag("insights_period_${period.id}"),
+                    modifier = Modifier
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                        .testTag("insights_period_${period.id}"),
                 )
             }
         }
@@ -820,17 +864,44 @@ private fun AnalysisDetailsCard(
 ) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("insights_details")) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Έσοδα, καθαρό & πορεία", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    Text("Δευτερεύουσα ανάλυση", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val detailsHeading: @Composable (Modifier) -> Unit = { modifier ->
+                Column(modifier = modifier) {
+                    Text(
+                        "Έσοδα, καθαρό & πορεία",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        "Δευτερεύουσα ανάλυση",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-                TextButton(onClick = onToggle, modifier = Modifier.testTag("insights_details_toggle")) {
-                    Text(if (expanded) "Απόκρυψη" else "Προβολή")
+            }
+            val detailsAction: @Composable () -> Unit = {
+                TextButton(
+                    onClick = onToggle,
+                    modifier = Modifier
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                        .testTag("insights_details_toggle"),
+                ) { Text(if (expanded) "Απόκρυψη" else "Προβολή") }
+            }
+            if (LocalDensity.current.fontScale >= 1.3f) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                ) {
+                    detailsHeading(Modifier.fillMaxWidth())
+                    detailsAction()
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    detailsHeading(Modifier.weight(1f))
+                    detailsAction()
                 }
             }
             if (expanded) {

@@ -36,8 +36,7 @@ class ActivitySplitDetailComposeTest {
             }
         }
         rule.onNodeWithTag("activity_detail_list")
-            .performScrollToNode(hasText("Περισσότερα"))
-        rule.onNodeWithText("Περισσότερα").performClick()
+            .performScrollToNode(hasText("Διαγραφή κίνησης"))
         rule.onNodeWithText("Διαγραφή κίνησης").performClick()
         rule.onNodeWithText("Διαγραφή κίνησης;").assertExists()
         rule.runOnIdle { blocked = true }

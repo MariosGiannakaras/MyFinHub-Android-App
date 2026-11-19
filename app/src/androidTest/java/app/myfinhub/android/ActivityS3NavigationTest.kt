@@ -49,7 +49,7 @@ class ActivityS3NavigationTest {
 
         composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
         composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
-        composeRule.onNodeWithText("Περισσότερα").assertIsDisplayed()
+        composeRule.onNodeWithText("Διαγραφή κίνησης").assertIsDisplayed()
         assertTrue(runCatching { composeRule.onNodeWithText("Πορτοφόλι").fetchSemanticsNode() }.isFailure)
 
         composeRule.onNodeWithText("Επεξεργασία").performClick()
@@ -65,7 +65,6 @@ class ActivityS3NavigationTest {
     fun activity_deleteConfirmation_statesMyFinHubMeaning_notBankReversal() {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNodeWithText("Σούπερ μάρκετ").performClick()
-        composeRule.onNodeWithText("Περισσότερα").performClick()
         composeRule.onNodeWithText("Διαγραφή κίνησης").performClick()
 
         composeRule.onNodeWithText("Διαγραφή κίνησης;").assertIsDisplayed()

@@ -5,14 +5,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -113,6 +119,7 @@ fun CanonicalWalletScreen(
     initiallyShowDebts: Boolean = false,
     cardsOnly: Boolean = false,
     accountsOnly: Boolean = false,
+    onBack: (() -> Unit)? = null,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
     onOpenCard: (String) -> Unit,
@@ -172,7 +179,9 @@ fun CanonicalWalletScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = when { cardsOnly -> "Κάρτες"; accountsOnly -> "Λογαριασμοί"; else -> "Πορτοφόλι" },
-                subtitle = if (cardsOnly || accountsOnly) null else selected.label,
+                navigation = if (accountsOnly) onBack?.let { back ->
+                    { MyFinHubBackButton(back) }
+                } else null,
             )
         },
     ) { padding ->
@@ -258,14 +267,19 @@ fun CanonicalWalletScreen(
             ) {
                 Text("Ενότητα πορτοφολιού", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 WalletSection.entries.forEach { section ->
+                    val isCurrentSection = section == selected
                     Surface(
                         onClick = {
                             selectedName = section.name
                             sectionSheetOpen = false
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .semantics { this.selected = isCurrentSection },
                         shape = MaterialTheme.shapes.small,
-                        color = if (section == selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                        color = if (isCurrentSection) MaterialTheme.colorScheme.secondaryContainer
+                            else MaterialTheme.colorScheme.surface,
                     ) {
                         Row(
                             modifier = Modifier.padding(MyFinHubSpacing.md),
@@ -273,7 +287,18 @@ fun CanonicalWalletScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(section.icon(), contentDescription = null)
-                            Text(section.label, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                section.label,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f),
+                            )
+                            if (isCurrentSection) {
+                                Text(
+                                    "Επιλεγμένο",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
                         }
                     }
                 }
@@ -290,9 +315,14 @@ private fun WalletSectionSelector(
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     if (largeFont) {
-        OutlinedButton(onClick = onOpenSheet, modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = onOpenSheet,
+            modifier = Modifier.fillMaxWidth()
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+        ) {
             Icon(selected.icon(), contentDescription = null)
-            Text("  Ενότητα: ${selected.label}")
+            Spacer(Modifier.width(MyFinHubSpacing.xs))
+            Text("Ενότητα: ${selected.label}")
         }
     } else {
         Row(
@@ -346,28 +376,44 @@ private fun LazyListScope.walletAccountsContent(
 
     if (state.accounts.isEmpty()) {
         item("accounts-empty") {
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "Δεν υπάρχουν διαθέσιμοι λογαριασμοί στην τρέχουσα canonical εικόνα.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                "Δεν υπάρχουν διαθέσιμοι λογαριασμοί.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     } else {
+        val accountIdCounts = state.accounts.groupingBy { it.id }.eachCount()
         WalletAccountGroup.entries.forEach { group ->
             val accounts = walletAccountsInGroup(state, group)
             if (accounts.isNotEmpty()) {
                 item("account-heading-${group.name}") {
-                    Text(group.label, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(group.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }
-                items(accounts, key = MoneyAccount::id) { account ->
+                itemsIndexed(
+                    accounts,
+                    key = { index, account -> "account-${group.name}-$index-${account.id}" },
+                ) { index, account ->
+                    val unambiguousId = account.id.isNotBlank() &&
+                        account.id == account.id.trim() && accountIdCounts[account.id] == 1
                     WalletAccountRow(
                         account = account,
                         amountsVisible = amountsVisible,
-                        ibanRecord = accountMetadata[account.id],
-                        accountMetadataLoaded = accountMetadataLoaded,
-                        onClick = { onOpenAccount(account.id) },
+                        // A duplicated source ID must not display another account's IBAN.
+                        ibanRecord = if (unambiguousId) accountMetadata[account.id] else null,
+                        accountMetadataLoaded = accountMetadataLoaded && unambiguousId,
+                        canOpen = unambiguousId,
+                        onClick = { if (unambiguousId) onOpenAccount(account.id) },
                     )
+                    if (!unambiguousId) {
+                        Text(
+                            "Μη μοναδική ή κενή ταυτότητα λογαριασμού · δεν είναι δυνατή η ασφαλής προβολή λεπτομερειών.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .padding(bottom = MyFinHubSpacing.xs)
+                                .testTag("wallet_account_identity_warning_${group.name}_$index"),
+                        )
+                    }
                 }
             }
         }
@@ -411,6 +457,7 @@ private fun WalletAccountRow(
     amountsVisible: Boolean,
     ibanRecord: AccountMetadataRecord?,
     accountMetadataLoaded: Boolean,
+    canOpen: Boolean = true,
     onClick: () -> Unit,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -418,10 +465,13 @@ private fun WalletAccountRow(
     val tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense
     Surface(
         onClick = onClick,
+        enabled = canOpen,
         modifier = Modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
-                contentDescription = if (amountsVisible) "${account.name}, $amountText" else "${account.name}, ποσό κρυφό"
+                contentDescription = (if (amountsVisible) "${account.name}, $amountText"
+                    else "${account.name}, ποσό κρυφό") +
+                    if (canOpen) "" else ", μη διαθέσιμη ασφαλής προβολή"
             },
         color = MaterialTheme.colorScheme.background,
     ) {
@@ -533,18 +583,39 @@ private fun LazyListScope.walletCardsContent(
     companionMode: Boolean,
     onOpenQuickEntry: () -> Unit,
 ) {
+    val allCardIdCounts = (state.cards + state.archivedCards)
+        .groupingBy(MoneyCard::id).eachCount()
+    val unsafeCardIds = (state.cards + state.archivedCards).filter { card ->
+        card.id.isBlank() || card.id != card.id.trim() ||
+            allCardIdCounts[card.id] != 1
+    }.mapTo(mutableSetOf(), MoneyCard::id)
     item("cards-action") {
-        MyFinHubPrimaryAction(
-            label = if (companionMode) "Νέα κίνηση" else "Νέα κάρτα",
-            onClick = if (companionMode) onOpenQuickEntry else onAddCard,
-            modifier = Modifier.fillMaxWidth().testTag("cards_primary_action"),
-        )
+        if (companionMode || state.cards.isEmpty()) {
+            MyFinHubPrimaryAction(
+                label = when {
+                    companionMode -> "Νέα κίνηση"
+                    else -> "Προσθήκη κάρτας"
+                },
+                onClick = if (companionMode) onOpenQuickEntry else onAddCard,
+                modifier = Modifier.fillMaxWidth().testTag("cards_primary_action"),
+            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    onClick = onAddCard,
+                    modifier = Modifier
+                        .testTag("cards_primary_action")
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                ) { Text("Νέα κάρτα") }
+            }
+        }
     }
     if (state.cards.isEmpty()) {
         item("cards-empty") {
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Text("Δεν υπάρχουν ενεργές κάρτες στο MyFinHub.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            Text("Δεν υπάρχουν ενεργές κάρτες στο MyFinHub.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
         item("cards-stack") {
@@ -556,6 +627,7 @@ private fun LazyListScope.walletCardsContent(
                 onDeleteCard = onDeleteCard,
                 modifier = Modifier.fillMaxWidth(),
                 allowArchive = !companionMode,
+                unsafeCardIds = unsafeCardIds,
             )
         }
         if (companionMode) {
@@ -563,11 +635,21 @@ private fun LazyListScope.walletCardsContent(
                 val active = state.cards.firstOrNull { it.id == selectedCardId } ?: state.cards.first()
                 val isCredit = canUseCreditCardActions(active)
                 val creditSnapshot = if (isCredit) creditWorkspaceFinancialSnapshot(active) else null
+                val safeCardIdentity = active.id !in unsafeCardIds
                 MyFinHubSectionCard(
                     modifier = Modifier.fillMaxWidth().testTag("card_companion_summary"),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                         Text(active.nickname, style = MaterialTheme.typography.titleMedium)
+                        if (!safeCardIdentity) {
+                            Text(
+                                "Μη μοναδική ή κενή ταυτότητα κάρτας · οι ενέργειες " +
+                                    "είναι διαθέσιμες μόνο για μοναδική κάρτα.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.testTag("card_companion_identity_warning"),
+                            )
+                        }
                         if (isCredit) {
                             Text("Τρέχουσα οφειλή", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
@@ -575,17 +657,40 @@ private fun LazyListScope.walletCardsContent(
                                     ?: "Μη διαθέσιμο ποσό",
                                 style = MaterialTheme.typography.titleLarge,
                             )
-                            OutlinedButton(
-                                onClick = { onAddCreditPurchase(active.id) },
-                                enabled = canOpenCreditCardQuickEntry(active, payment = false),
-                                modifier = Modifier.fillMaxWidth().testTag("card_companion_purchase"),
-                            ) { Text("Αγορά με πιστωτική") }
-                            OutlinedButton(
-                                onClick = { onPayCreditCard(active.id) },
-                                enabled = canOpenCreditCardQuickEntry(active, payment = true) &&
-                                    (creditSnapshot?.outstanding ?: 0.0) > 0.005,
-                                modifier = Modifier.fillMaxWidth().testTag("card_companion_payment"),
-                            ) { Text("Εξόφληση πιστωτικής") }
+                            val canRecordPurchase = safeCardIdentity &&
+                                canOpenCreditCardQuickEntry(active, payment = false)
+                            val canPayCredit = safeCardIdentity &&
+                                canOpenCreditCardQuickEntry(active, payment = true) &&
+                                    (creditSnapshot?.outstanding ?: 0.0) > 0.005
+                            if (canPayCredit) {
+                                FilledTonalButton(
+                                    onClick = { onPayCreditCard(active.id) },
+                                    enabled = canPayCredit,
+                                    modifier = Modifier.fillMaxWidth()
+                                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag("card_companion_payment"),
+                                ) { Text("Εξόφληση πιστωτικής") }
+                                TextButton(
+                                    onClick = { onAddCreditPurchase(active.id) },
+                                    enabled = canRecordPurchase,
+                                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag("card_companion_purchase"),
+                                ) { Text("Αγορά με πιστωτική") }
+                            } else {
+                                FilledTonalButton(
+                                    onClick = { onAddCreditPurchase(active.id) },
+                                    enabled = canRecordPurchase,
+                                    modifier = Modifier.fillMaxWidth()
+                                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag("card_companion_purchase"),
+                                ) { Text("Αγορά με πιστωτική") }
+                                TextButton(
+                                    onClick = { onPayCreditCard(active.id) },
+                                    enabled = false,
+                                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag("card_companion_payment"),
+                                ) { Text("Εξόφληση πιστωτικής") }
+                            }
                         } else {
                             Text(
                                 "Οι αγορές χρεωστικής ή προπληρωμένης καταχωρίζονται ως κινήσεις λογαριασμού.",
@@ -598,6 +703,21 @@ private fun LazyListScope.walletCardsContent(
         } else {
         item("card-workspace") {
             val active = state.cards.firstOrNull { it.id == selectedCardId } ?: state.cards.first()
+            if (active.id in unsafeCardIds) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                    .testTag("inline_credit_card_identity_warning")) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text(active.nickname, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Η ταυτότητα αυτής της κάρτας δεν είναι μοναδική ή είναι κενή. " +
+                                "Οι αγορές, πληρωμές και σύνδεσμοι διαχείρισης " +
+                                "δεν είναι διαθέσιμοι μέχρι να διορθωθούν τα δεδομένα.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            } else {
             InlineCreditCardWorkspace(
                 card = active,
                 statements = state.creditStatementsByCard[active.id].orEmpty(),
@@ -614,6 +734,7 @@ private fun LazyListScope.walletCardsContent(
                 fullActivityIdCounts = fullActivityIdCounts,
                 onOpenDetails = { onOpenCard(active.id) },
             )
+            }
         }
         }
     }
@@ -625,8 +746,17 @@ private fun LazyListScope.walletCardsContent(
                 fontWeight = FontWeight.SemiBold,
             )
         }
-        items(state.archivedCards, key = { "archived-" + it.id }) { card ->
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("archived_card_" + card.id)) {
+        itemsIndexed(
+            state.archivedCards,
+            key = { index, card -> "archived-$index-${card.id}" },
+        ) { index, card ->
+            val restorable = card.id !in unsafeCardIds
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(vertical = MyFinHubSpacing.xs)
+                    .testTag("archived_card_" + card.id),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Text(card.nickname, style = MaterialTheme.typography.titleMedium)
                     Text(
@@ -635,11 +765,23 @@ private fun LazyListScope.walletCardsContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     TextButton(
-                        onClick = { onRestoreCard(card.id) },
-                        modifier = Modifier.testTag("restore_archived_card_" + card.id),
+                        onClick = { if (restorable) onRestoreCard(card.id) },
+                        enabled = restorable,
+                        modifier = Modifier
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .testTag("restore_archived_card_" + card.id),
                     ) { Text("Επαναφορά") }
+                    if (!restorable) {
+                        Text(
+                            "Μη μοναδική ή κενή ταυτότητα κάρτας · η επαναφορά δεν είναι διαθέσιμη.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.testTag("archived_card_identity_warning_$index"),
+                        )
+                    }
                 }
             }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         }
     }
 }

@@ -3,17 +3,18 @@ package app.myfinhub.android.feature.utilities
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.core.update.UpdateFailureKind
 import app.myfinhub.android.core.update.UpdateUiState
-import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
-import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubSettingsSection
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.util.Locale
 
@@ -37,7 +38,7 @@ internal fun updateRecoveryAction(kind: UpdateFailureKind, releaseAvailable: Boo
 
 @Composable
 internal fun UpdateSettingsCard(
-    currentVersionName: String,
+    @Suppress("UNUSED_PARAMETER") currentVersionName: String,
     state: UpdateUiState,
     onCheck: () -> Unit,
     onDownload: () -> Unit,
@@ -45,18 +46,11 @@ internal fun UpdateSettingsCard(
     onOpenInstallPermission: () -> Unit,
     onAuthRecovery: () -> Unit = {},
 ) {
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+    MyFinHubSettingsSection(title = "Ενημερώσεις") {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            Text("Ενημερώσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-            Text(
-                "Τρέχουσα έκδοση $currentVersionName",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             when (state) {
                 UpdateUiState.Idle -> {
-                    StatusText("Έλεγξε αν υπάρχει νεότερη εγκεκριμένη έκδοση.")
-                    MyFinHubOutlinedAction("Έλεγχος για ενημερώσεις", onCheck, Modifier.fillMaxWidth())
+                    UpdateSecondaryAction("Έλεγχος για ενημερώσεις", onCheck)
                 }
                 UpdateUiState.Checking -> {
                     StatusText("Έλεγχος για νέα έκδοση…")
@@ -64,7 +58,7 @@ internal fun UpdateSettingsCard(
                 }
                 UpdateUiState.UpToDate -> {
                     StatusText("Η εφαρμογή είναι ενημερωμένη.")
-                    MyFinHubOutlinedAction("Έλεγχος ξανά", onCheck, Modifier.fillMaxWidth())
+                    UpdateSecondaryAction("Έλεγχος ξανά", onCheck)
                 }
                 is UpdateUiState.Available -> {
                     ReleaseCopy(state.release.versionName, state.release.sizeBytes, state.release.notes, state.release.mandatory)
@@ -95,21 +89,30 @@ internal fun UpdateSettingsCard(
                 is UpdateUiState.Failure -> {
                     StatusText(updateFailureMessage(state.kind))
                     when (updateRecoveryAction(state.kind, state.release != null)) {
-                        UpdateRecoveryAction.AUTH -> MyFinHubOutlinedAction("Σύνδεση ξανά", onAuthRecovery, Modifier.fillMaxWidth())
-                        UpdateRecoveryAction.DOWNLOAD -> MyFinHubOutlinedAction("Λήψη ξανά", onDownload, Modifier.fillMaxWidth())
-                        UpdateRecoveryAction.INSTALL -> MyFinHubOutlinedAction("Εγκατάσταση ξανά", onInstall, Modifier.fillMaxWidth())
-                        UpdateRecoveryAction.INSTALL_PERMISSION -> MyFinHubOutlinedAction("Άνοιγμα ρύθμισης εγκατάστασης", onOpenInstallPermission, Modifier.fillMaxWidth())
-                        UpdateRecoveryAction.CHECK -> MyFinHubOutlinedAction("Έλεγχος ξανά", onCheck, Modifier.fillMaxWidth())
+                        UpdateRecoveryAction.AUTH -> UpdateSecondaryAction("Σύνδεση ξανά", onAuthRecovery)
+                        UpdateRecoveryAction.DOWNLOAD -> UpdateSecondaryAction("Λήψη ξανά", onDownload)
+                        UpdateRecoveryAction.INSTALL -> UpdateSecondaryAction("Εγκατάσταση ξανά", onInstall)
+                        UpdateRecoveryAction.INSTALL_PERMISSION -> UpdateSecondaryAction("Άνοιγμα ρύθμισης εγκατάστασης", onOpenInstallPermission)
+                        UpdateRecoveryAction.CHECK -> UpdateSecondaryAction("Έλεγχος ξανά", onCheck)
                         UpdateRecoveryAction.NO_RETRY -> Unit
                     }
                 }
             }
-            Text(
-                "Πριν από εγκατάσταση ελέγχονται πηγή, ακεραιότητα, πακέτο, νεότερη έκδοση και υπογραφή.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
+    }
+}
+
+@Composable
+private fun UpdateSecondaryAction(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    TextButton(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+    ) {
+        Text(label)
     }
 }
 

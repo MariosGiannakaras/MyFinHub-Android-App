@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,8 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.designsystem.MyFinHubMotion
-import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
-import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSettingsSection
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 
 @Composable
@@ -34,18 +34,8 @@ internal fun ProductionDiagnosticsCard(
     var supportDetailsExpanded by rememberSaveable {
         mutableStateOf(supportDetailsInitiallyExpanded)
     }
-    MyFinHubSectionCard(modifier = modifier.fillMaxWidth()) {
+    MyFinHubSettingsSection(title = "Κατάσταση εφαρμογής", modifier = modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            Text(
-                "Κατάσταση εφαρμογής",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                "Συνοπτική εικόνα για σύνδεση, συγχρονισμό και συνεδρία. Οι τεχνικές λεπτομέρειες εμφανίζονται μόνο όταν τις χρειάζεσαι για υποστήριξη.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             DiagnosticSummaryRow("Σύνδεση", diagnostics.networkStatus)
             DiagnosticSummaryRow("Συγχρονισμός", humanReadableSyncStatus(diagnostics.apiStatus))
             DiagnosticSummaryRow("Συνεδρία", humanReadableSessionStatus(diagnostics.sessionStatus))
@@ -56,15 +46,12 @@ internal fun ProductionDiagnosticsCard(
             diagnosticCodeDescription(diagnostics.lastDiagnosticCode)?.let { description ->
                 DiagnosticSummaryRow("Τελευταίο συμβάν", description)
             }
-            MyFinHubOutlinedAction(
-                label = if (supportDetailsExpanded) {
-                    "Απόκρυψη λεπτομερειών υποστήριξης"
-                } else {
-                    "Λεπτομέρειες για υποστήριξη"
-                },
-                onClick = { supportDetailsExpanded = !supportDetailsExpanded },
-                modifier = Modifier.fillMaxWidth(),
-            )
+            TextButton(onClick = { supportDetailsExpanded = !supportDetailsExpanded }) {
+                Text(
+                    if (supportDetailsExpanded) "Απόκρυψη λεπτομερειών υποστήριξης"
+                    else "Λεπτομέρειες για υποστήριξη",
+                )
+            }
             AnimatedVisibility(
                 visible = supportDetailsExpanded,
                 enter = fadeIn(tween(MyFinHubMotion.StandardDurationMillis)) +

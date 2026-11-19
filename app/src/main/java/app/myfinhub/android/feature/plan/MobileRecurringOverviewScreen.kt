@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
-import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.Normalizer
@@ -199,11 +201,12 @@ internal fun MobileRecurringOverviewContent(
                         modifier = Modifier.testTag("mobile_recurring_summary"),
                     )
                     if (onOpenManagement != null) {
-                        TextButton(
+                        FilledTonalButton(
                             onClick = onOpenManagement,
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            modifier = Modifier.fillMaxWidth()
+                                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                 .testTag("mobile_recurring_manage_open"),
-                        ) { Text("Δημιουργία και διαχείριση παγίων") }
+                        ) { Text("Διαχείριση παγίων") }
                     }
                     Text(
                         "Οι προβλεπόμενες χρεώσεις δεν αποτελούν πραγματοποιημένες πληρωμές.",
@@ -281,7 +284,12 @@ internal fun MobileRecurringOverviewContent(
                 val index = indexed.index
                 val recurring = indexed.value
                 var historyBatches by rememberSaveable(recurring.id, index) { mutableIntStateOf(1) }
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("mobile_recurring_card_$index")) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(vertical = MyFinHubSpacing.xs)
+                        .testTag("mobile_recurring_card_$index"),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                ) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text(
                             recurring.title.ifBlank { "Χωρίς τίτλο" },
@@ -353,6 +361,7 @@ internal fun MobileRecurringOverviewContent(
                             }
                         }
                     }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
         }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -23,8 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
@@ -111,7 +114,6 @@ fun CanonicalScheduledManagementScreen(
     Scaffold(topBar = {
         MyFinHubScreenHeader(
             title = "Προγραμματισμένες κινήσεις",
-            subtitle = "Πληρωμές, παραλείψεις και ιστορικό",
             navigation = { MyFinHubBackButton(onBack) },
         )
     }) { insets ->
@@ -127,9 +129,10 @@ fun CanonicalScheduledManagementScreen(
         ) {
             if(selectableAccounts.isNotEmpty()) {
                 item("create") {
-                    TextButton(
+                    FilledTonalButton(
                         enabled = !mutationBlocked,
-                        modifier = Modifier.fillMaxWidth().heightIn(min=48.dp)
+                        modifier = Modifier.fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                             .testTag("scheduled_create_open"),
                         onClick = {
                             createKind = "expense"
@@ -191,37 +194,64 @@ fun CanonicalScheduledManagementScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            Row(modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                                TextButton(
+                            var moreActionsOpen by rememberSaveable(item.id, index) { mutableStateOf(false) }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                FilledTonalButton(
                                     enabled = !mutationBlocked && actionable,
                                     onClick = {
                                         selected = item
                                         action = "complete"
                                         dateText = LocalDate.now().toString()
                                         amountText = item.amount.toString()
-                                        val available=selectableAccounts.map { it.id }
-                                        // Existing valid source is a trusted suggestion;
-                                        // orphaned rows require a new explicit payer choice.
-                                        actualAccountId=item.accountId?.takeIf { it in available }.orEmpty()
-                                        actualFromAccountId=item.fromAccountId?.takeIf { it in available }.orEmpty()
-                                        actualToAccountId=item.toAccountId?.takeIf {
-                                            it in available && it!=actualFromAccountId
+                                        val available = selectableAccounts.map { it.id }
+                                        // Do not silently assume an orphaned or invalid payer.
+                                        actualAccountId = item.accountId?.takeIf { it in available }.orEmpty()
+                                        actualFromAccountId = item.fromAccountId?.takeIf { it in available }.orEmpty()
+                                        actualToAccountId = item.toAccountId?.takeIf {
+                                            it in available && it != actualFromAccountId
                                         }.orEmpty()
                                     },
-                                    modifier = Modifier.weight(1f).heightIn(min=48.dp)
+                                    modifier = Modifier.weight(1f)
+                                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                         .testTag("scheduled_complete_" + item.id + rowSuffix),
                                 ) { Text("Καταχώριση") }
-                                TextButton(enabled = !mutationBlocked && actionable,
-                                    onClick = { selected=item;action="skipped" },
-                                    modifier = Modifier.weight(1f).heightIn(min=48.dp)
-                                        .testTag("scheduled_skip_" + item.id + rowSuffix),
-                                ) { Text("Παράλειψη") }
-                                TextButton(enabled = !mutationBlocked && actionable,
-                                    onClick = { selected=item;action="cancelled" },
-                                    modifier = Modifier.weight(1f).heightIn(min=48.dp)
-                                        .testTag("scheduled_cancel_" + item.id + rowSuffix),
-                                ) { Text("Ακύρωση") }
+                                Box {
+                                    TextButton(
+                                        onClick = { moreActionsOpen = true },
+                                        enabled = !mutationBlocked && actionable,
+                                        modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                            .testTag("scheduled_more_" + item.id + rowSuffix),
+                                    ) { Text("Περισσότερα") }
+                                    DropdownMenu(
+                                        expanded = moreActionsOpen,
+                                        onDismissRequest = { moreActionsOpen = false },
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Παράλειψη") },
+                                            enabled = !mutationBlocked && actionable,
+                                            onClick = {
+                                                moreActionsOpen = false
+                                                selected = item
+                                                action = "skipped"
+                                            },
+                                            modifier = Modifier.testTag("scheduled_skip_" + item.id + rowSuffix),
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Ακύρωση προγραμματισμού") },
+                                            enabled = !mutationBlocked && actionable,
+                                            onClick = {
+                                                moreActionsOpen = false
+                                                selected = item
+                                                action = "cancelled"
+                                            },
+                                            modifier = Modifier.testTag("scheduled_cancel_" + item.id + rowSuffix),
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

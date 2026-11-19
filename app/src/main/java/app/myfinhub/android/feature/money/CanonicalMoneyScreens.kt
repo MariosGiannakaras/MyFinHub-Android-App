@@ -4,10 +4,12 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +49,7 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubActionCard
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubDestructiveTextAction
 import app.myfinhub.android.designsystem.MyFinHubHeroCard
 import app.myfinhub.android.designsystem.MyFinHubHeroHeading
@@ -58,6 +62,7 @@ import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
 import app.myfinhub.android.core.network.certifiedBrandAsset
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSectionHeading
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -179,7 +184,8 @@ fun CanonicalMoneyScreen(
                         } else {
                             state.accounts.forEachIndexed { index, account ->
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().clickable { onOpenAccount(account.id) },
+                                    modifier = Modifier.fillMaxWidth().clickable { onOpenAccount(account.id) }
+                                        .padding(vertical = MyFinHubSpacing.xs),
                                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
@@ -292,7 +298,9 @@ fun CanonicalMoneyScreen(
                         icon = MyFinHubIcons.Card,
                         tone = FinanceTone.Transfer,
                     )
-                    FilledTonalButton(onClick = onAddCard) { Text("Νέα κάρτα") }
+                    if (state.cards.isNotEmpty()) {
+                        FilledTonalButton(onClick = onAddCard) { Text("Νέα κάρτα") }
+                    }
                 }
             }
             state.frontendMessage?.takeIf { it.isNotBlank() }?.let { message ->
@@ -709,45 +717,59 @@ fun CanonicalSavingsScreen(
             }
                 // Web history may contain duplicate legacy IDs. Compose identity is
                 // presentation-only: never expose any row as an unsafe mutation target.
+                // Savings history is read-only: flat rows avoid a card for every event.
                 itemsIndexed(state.savingsHistory, key = { index, row ->
                     "savings-history-$index-${row.origin}-${row.id}"
                 }) { index, row ->
-                    MyFinHubSectionCard(
-                        modifier = Modifier.fillMaxWidth()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = MyFinHubSpacing.xs)
                             .testTag("savings_history_row_$index"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(row.primary, style = MaterialTheme.typography.titleSmall)
-                                    Text(
-                                        row.date + " · " +
-                                            if (row.hasUserNote) "Τύπος: ${row.sourceLabel}"
-                                            else "Χωρίς ξεχωριστό σχόλιο",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                MyFinHubAmountText(
-                                    amountVisibilityText(formatCanonicalEuro(row.amount), amountsVisible),
-                                    FinanceTone.Savings,
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(row.primary, style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    row.date + if (row.hasUserNote) " · Τύπος: ${row.sourceLabel}" else "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                            MyFinHubAmountText(
+                                amountVisibilityText(formatCanonicalEuro(row.amount), amountsVisible),
+                                FinanceTone.Savings,
+                            )
                         }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
             }
             if (onSaveGoal != null) {
                 item("savings-goal-add") {
-                    TextButton(
-                        enabled = !mutationBlocked,
-                        onClick = { editGoal(null) },
-                        modifier = Modifier.testTag("savings_goal_new"),
-                    ) { Text("Νέος στόχος αποταμίευσης") }
+                    val firstGoal = state.savingsGoalItems.isEmpty() && state.savingsGoal == null
+                    if (firstGoal) {
+                        FilledTonalButton(
+                            enabled = !mutationBlocked,
+                            onClick = { editGoal(null) },
+                            modifier = Modifier
+                                .heightIn(min = 48.dp)
+                                .testTag("savings_goal_new"),
+                        ) { Text("Ορισμός στόχου αποταμίευσης") }
+                    } else {
+                        TextButton(
+                            enabled = !mutationBlocked,
+                            onClick = { editGoal(null) },
+                            modifier = Modifier
+                                .heightIn(min = 48.dp)
+                                .testTag("savings_goal_new"),
+                        ) { Text("Νέος στόχος αποταμίευσης") }
+                    }
                 }
             }
             if (state.savingsGoalItems.isNotEmpty()) {
@@ -826,7 +848,14 @@ fun CanonicalSavingsScreen(
                                     enabled = !mutationBlocked && uniqueGoal,
                                     onClick = { if (uniqueGoal) confirmDeleteId = goal.id },
                                     modifier = Modifier.testTag("savings_goal_delete_" + goal.id),
-                                ) { Text("Διαγραφή στόχου") }
+                                ) {
+                                    Text(
+                                        "Διαγραφή στόχου",
+                                        color = if (!mutationBlocked && uniqueGoal)
+                                            MaterialTheme.colorScheme.error
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                    )
+                                }
                             }
                         }
                     }
@@ -834,19 +863,19 @@ fun CanonicalSavingsScreen(
             }
             if (state.savingsGoalItems.isEmpty() && state.savingsGoal == null) {
                 item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                if (onSaveGoal != null) "Δεν έχεις ορίσει στόχο αποταμίευσης" else "Ο στόχος δεν είναι διαθέσιμος ακόμη",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                if (onSaveGoal != null) "Δημιούργησε στόχο από την ενέργεια παραπάνω. Οι αποταμιεύσεις σου δεν μεταφέρονται αυτόματα." else "Μπορείς να βλέπεις το αποταμιευμένο ποσό σου. Η επεξεργασία στόχου θα εμφανιστεί όταν υποστηρίζεται από τον λογαριασμό σου.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text(
+                            if (onSaveGoal != null) "Δεν έχεις ορίσει στόχο αποταμίευσης"
+                            else "Ο στόχος δεν είναι διαθέσιμος ακόμη",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            if (onSaveGoal != null) "Ο στόχος δεν μεταφέρει χρήματα αυτόματα."
+                            else "Το αποταμιευμένο ποσό παραμένει διαθέσιμο για προβολή.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
@@ -1260,38 +1289,42 @@ fun CanonicalLoansScreen(
                 }
             } else {
                 item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
-                        .testTag("loan_sort_controls")) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text("Ταξινόμηση", style = MaterialTheme.typography.titleSmall)
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                listOf("remaining" to "Δόσεις", "amount" to "Ποσό")
-                                    .forEach { (key, label) ->
-                                        androidx.compose.material3.FilterChip(
-                                            selected = sortKey == key,
-                                            onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
-                                            label = { Text(label) },
-                                        )
-                                    }
+                    Column(
+                        modifier = Modifier.fillMaxWidth().testTag("loan_sort_controls"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        Text("Ταξινόμηση", style = MaterialTheme.typography.titleSmall)
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                        ) {
+                            listOf(
+                                "remaining" to "Δόσεις",
+                                "amount" to "Ποσό",
+                                "name" to "Όνομα",
+                                "next" to "Ημέρα",
+                            ).forEach { (key, label) ->
+                                androidx.compose.material3.FilterChip(
+                                    selected = sortKey == key,
+                                    onClick = {
+                                        sortKey = key
+                                        activeLimit = 20
+                                        completedLimit = 20
+                                    },
+                                    label = { Text(label) },
+                                    modifier = Modifier.heightIn(
+                                        min = MyFinHubDesignMetrics.minimumTouchTarget,
+                                    ),
+                                )
                             }
-                            Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                                listOf("name" to "Όνομα", "next" to "Ημέρα")
-                                    .forEach { (key, label) ->
-                                        androidx.compose.material3.FilterChip(
-                                            selected = sortKey == key,
-                                            onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
-                                            label = { Text(label) },
-                                        )
-                                    }
-                            }
-                            TextButton(
-                                onClick = { ascending = !ascending },
-                                modifier = Modifier.testTag("loan_sort_direction"),
-                            ) { Text(if (ascending) "Αύξουσα ↑" else "Φθίνουσα ↓") }
                         }
+                        TextButton(
+                            onClick = { ascending = !ascending },
+                            modifier = Modifier
+                                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                .testTag("loan_sort_direction"),
+                        ) { Text(if (ascending) "Αύξουσα ↑" else "Φθίνουσα ↓") }
                     }
                 }
                 item {
@@ -1476,27 +1509,22 @@ fun CanonicalLendingScreen(
                 }
             } else {
                 item {
-                    MyFinHubSectionCard(
-                        modifier = Modifier.fillMaxWidth().testTag("lending_person_selector")
+                    Column(
+                        modifier = Modifier.fillMaxWidth().testTag("lending_person_selector"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text("Πρόσωπα", style = MaterialTheme.typography.titleMedium)
-                            OutlinedTextField(
-                                value = query,
-                                onValueChange = { query = it; peopleLimit = 24 },
-                                label = { Text("Αναζήτηση προσώπου") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("lending_person_search"),
-                            )
+                        Text("Πρόσωπα", style = MaterialTheme.typography.titleMedium)
+                        MyFinHubSearchField(
+                            value = query,
+                            onValueChange = { query = it; peopleLimit = 24 },
+                            placeholder = "Αναζήτηση προσώπου",
+                            modifier = Modifier.testTag("lending_person_search"),
+                        )
+                        if (focusPerson != null) {
                             TextButton(
                                 onClick = { selectedPerson = null; historyLimit = 30 },
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("lending_all_people"),
-                            ) {
-                                Text(if (focusPerson == null) "✓ Όλα τα πρόσωπα"
-                                else "Προβολή όλων των προσώπων")
-                            }
+                                modifier = Modifier.testTag("lending_all_people"),
+                            ) { Text("Προβολή όλων των προσώπων") }
                         }
                     }
                 }
@@ -1508,21 +1536,25 @@ fun CanonicalLendingScreen(
                     val balance = matches.singleOrNull()?.amount
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                MyFinHubIconBadge(MyFinHubIcons.Income, FinanceTone.Income, null)
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(person, style = MaterialTheme.typography.titleMedium)
-                                    Text(
-                                        if (balance == null) "Ιστορικό χωρίς ενεργή απαίτηση"
-                                        else "Ενεργή απαίτηση",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                            val personIdentity: @Composable (Modifier) -> Unit = { modifier ->
+                                Row(
+                                    modifier = modifier,
+                                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    MyFinHubIconBadge(MyFinHubIcons.Income, FinanceTone.Income, null)
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(person, style = MaterialTheme.typography.titleMedium)
+                                        Text(
+                                            if (balance == null) "Ιστορικό χωρίς ενεργή απαίτηση"
+                                            else "Ενεργή απαίτηση",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                 }
+                            }
+                            val personAmount: @Composable () -> Unit = {
                                 if (balance != null) {
                                     MyFinHubAmountText(
                                         amountVisibilityText(formatCanonicalEuro(balance), amountsVisible),
@@ -1530,11 +1562,42 @@ fun CanonicalLendingScreen(
                                     )
                                 }
                             }
-                            TextButton(
-                                onClick = { selectedPerson = person; historyLimit = 30 },
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("lending_select_person"),
-                            ) { Text(if (person == focusPerson) "✓ Επιλεγμένο πρόσωπο" else "Προβολή κινήσεων") }
+                            if (LocalDensity.current.fontScale >= 1.3f) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                ) {
+                                    personIdentity(Modifier.fillMaxWidth())
+                                    if (balance != null) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.End,
+                                        ) { personAmount() }
+                                    }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    personIdentity(Modifier.weight(1f))
+                                    personAmount()
+                                }
+                            }
+                            if (person != focusPerson) {
+                                TextButton(
+                                    onClick = { selectedPerson = person; historyLimit = 30 },
+                                    modifier = Modifier.testTag("lending_select_person"),
+                                ) { Text("Προβολή κινήσεων") }
+                            } else {
+                                Text(
+                                    "Επιλεγμένο πρόσωπο",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.testTag("lending_select_person"),
+                                )
+                            }
                             if (person == focusPerson) {
                                 state.confirmedLendingPlans.filter { it.person == person }
                                     .forEach { confirmedPlan ->
@@ -1607,37 +1670,28 @@ fun CanonicalLendingScreen(
                     )
                 }
                 item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
-                        .testTag("lending_history_filters")) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().testTag("lending_history_filters"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                        ) {
+                            listOf(
+                                "all" to "Όλες",
+                                "lent" to "Έδωσα",
+                                "repaid" to "Επιστροφές",
+                                "forgiven" to "Διαγραφές",
+                            ).forEach { (value, label) ->
                                 androidx.compose.material3.FilterChip(
-                                    selected = actionFilter == "all",
-                                    onClick = { actionFilter = "all"; historyLimit = 30 },
-                                    label = { Text("Όλες") },
-                                )
-                                androidx.compose.material3.FilterChip(
-                                    selected = actionFilter == "lent",
-                                    onClick = { actionFilter = "lent"; historyLimit = 30 },
-                                    label = { Text("Έδωσα") },
-                                )
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            ) {
-                                androidx.compose.material3.FilterChip(
-                                    selected = actionFilter == "repaid",
-                                    onClick = { actionFilter = "repaid"; historyLimit = 30 },
-                                    label = { Text("Επιστροφές") },
-                                )
-                                androidx.compose.material3.FilterChip(
-                                    selected = actionFilter == "forgiven",
-                                    onClick = { actionFilter = "forgiven"; historyLimit = 30 },
-                                    label = { Text("Διαγραφές") },
+                                    selected = actionFilter == value,
+                                    onClick = { actionFilter = value; historyLimit = 30 },
+                                    label = { Text(label) },
+                                    modifier = Modifier.heightIn(
+                                        min = MyFinHubDesignMetrics.minimumTouchTarget,
+                                    ),
                                 )
                             }
                         }
@@ -1645,9 +1699,10 @@ fun CanonicalLendingScreen(
                 }
                 if (visibleHistory.isEmpty()) {
                     item {
-                        MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                            Text("Δεν υπάρχουν κινήσεις με αυτά τα φίλτρα.")
-                        }
+                        Text(
+                            "Δεν υπάρχουν κινήσεις με αυτά τα φίλτρα.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
                 // Imported event IDs may repeat. The index is only a stable render
@@ -1667,35 +1722,70 @@ fun CanonicalLendingScreen(
                     val accountLabel = history.accountId?.let { accountId ->
                         state.accounts.singleOrNull { it.id == accountId }?.name
                     }
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                "${history.personLabel} · ${history.date}",
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                            Text(typeLabel, style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            if (history.note.isNotBlank()) {
-                                Text(history.note, style = MaterialTheme.typography.bodySmall)
-                            }
-                            MyFinHubAmountText(
-                                text = amountVisibilityText(formatCanonicalEuro(history.amount), amountsVisible),
-                                tone = tone,
-                            )
-                            Text(
-                                "Ιστορικό υπόλοιπο κινήσεων: " +
-                                    amountVisibilityText(formatCanonicalEuro(history.runningOutstanding), amountsVisible),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (accountLabel != null || history.origin == "legacy") {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = MyFinHubSpacing.xs),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        val historyIdentity: @Composable (Modifier) -> Unit = { modifier ->
+                            Column(modifier = modifier) {
                                 Text(
-                                    accountLabel ?: "Ιστορικό χωρίς λογαριασμό",
-                                    style = MaterialTheme.typography.bodySmall,
+                                    "${history.personLabel} · ${history.date}",
+                                    style = MaterialTheme.typography.titleSmall,
+                                )
+                                Text(
+                                    typeLabel,
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
+                        val historyAmount: @Composable () -> Unit = {
+                            MyFinHubAmountText(
+                                text = amountVisibilityText(
+                                    formatCanonicalEuro(history.amount),
+                                    amountsVisible,
+                                ),
+                                tone = tone,
+                            )
+                        }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                historyIdentity(Modifier.fillMaxWidth())
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End,
+                                ) { historyAmount() }
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                historyIdentity(Modifier.weight(1f))
+                                historyAmount()
+                            }
+                        }
+                        if (history.note.isNotBlank()) {
+                            Text(history.note, style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text(
+                            "Ιστορικό υπόλοιπο κινήσεων: " +
+                                amountVisibilityText(formatCanonicalEuro(history.runningOutstanding), amountsVisible),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (accountLabel != null || history.origin == "legacy") {
+                            Text(
+                                accountLabel ?: "Ιστορικό χωρίς λογαριασμό",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
                 if (visibleHistory.size > historyLimit) {

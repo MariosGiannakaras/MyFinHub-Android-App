@@ -49,6 +49,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -190,9 +191,7 @@ fun ActivityLedgerScreen(
                 title = state.categoryFilter ?: "Κινήσεις",
                 subtitle = if (analyticsScope) {
                     "${formatActivityDate(state.dateFrom)} – ${formatActivityDate(state.dateTo)}"
-                } else {
-                    "Ιστορικό κινήσεων"
-                },
+                } else null,
                 navigation = onBack?.let { back -> { MyFinHubBackButton(back) } },
             )
         },
@@ -261,7 +260,10 @@ fun ActivityLedgerScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        OutlinedButton(onClick = { filterSheetOpen = true }) {
+                        OutlinedButton(
+                            onClick = { filterSheetOpen = true },
+                            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                        ) {
                             Text(
                                 if (state.activeFilterCount == 0) "Φίλτρα"
                                 else "Φίλτρα (${state.activeFilterCount})",
@@ -270,7 +272,9 @@ fun ActivityLedgerScreen(
                         if (state.hasActiveListScope && (state.visibleItems.isNotEmpty() || state.showingOverviewMonth)) {
                             TextButton(
                                 onClick = { onAction(ActivityAction.ClearFilters) },
-                                modifier = Modifier.testTag("activity_clear_all"),
+                                modifier = Modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("activity_clear_all"),
                             ) {
                                 Text("Καθαρισμός")
                             }
@@ -288,21 +292,41 @@ fun ActivityLedgerScreen(
                         }.getOrDefault(raw)
                     }.orEmpty()
                     item(key = "month-source-indicator") {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().testTag("activity_month_source_indicator"),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
+                        val monthLabel: @Composable (Modifier) -> Unit = { modifier ->
                             Text(
                                 "Προβολή μήνα · $monthText",
-                                modifier = Modifier.weight(1f),
+                                modifier = modifier,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                        }
+                        val showHistory: @Composable (Modifier) -> Unit = { modifier ->
                             TextButton(
                                 onClick = { onAction(ActivityAction.ClearSearchAndFilters) },
-                                modifier = Modifier.testTag("activity_show_all_history"),
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("activity_show_all_history"),
                             ) { Text("Όλο το ιστορικό") }
+                        }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("activity_month_source_indicator"),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                monthLabel(Modifier.fillMaxWidth())
+                                showHistory(Modifier.fillMaxWidth())
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("activity_month_source_indicator"),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                monthLabel(Modifier.weight(1f))
+                                showHistory(Modifier)
+                            }
                         }
                     }
                 }
@@ -312,7 +336,9 @@ fun ActivityLedgerScreen(
                     item(key = "month-summary-toggle") {
                         TextButton(
                             onClick = { monthOverviewExpanded = !monthOverviewExpanded },
-                            modifier = Modifier.testTag("activity_month_summary_toggle"),
+                            modifier = Modifier
+                                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                .testTag("activity_month_summary_toggle"),
                         ) {
                             Text(if (monthOverviewExpanded) "Απόκρυψη σύνοψης μήνα" else "Σύνοψη μήνα")
                         }
@@ -350,11 +376,7 @@ fun ActivityLedgerScreen(
                 // sorting and total/filtered counts for large real-bank ledgers.
                 if (state.scopeSourceItems.size > 20) {
                     item(key = "history-order-and-count") {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
+                        val countLabel: @Composable () -> Unit = {
                             if (!state.hasActiveListScope) {
                                 Text(
                                     "Εμφανίζονται ${state.visibleItems.size} από ${state.scopeSourceItems.size} κινήσεις",
@@ -362,11 +384,33 @@ fun ActivityLedgerScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                        }
+                        val sortAction: @Composable (Modifier) -> Unit = { modifier ->
                             TextButton(
                                 onClick = { onAction(ActivityAction.ToggleSortDirection) },
-                                modifier = Modifier.testTag("activity_sort_toggle"),
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("activity_sort_toggle"),
                             ) {
                                 Text(if (state.sortOldestFirst) "Παλαιότερες πρώτα" else "Νεότερες πρώτα")
+                            }
+                        }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                countLabel()
+                                sortAction(Modifier.fillMaxWidth())
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                countLabel()
+                                sortAction(Modifier)
                             }
                         }
                     }
@@ -577,6 +621,7 @@ private fun ActivityMonthlyOverviewSurface(
         }
         return "$arrow ${kotlin.math.abs(change)}% από προηγ. μήνα"
     }
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     val countChange = overview.transactionCount - overview.previousTransactionCount
     val countComparison = when {
         countChange == 0 -> "Κινήσεις: ίδιο πλήθος με τον προηγούμενο μήνα"
@@ -594,41 +639,83 @@ private fun ActivityMonthlyOverviewSurface(
             modifier = Modifier.padding(MyFinHubSpacing.md),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Σύνοψη μήνα · $monthLabel", style = MaterialTheme.typography.titleMedium)
-                Row {
+            val monthNavigation: @Composable () -> Unit = {
+                Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                     TextButton(
                         onClick = { onNavigateMonth(-1) },
-                        modifier = Modifier.testTag("activity_previous_month")
+                        modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .testTag("activity_previous_month")
                             .semantics { contentDescription = "Προηγούμενος μήνας" },
-                    ) { Text("‹") }
+                    ) { Text(if (largeFont) "Προηγούμενος" else "‹") }
                     TextButton(
                         onClick = { onNavigateMonth(1) },
-                        modifier = Modifier.testTag("activity_next_month")
+                        modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .testTag("activity_next_month")
                             .semantics { contentDescription = "Επόμενος μήνας" },
-                    ) { Text("›") }
+                    ) { Text(if (largeFont) "Επόμενος" else "›") }
                 }
             }
-            // A compact three-part summary keeps the numbers scannable on S24.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-            ) {
-                listOf(
-                    "Έσοδα" to formatActivityTotalEuro(overview.income),
-                    "Έξοδα" to formatActivityTotalEuro(overview.expense),
-                    "Καθαρό" to formatSignedEuro(overview.net),
-                ).forEach { (label, amount) ->
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(label, style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(amountVisibilityText(amount, amountsVisible),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold)
+            if (largeFont) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                    Text("Σύνοψη μήνα · $monthLabel", style = MaterialTheme.typography.titleMedium)
+                    monthNavigation()
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Σύνοψη μήνα · $monthLabel", style = MaterialTheme.typography.titleMedium)
+                    monthNavigation()
+                }
+            }
+            // Three columns at normal font; full-width value rows at enlarged font.
+            val summaryMetrics = listOf(
+                "Έσοδα" to formatActivityTotalEuro(overview.income),
+                "Έξοδα" to formatActivityTotalEuro(overview.expense),
+                "Καθαρό" to formatSignedEuro(overview.net),
+            )
+            if (largeFont) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    summaryMetrics.forEach { (label, amount) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                amountVisibilityText(amount, amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                ) {
+                    summaryMetrics.forEach { (label, amount) ->
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                amountVisibilityText(amount, amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
                     }
                 }
             }
@@ -720,17 +807,32 @@ private fun ActivityScopeSummary(
 
 @Composable
 private fun ActivityScopeLine(label: String, onRemove: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
-        )
-        TextButton(onClick = onRemove) { Text("Αφαίρεση") }
+    val removeAction: @Composable (Modifier) -> Unit = { modifier ->
+        TextButton(
+            onClick = onRemove,
+            modifier = modifier
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                .semantics { contentDescription = "Αφαίρεση φίλτρου: $label" },
+        ) { Text("Αφαίρεση") }
+    }
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+        ) {
+            Text(label, style = MaterialTheme.typography.bodyMedium)
+            removeAction(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        ) {
+            Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            removeAction(Modifier)
+        }
     }
 }
 
@@ -753,7 +855,10 @@ private fun ActivityEmptyState(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (actionLabel != null && onAction != null) {
-            OutlinedButton(onClick = onAction) { Text(actionLabel) }
+            OutlinedButton(
+                onClick = onAction,
+                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            ) { Text(actionLabel) }
         }
     }
 }
@@ -922,7 +1027,10 @@ internal fun ActivityFilterSheetContent(
             optional = true,
         )
         if (dateFrom.isNotBlank()) {
-            TextButton(onClick = { dateFrom = "" }) { Text("Καθαρισμός αρχικής ημερομηνίας") }
+            TextButton(
+                onClick = { dateFrom = "" },
+                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            ) { Text("Καθαρισμός αρχικής ημερομηνίας") }
         }
         DateEntryField(
             value = dateTo,
@@ -937,34 +1045,48 @@ internal fun ActivityFilterSheetContent(
             optional = true,
         )
         if (dateTo.isNotBlank()) {
-            TextButton(onClick = { dateTo = "" }) { Text("Καθαρισμός τελικής ημερομηνίας") }
+            TextButton(
+                onClick = { dateTo = "" },
+                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            ) { Text("Καθαρισμός τελικής ημερομηνίας") }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-        ) {
+        val resetAction: @Composable (Modifier) -> Unit = { modifier ->
             OutlinedButton(
                 onClick = onReset,
-                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-            ) {
-                Text("Επαναφορά")
-            }
+                modifier = modifier.heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+            ) { Text("Επαναφορά") }
+        }
+        val applyAction: @Composable (Modifier) -> Unit = { modifier ->
             Button(
                 onClick = {
                     onApply(
                         typeId.takeIf(String::isNotBlank),
                         accountId.takeIf(String::isNotBlank),
-                        // Preserve exact historical category identity, even if
-                        // its imported label contains only spaces.
+                        // Imported category labels, including whitespace, retain exact identity.
                         category.takeIf(String::isNotEmpty),
                         dateFrom.takeIf(String::isNotBlank),
                         dateTo.takeIf(String::isNotBlank),
                     )
                 },
                 enabled = !dateError,
-                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                modifier = modifier.heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+            ) { Text("Εφαρμογή") }
+        }
+        if (LocalDensity.current.fontScale >= 1.3f) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
             ) {
-                Text("Εφαρμογή")
+                applyAction(Modifier.fillMaxWidth())
+                resetAction(Modifier.fillMaxWidth())
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            ) {
+                resetAction(Modifier.weight(1f))
+                applyAction(Modifier.weight(1f))
             }
         }
     }
@@ -984,6 +1106,7 @@ fun ActivityReadDetailScreen(
     onChooseCounterparty: ((String?) -> Unit)? = null,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     var counterpartyMenuOpen by remember { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var deleteRequested by rememberSaveable { mutableStateOf(false) }
@@ -1070,7 +1193,9 @@ fun ActivityReadDetailScreen(
                     }
                 }
                 item { ActivityReadField("Κατηγορία", activityDetailCategoryLabel(item)) }
-                item { ActivityReadField("Υποκατηγορία", item.subcategory ?: "Χωρίς υποκατηγορία") }
+                item.subcategory?.takeIf(String::isNotBlank)?.let { subcategory ->
+                    item { ActivityReadField("Υποκατηγορία", subcategory) }
+                }
                 val counterpartyKind = when (item.canonicalKind) {
                     "expense", "card_purchase", "split", "refund" -> "merchant"
                     "income", "lending", "repayment", "lending_writeoff" -> "beneficiary"
@@ -1091,16 +1216,21 @@ fun ActivityReadDetailScreen(
                             if (onChooseCounterparty != null) {
                                 TextButton(
                                     onClick = { counterpartyMenuOpen = true },
-                                    enabled = !mutationBlocked,
-                                    modifier = Modifier.heightIn(min = 48.dp)
+                                    enabled = !mutationBlocked && !item.pendingSync,
+                                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                         .testTag("activity_choose_counterparty"),
                                 ) { Text("Αλλαγή ταυτότητας") }
                                 DropdownMenu(
                                     expanded = counterpartyMenuOpen && !mutationBlocked && !item.pendingSync,
                                     onDismissRequest = { counterpartyMenuOpen = false },
                                 ) {
+                                    val noSelection = item.counterpartyId.isNullOrBlank()
                                     DropdownMenuItem(
                                         text = { Text("Καμία ταυτότητα") },
+                                        trailingIcon = if (noSelection) {
+                                            { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                                        } else null,
+                                        modifier = Modifier.semantics { this.selected = noSelection },
                                         onClick = {
                                             counterpartyMenuOpen = false
                                             if (!mutationBlocked && !item.pendingSync) {
@@ -1112,8 +1242,13 @@ fun ActivityReadDetailScreen(
                                         .filter { row ->
                                             counterpartyRows.count { it.id == row.id } == 1
                                         }.forEach { candidate ->
+                                            val isCurrentIdentity = selected?.id == candidate.id
                                             DropdownMenuItem(
                                                 text = { Text(candidate.displayName) },
+                                                trailingIcon = if (isCurrentIdentity) {
+                                                    { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                                                } else null,
+                                                modifier = Modifier.semantics { this.selected = isCurrentIdentity },
                                                 onClick = {
                                                     counterpartyMenuOpen = false
                                                     if (!mutationBlocked && !item.pendingSync) {
@@ -1156,13 +1291,9 @@ fun ActivityReadDetailScreen(
                     }
                     items(count = item.splitParts.size, key = { "split-part-$it" }) { index ->
                         val part = item.splitParts[index]
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = MyFinHubSpacing.sm),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
+                        val partDescription: @Composable (Modifier) -> Unit = { modifier ->
                             Column(
-                                modifier = Modifier.weight(1f),
+                                modifier = modifier,
                                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                             ) {
                                 Text(part.displayLabel, style = MaterialTheme.typography.bodyLarge)
@@ -1176,13 +1307,32 @@ fun ActivityReadDetailScreen(
                                     )
                                 }
                             }
+                        }
+                        val partAmount: @Composable () -> Unit = {
                             Text(
-                                amountVisibilityText(
-                                    formatActivityPartEuro(part.amount),
-                                    amountsVisible,
-                                ),
+                                amountVisibilityText(formatActivityPartEuro(part.amount), amountsVisible),
                                 style = MaterialTheme.typography.titleSmall,
                             )
+                        }
+                        if (largeFont) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(vertical = MyFinHubSpacing.sm),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                partDescription(Modifier.fillMaxWidth())
+                                partAmount()
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(vertical = MyFinHubSpacing.sm),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                partDescription(Modifier.weight(1f))
+                                partAmount()
+                            }
                         }
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
@@ -1206,10 +1356,17 @@ fun ActivityReadDetailScreen(
                             ) {
                                 Text("Επεξεργασία")
                             }
-                            ActivityMoreActions(
+                            TextButton(
+                                onClick = { confirmDelete = true },
                                 enabled = !mutationBlocked,
-                                onDelete = { confirmDelete = true },
-                            )
+                                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                            ) {
+                                Text(
+                                    "Διαγραφή κίνησης",
+                                    color = if (!mutationBlocked) MaterialTheme.colorScheme.error
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                )
+                            }
                         }
                         if (item.isInternalTransfer()) {
                             Text(
@@ -1255,30 +1412,6 @@ fun ActivityReadDetailScreen(
                 TextButton(onClick = { confirmDelete = false }) { Text("Ακύρωση") }
             },
         )
-    }
-}
-
-@Composable
-private fun ActivityMoreActions(enabled: Boolean, onDelete: () -> Unit) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    Box(modifier = Modifier.fillMaxWidth()) {
-        OutlinedButton(
-            onClick = { expanded = true },
-            enabled = enabled,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-        ) {
-            Text("Περισσότερα")
-        }
-        DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text("Διαγραφή κίνησης") },
-                enabled = enabled,
-                onClick = {
-                    expanded = false
-                    if (enabled) onDelete()
-                },
-            )
-        }
     }
 }
 
@@ -1743,30 +1876,53 @@ private fun S3ChoiceField(
     onSelected: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val identityCounts = choices.groupingBy { it.first }.eachCount()
     // Never show an unrelated first choice as the owner's selected value.
     // A deleted/renamed historic filter still represents an active selection.
-    val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second
-        ?: placeholder
-        ?: if (selectedId.isNotBlank()) "Η επιλογή δεν είναι πλέον διαθέσιμη"
-            else "Επίλεξε επιλογή"
+    val selectedLabel = when {
+        identityCounts[selectedId]?.let { it > 1 } == true -> "Η επιλογή δεν είναι μοναδική"
+        else -> choices.firstOrNull { it.first == selectedId }?.second
+            ?: placeholder
+            ?: if (selectedId.isNotBlank()) "Η επιλογή δεν είναι πλέον διαθέσιμη"
+                else "Επίλεξε επιλογή"
+    }
     Box(modifier = Modifier.fillMaxWidth()) {
         MyFinHubSelectorButton(
             label = label,
             onClick = { if (enabled && choices.isNotEmpty()) expanded = true },
             enabled = enabled && choices.isNotEmpty(),
         ) {
-            choiceIcon?.invoke(selectedId)?.let { vector ->
+            choiceIcon?.takeIf { identityCounts[selectedId] == 1 }?.invoke(selectedId)?.let { vector ->
                 Icon(vector, contentDescription = null, modifier = Modifier.size(20.dp))
             }
             Text(selectedLabel, modifier = Modifier.weight(1f))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             choices.forEach { (id, text) ->
+                val uniqueIdentity = identityCounts[id] == 1
                 val vector = choiceIcon?.invoke(id)
                 DropdownMenuItem(
-                    text = { Text(text) },
+                    text = {
+                        Column {
+                            Text(text)
+                            if (!uniqueIdentity) {
+                                Text(
+                                    "Μη μοναδική ταυτότητα · μόνο προβολή",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                        }
+                    },
+                    enabled = enabled && uniqueIdentity,
                     leadingIcon = if (vector == null) null else {
                         { Icon(vector, contentDescription = null) }
+                    },
+                    trailingIcon = if (uniqueIdentity && id == selectedId) {
+                        { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                    } else null,
+                    modifier = Modifier.semantics {
+                        selected = uniqueIdentity && id == selectedId
                     },
                     onClick = {
                         expanded = false

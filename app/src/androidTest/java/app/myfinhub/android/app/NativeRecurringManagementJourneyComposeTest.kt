@@ -71,7 +71,8 @@ class NativeRecurringManagementJourneyComposeTest {
         rule.onNodeWithTag("recurring_edit_bill").performScrollTo().performClick()
         rule.onNodeWithTag("recurring_create_name").assertExists()
         rule.onNodeWithText("Ακύρωση").performClick()
-        rule.onNodeWithTag("recurring_toggle_bill").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_more_actions_bill").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_toggle_bill").performClick()
         rule.runOnIdle {
             assertEquals(listOf("bill" to "paused"), statuses)
             assertEquals(0, edits.size)

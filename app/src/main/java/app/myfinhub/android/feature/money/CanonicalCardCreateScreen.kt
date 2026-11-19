@@ -4,17 +4,22 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,14 +34,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.network.FinancialProviderRecord
 import app.myfinhub.android.core.ui.FinancialProvider
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
-import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.util.UUID
 
@@ -156,13 +168,12 @@ fun CanonicalCardCreateScreen(
                 .padding(MyFinHubSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "Το προφίλ της κάρτας συγχρονίζεται με το οικονομικό σου αρχείο. Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα σε αυτή τη συσκευή και εμφανίζονται πλήρως στις κάρτες.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                "Το προφίλ συγχρονίζεται με το MyFinHub. Αριθμός, λήξη και CVV φυλάσσονται " +
+                    "κρυπτογραφημένα στη συσκευή και εμφανίζονται μόνο στα ασφαλή στοιχεία κάρτας.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
 
             OutlinedTextField(
                 value = nickname,
@@ -222,6 +233,7 @@ fun CanonicalCardCreateScreen(
                 modifier = Modifier.fillMaxWidth().testTag("card_create_pan"),
                 label = { Text("Αριθμός κάρτας") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 enabled = submittedId == null,
             )
@@ -247,6 +259,7 @@ fun CanonicalCardCreateScreen(
                 modifier = Modifier.fillMaxWidth().testTag("card_create_cvv"),
                 label = { Text("CVV") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 enabled = submittedId == null,
             )
@@ -407,21 +420,38 @@ private fun CardCreateSelectionField(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    OutlinedButton(
+    Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().testTag(testTag),
         enabled = enabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = MyFinHubDesignMetrics.textFieldMinHeight)
+            .testTag(testTag),
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(
+                horizontal = MyFinHubSpacing.md,
+                vertical = MyFinHubSpacing.xs,
+            ),
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             }
-            Text("Αλλαγή", style = MaterialTheme.typography.labelLarge)
+            Icon(
+                imageVector = MyFinHubIcons.ChevronDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
 }
@@ -436,32 +466,96 @@ private fun CardCreatePickerSheet(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+    val searchable = picker == "provider" && options.size > 8
+    var query by rememberSaveable(picker) { mutableStateOf("") }
+    val filteredOptions = if (searchable && query.isNotBlank()) {
+        val normalized = query.trim()
+        options.filter { option ->
+            option.label.contains(normalized, ignoreCase = true) ||
+                option.value.contains(normalized, ignoreCase = true)
+        }
+    } else options
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(
-                start = MyFinHubSpacing.lg,
-                end = MyFinHubSpacing.lg,
-                bottom = MyFinHubSpacing.xl,
-            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = MyFinHubSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
         ) {
             Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            options.forEach { option ->
-                val selected = option.value == selectedValue
-                Surface(
-                    onClick = { onSelect(option.value) },
-                    modifier = Modifier.fillMaxWidth().testTag("card_create_${picker}_${option.value}"),
-                    shape = MaterialTheme.shapes.small,
-                    color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
-                ) {
-                    Row(
-                        modifier = Modifier.padding(MyFinHubSpacing.md),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+            if (searchable) {
+                MyFinHubSearchField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = "Αναζήτηση τράπεζας ή εκδότη",
+                    modifier = Modifier.testTag("card_create_provider_search"),
+                )
+            }
+            if (filteredOptions.isEmpty()) {
+                Text(
+                    "Δεν βρέθηκε εκδότης.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("card_create_provider_search_empty"),
+                )
+            }
+            // Many certified providers can be returned from the session catalog.
+            // Keep every choice reachable on a small phone or with enlarged fonts.
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 460.dp)
+                    .testTag("card_create_${picker}_choices"),
+                contentPadding = PaddingValues(bottom = MyFinHubSpacing.xl),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
+                items(filteredOptions, key = { it.value }) { option ->
+                    val isSelected = option.value == selectedValue
+                    Surface(
+                        onClick = { onSelect(option.value) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .semantics { selected = isSelected }
+                            .testTag("card_create_${picker}_${option.value}"),
+                        shape = MaterialTheme.shapes.small,
+                        color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
+                            else MaterialTheme.colorScheme.surface,
                     ) {
-                        Text(option.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                        if (selected) {
-                            Text("Επιλεγμένο", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                        if (largeFont) {
+                            Column(
+                                modifier = Modifier.padding(MyFinHubSpacing.md),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                Text(option.label, style = MaterialTheme.typography.bodyLarge)
+                                if (isSelected) {
+                                    Text(
+                                        "Επιλεγμένο",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.padding(MyFinHubSpacing.md),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    option.label,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                if (isSelected) {
+                                    Text(
+                                        "Επιλεγμένο",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
                         }
                     }
                 }

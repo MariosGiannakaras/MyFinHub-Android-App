@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.LocalRecurringServiceAssets
 import app.myfinhub.android.designsystem.MyFinHubCertifiedRecurringServiceMark
@@ -81,7 +83,6 @@ fun CanonicalRecurringManagementScreen(
     Scaffold(topBar = {
         MyFinHubScreenHeader(
             title = "Πάγια & συνδρομές",
-            subtitle = "Ασφαλείς αλλαγές κατάστασης με συγχρονισμό",
             navigation = { MyFinHubBackButton(onBack) },
         )
     }) { insets ->
@@ -96,10 +97,11 @@ fun CanonicalRecurringManagementScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             item("new-recurring") {
-                TextButton(
+                FilledTonalButton(
                     enabled = !mutationBlocked && selectableAccounts.isNotEmpty(),
                     onClick = { creating = true },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    modifier = Modifier.fillMaxWidth()
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                         .testTag("recurring_create_open"),
                 ) { Text("Νέο πάγιο / συνδρομή") }
             }
@@ -288,41 +290,83 @@ fun CanonicalRecurringManagementScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            TextButton(
-                                enabled = !mutationBlocked && uniqueId,
-                                onClick = { editing = item },
-                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                    .testTag("recurring_edit_" + item.id),
-                            ) { Text("Επεξεργασία παγίου") }
-                            // Explicitly opens the editable canonical Quick Entry form.
-                            // No financial event is created until its Save action.
-                            TextButton(
+                        // Keep the everyday payment and edit operations visible.
+                        // Less frequent lifecycle actions belong to one contextual menu.
+                        var moreActionsOpen by rememberSaveable(item.id, index) { mutableStateOf(false) }
+                        val paymentAction: @Composable (Modifier) -> Unit = { modifier ->
+                            FilledTonalButton(
                                 enabled = !mutationBlocked && uniqueId &&
                                     item.status == "active" && paymentAccountAvailable &&
                                     (paymentAccountIds == null || item.accountId in paymentAccountIds),
                                 onClick = { onRecordPayment(item) },
-                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                     .testTag("recurring_record_payment_" + item.id),
                             ) { Text("Καταχώριση πληρωμής") }
+                        }
+                        val editAction: @Composable (Modifier) -> Unit = { modifier ->
                             TextButton(
                                 enabled = !mutationBlocked && uniqueId,
-                                onClick = {
-                                    onStatusChanged(item.id,
-                                        if (item.status == "active") "paused" else "active")
-                                },
-                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                    .testTag("recurring_toggle_" + item.id),
+                                onClick = { editing = item },
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("recurring_edit_" + item.id),
+                            ) { Text("Επεξεργασία") }
+                        }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                             ) {
-                                Text(if (item.status == "active") "Παύση" else "Επανενεργοποίηση")
+                                paymentAction(Modifier.fillMaxWidth())
+                                editAction(Modifier.fillMaxWidth())
                             }
-                            if (item.status != "stopped") {
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                paymentAction(Modifier.weight(1f))
+                                editAction(Modifier.weight(1f))
+                            }
+                        }
+                        if (uniqueId) {
+                            Box {
                                 TextButton(
-                                    enabled = !mutationBlocked && uniqueId,
-                                    onClick = { stopCandidate = item },
-                                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                        .testTag("recurring_stop_" + item.id),
-                                ) { Text("Διακοπή") }
+                                    onClick = { moreActionsOpen = true },
+                                    enabled = !mutationBlocked,
+                                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag("recurring_more_actions_" + item.id),
+                                ) { Text("Περισσότερες ενέργειες") }
+                                DropdownMenu(
+                                    expanded = moreActionsOpen && !mutationBlocked,
+                                    onDismissRequest = { moreActionsOpen = false },
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(if (item.status == "active") "Παύση" else "Επανενεργοποίηση") },
+                                        enabled = !mutationBlocked,
+                                        onClick = {
+                                            moreActionsOpen = false
+                                            onStatusChanged(
+                                                item.id,
+                                                if (item.status == "active") "paused" else "active",
+                                            )
+                                        },
+                                        modifier = Modifier.testTag("recurring_toggle_" + item.id),
+                                    )
+                                    if (item.status != "stopped") {
+                                        DropdownMenuItem(
+                                            text = { Text("Διακοπή παγίου") },
+                                            enabled = !mutationBlocked,
+                                            onClick = {
+                                                moreActionsOpen = false
+                                                stopCandidate = item
+                                            },
+                                            modifier = Modifier.testTag("recurring_stop_" + item.id),
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

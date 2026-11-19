@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +23,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
-import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 
@@ -61,14 +61,15 @@ fun ProductionDiagnosticsScreen(
             }
             item("copy") {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    MyFinHubOutlinedAction(
-                        label = if (copied) "Αντιγράφηκαν ασφαλή στοιχεία" else "Αντιγραφή ασφαλών στοιχείων",
+                    TextButton(
                         onClick = {
                             copyDiagnostics(context, diagnosticsSupportText(diagnostics))
                             copied = true
                         },
-                        modifier = Modifier.fillMaxWidth().testTag("s9_diagnostics_copy"),
-                    )
+                        modifier = Modifier.testTag("s9_diagnostics_copy"),
+                    ) {
+                        Text(if (copied) "Αντιγράφηκαν ασφαλή στοιχεία" else "Αντιγραφή ασφαλών στοιχείων")
+                    }
                     Text(
                         "Το αντίγραφο δεν περιλαμβάνει ποσά, κινήσεις, διαπιστευτήρια ή στοιχεία κάρτας.",
                         style = MaterialTheme.typography.bodySmall,

@@ -34,7 +34,7 @@ class FrontendUtilitiesParityTest {
 
         // Android device/app preferences remain available; Web finance administration does not.
         composeRule.onNodeWithContentDescription("Ρυθμίσεις").performClick()
-        composeRule.onNodeWithText("Εφαρμογή και συσκευή").assertIsDisplayed()
+        composeRule.onNodeWithText("Ρυθμίσεις").assertIsDisplayed()
         composeRule.onNodeWithText("Εμφάνιση").assertIsDisplayed()
         composeRule.onNodeWithText("Ειδοποιήσεις Android").assertIsDisplayed()
         composeRule.onNodeWithText("Σχετικά με την εφαρμογή").assertIsDisplayed()

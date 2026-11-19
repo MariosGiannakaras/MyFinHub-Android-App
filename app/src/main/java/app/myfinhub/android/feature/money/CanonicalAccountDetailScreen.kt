@@ -28,6 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.core.ui.AccountIbanRow
@@ -42,6 +43,7 @@ import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
@@ -210,32 +212,46 @@ fun CanonicalAccountDetailScreen(
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                         Text("Τρέχον υπόλοιπο", style = MaterialTheme.typography.labelLarge)
-                        if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
-                            AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
-                            if (accountMetadataLoaded && amountsVisible &&
-                                onSaveAccountIban != null) {
-                                TextButton(
-                                    enabled = !accountMetadataSaving,
-                                    onClick = { editingIban = true },
-                                ) { Text(if (ibanRecord?.iban == null) "Προσθήκη IBAN" else "Αλλαγή IBAN") }
-                                if (ibanRecord?.iban != null) {
-                                    TextButton(
-                                        enabled = !accountMetadataSaving,
-                                        onClick = { deletingIban = true },
-                                    ) { Text("Αφαίρεση IBAN") }
-                                }
-                            }
-                        }
                         MyFinHubAmountText(
                             text = if (amountsVisible) formatAccountEuro(account.balance) else "•••• €",
                             tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        Text(
-                            "Οι κινήσεις παρακάτω είναι φιλτραρισμένες σε αυτόν τον λογαριασμό.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
+                            AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                            if (accountMetadataLoaded && amountsVisible && onSaveAccountIban != null) {
+                                val editIbanAction: @Composable () -> Unit = {
+                                    TextButton(
+                                        enabled = !accountMetadataSaving,
+                                        onClick = { editingIban = true },
+                                        modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                                    ) { Text(if (ibanRecord?.iban == null) "Προσθήκη IBAN" else "Αλλαγή IBAN") }
+                                }
+                                val removeIbanAction: @Composable () -> Unit = {
+                                    if (ibanRecord?.iban != null) {
+                                        TextButton(
+                                            enabled = !accountMetadataSaving,
+                                            onClick = { deletingIban = true },
+                                            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                                        ) { Text("Αφαίρεση IBAN") }
+                                    }
+                                }
+                                if (LocalDensity.current.fontScale >= 1.3f) {
+                                    Column {
+                                        editIbanAction()
+                                        removeIbanAction()
+                                    }
+                                } else {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                    ) {
+                                        editIbanAction()
+                                        removeIbanAction()
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -252,12 +268,11 @@ fun CanonicalAccountDetailScreen(
             if (historyControlsVisible) {
                 item(key = "account-history-controls") {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                        OutlinedTextField(
+                        MyFinHubSearchField(
                             value = historyQuery,
                             onValueChange = { historyQuery = it },
-                            label = { Text("Αναζήτηση κινήσεων λογαριασμού") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth().testTag("account_history_search"),
+                            placeholder = "Αναζήτηση κινήσεων λογαριασμού",
+                            modifier = Modifier.testTag("account_history_search"),
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
@@ -303,13 +318,13 @@ fun CanonicalAccountDetailScreen(
 
             if (visibleHistory.isEmpty()) {
                 item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            if (activityItems.isEmpty()) "Δεν υπάρχουν κινήσεις για αυτόν τον λογαριασμό."
-                            else "Δεν βρέθηκαν κινήσεις με τα επιλεγμένα φίλτρα.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    Text(
+                        if (activityItems.isEmpty()) "Δεν υπάρχουν κινήσεις για αυτόν τον λογαριασμό."
+                        else "Δεν βρέθηκαν κινήσεις με τα επιλεγμένα φίλτρα.",
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(vertical = MyFinHubSpacing.lg),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             } else {
                 val sections = sourceHistoryRows.groupBy { it.value.rawDate.take(10) }.toList()

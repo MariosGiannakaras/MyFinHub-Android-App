@@ -11,14 +11,14 @@ import org.junit.Test
 
 class DesignSystemContractTest {
     @Test
-    fun foundationGeometry_matchesDocumentedS2Contract() {
+    fun foundationGeometry_matchesRefinedMobileDensityContract() {
         assertEquals(48.dp, MyFinHubDesignMetrics.minimumTouchTarget)
-        assertEquals(20.dp, MyFinHubDesignMetrics.screenHorizontalPadding)
-        assertEquals(24.dp, MyFinHubDesignMetrics.sectionGap)
+        assertEquals(16.dp, MyFinHubDesignMetrics.screenHorizontalPadding)
+        assertEquals(20.dp, MyFinHubDesignMetrics.sectionGap)
         assertEquals(12.dp, MyFinHubDesignMetrics.groupGap)
         assertEquals(4.dp, MyFinHubDesignMetrics.labelValueGap)
         assertEquals(12.dp, MyFinHubDesignMetrics.iconTextGap)
-        assertEquals(64.dp, MyFinHubDesignMetrics.rowMinHeight)
+        assertEquals(56.dp, MyFinHubDesignMetrics.rowMinHeight)
         assertEquals(52.dp, MyFinHubDesignMetrics.primaryActionMinHeight)
         assertEquals(56.dp, MyFinHubDesignMetrics.textFieldMinHeight)
         assertEquals(24.dp, MyFinHubDesignMetrics.standardIconSize)

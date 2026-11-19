@@ -23,6 +23,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -103,7 +104,7 @@ fun MyFinHubScreenHeader(
                 subtitle?.let {
                     Text(
                         text = it,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -246,6 +247,20 @@ fun MyFinHubSearchField(
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
+        trailingIcon = if (value.isNotEmpty()) {
+            {
+                IconButton(
+                    onClick = { onValueChange("") },
+                    modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget),
+                ) {
+                    Icon(
+                        imageVector = MyFinHubIcons.Clear,
+                        contentDescription = "Καθαρισμός αναζήτησης",
+                        modifier = Modifier.size(MyFinHubDesignMetrics.compactIconSize),
+                    )
+                }
+            }
+        } else null,
         singleLine = true,
         shape = MaterialTheme.shapes.extraSmall,
         textStyle = MaterialTheme.typography.bodyMedium,
@@ -452,12 +467,12 @@ fun MyFinHubOutlinedAction(
         onClick = onClick,
         modifier = modifier
             .myFinHubPressScale(interactionSource)
-            .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
         enabled = enabled,
         interactionSource = interactionSource,
         contentPadding = PaddingValues(
-            horizontal = MyFinHubDesignMetrics.primaryActionHorizontalPadding,
-            vertical = MyFinHubDesignMetrics.primaryActionVerticalPadding,
+            horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+            vertical = MyFinHubDesignMetrics.rowVerticalPadding,
         ),
     ) {
         icon?.let {
