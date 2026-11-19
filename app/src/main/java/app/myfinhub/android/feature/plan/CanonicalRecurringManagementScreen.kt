@@ -351,7 +351,6 @@ fun CanonicalRecurringManagementScreen(
                                 }
                             }
                         }
-                        }
                     }
                 }
             }

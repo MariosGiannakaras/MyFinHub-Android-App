@@ -60,3 +60,7 @@ The separate source-only workstream is recorded under `ui_ux_refinement_2026_11_
 - Account detail: present current balance before IBAN metadata/actions, preserve visibility and server-backed edit/delete conditions and existing histories. Remove repeated scoping explanation.
 - Attention detail: keep primary navigation and the reversible hide action, but reduce redundant warning copy and make hide secondary.
 - Changes are source-only, committed without builds, tests, lint, static analysis or device verification as required. Existing finance/domain semantics and physical-acceptance status are untouched.
+
+### Scope correction for checkpoint 4
+
+Corrected the closing scopes of the two newly introduced action sections. This is a source-only correction, not compiler or runtime evidence. The last checkpoint commit identifier was reconciled in canonical tracking.
