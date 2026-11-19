@@ -62,6 +62,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -759,7 +760,11 @@ private fun AdvancedKindSheet(
                         } else {
                             null
                         },
-                        modifier = Modifier.clickable { onSelected(kind) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .clickable { onSelected(kind) }
+                            .semantics { selected = kind == selectedKind },
                     )
                     HorizontalDivider()
                 }

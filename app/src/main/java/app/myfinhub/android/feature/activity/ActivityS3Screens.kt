@@ -49,6 +49,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -976,7 +977,10 @@ internal fun ActivityFilterSheetContent(
             optional = true,
         )
         if (dateFrom.isNotBlank()) {
-            TextButton(onClick = { dateFrom = "" }) { Text("Καθαρισμός αρχικής ημερομηνίας") }
+            TextButton(
+                onClick = { dateFrom = "" },
+                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            ) { Text("Καθαρισμός αρχικής ημερομηνίας") }
         }
         DateEntryField(
             value = dateTo,
@@ -991,34 +995,48 @@ internal fun ActivityFilterSheetContent(
             optional = true,
         )
         if (dateTo.isNotBlank()) {
-            TextButton(onClick = { dateTo = "" }) { Text("Καθαρισμός τελικής ημερομηνίας") }
+            TextButton(
+                onClick = { dateTo = "" },
+                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            ) { Text("Καθαρισμός τελικής ημερομηνίας") }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-        ) {
+        val resetAction: @Composable (Modifier) -> Unit = { modifier ->
             OutlinedButton(
                 onClick = onReset,
-                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-            ) {
-                Text("Επαναφορά")
-            }
+                modifier = modifier.heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+            ) { Text("Επαναφορά") }
+        }
+        val applyAction: @Composable (Modifier) -> Unit = { modifier ->
             Button(
                 onClick = {
                     onApply(
                         typeId.takeIf(String::isNotBlank),
                         accountId.takeIf(String::isNotBlank),
-                        // Preserve exact historical category identity, even if
-                        // its imported label contains only spaces.
+                        // Imported category labels, including whitespace, retain exact identity.
                         category.takeIf(String::isNotEmpty),
                         dateFrom.takeIf(String::isNotBlank),
                         dateTo.takeIf(String::isNotBlank),
                     )
                 },
                 enabled = !dateError,
-                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                modifier = modifier.heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+            ) { Text("Εφαρμογή") }
+        }
+        if (LocalDensity.current.fontScale >= 1.3f) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
             ) {
-                Text("Εφαρμογή")
+                applyAction(Modifier.fillMaxWidth())
+                resetAction(Modifier.fillMaxWidth())
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            ) {
+                resetAction(Modifier.weight(1f))
+                applyAction(Modifier.weight(1f))
             }
         }
     }
@@ -1807,6 +1825,10 @@ private fun S3ChoiceField(
                     leadingIcon = if (vector == null) null else {
                         { Icon(vector, contentDescription = null) }
                     },
+                    trailingIcon = if (id == selectedId) {
+                        { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                    } else null,
+                    modifier = Modifier.semantics { selected = id == selectedId },
                     onClick = {
                         expanded = false
                         onSelected(id)

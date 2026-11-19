@@ -183,3 +183,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - In card-detail statement history, stack All/Payable filter chips at 130%+ font without changing the selected filter, batch limit or expanded statement ID.
 - At enlarged fonts, give linked statement identities and monetary amounts separate full-width rows, retaining the exact original amount privacy, canonical linked IDs, non-clickable unsafe-row behavior and navigation tags.
 - All work remains source-only. No build, tests, lint, static analysis, visual comparison or device acceptance were executed.
+
+## Checkpoint 22 — accessible Activity filter and Quick Entry choices
+
+- Activity filter sheet: retain exact filter payloads, inclusive dates, historical category text and Apply/Reset callbacks, but stack its Apply and Reset actions when the Android font scale reaches 130% to avoid two cramped Greek labels. Leave the standard layout unchanged.
+- Give both date-field clear actions a minimum 48dp touch target. For type/account/category dropdowns, identify the selected choice visibly and through native accessibility semantics without changing option values or the selected source IDs.
+- In the Quick Entry More Types sheet, identify the currently selected kind through accessibility semantics, with a minimum whole-row touch target. Preserve all kinds, order, callbacks, and history security behavior.
+- This checkpoint is source-only; no build, tests, lint, static analysis, screenshots, or device verification.
