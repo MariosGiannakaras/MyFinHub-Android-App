@@ -31,6 +31,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -236,7 +238,69 @@ fun CreditCardStack(
     onDeleteCard: (String) -> Unit,
     modifier: Modifier = Modifier,
     allowArchive: Boolean = true,
+    unsafeCardIds: Set<String> = emptySet(),
 ) {
+    val idCounts = cards.groupingBy(MoneyCard::id).eachCount()
+    val ambiguousIds = cards.filter { card ->
+        card.id.isBlank() || card.id != card.id.trim() ||
+            idCounts[card.id] != 1 || card.id in unsafeCardIds
+    }.mapTo(mutableSetOf(), MoneyCard::id)
+    if (ambiguousIds.isNotEmpty()) {
+        // The animated stack maps source cards by ID. With duplicate IDs it would
+        // silently collapse rows and could show another card's private face.
+        // Keep every imported card visible, but make only unique identities navigable.
+        ProtectSensitiveCardWindow(false)
+        Column(
+            modifier = modifier.fillMaxWidth().testTag("credit_card_ambiguous_roster"),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                "Εντοπίστηκαν μη μοναδικές ταυτότητες καρτών. Τα στοιχεία και οι " +
+                    "ενέργειες είναι διαθέσιμα μόνο για κάρτες με μοναδικό ID.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+            cards.forEachIndexed { index, card ->
+                val safe = card.id !in ambiguousIds
+                Surface(
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("credit_card_ambiguous_row_$index"),
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(card.nickname, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "${canonicalCardMaskedLastFour(card.last4) ?: "••••"} · ${card.kind}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (!safe) {
+                            Text(
+                                "Μη μοναδική ή κενή ταυτότητα · μόνο προβολή.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                if (safe) {
+                                    onActiveCardChanged(card.id)
+                                    onOpenCard(card.id)
+                                }
+                            },
+                            enabled = safe,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("Άνοιγμα κάρτας") }
+                    }
+                }
+            }
+        }
+        return
+    }
     val ids = cards.map(MoneyCard::id)
     // Retain the active card and physical stack order across activity recreation.
     // ArrayList<String> is supported by Android Bundle's saveable-state registry.

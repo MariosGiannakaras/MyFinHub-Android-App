@@ -583,6 +583,12 @@ private fun LazyListScope.walletCardsContent(
     companionMode: Boolean,
     onOpenQuickEntry: () -> Unit,
 ) {
+    val allCardIdCounts = (state.cards + state.archivedCards)
+        .groupingBy(MoneyCard::id).eachCount()
+    val unsafeCardIds = (state.cards + state.archivedCards).filter { card ->
+        card.id.isBlank() || card.id != card.id.trim() ||
+            allCardIdCounts[card.id] != 1
+    }.mapTo(mutableSetOf(), MoneyCard::id)
     item("cards-action") {
         if (companionMode || state.cards.isEmpty()) {
             MyFinHubPrimaryAction(
@@ -621,6 +627,7 @@ private fun LazyListScope.walletCardsContent(
                 onDeleteCard = onDeleteCard,
                 modifier = Modifier.fillMaxWidth(),
                 allowArchive = !companionMode,
+                unsafeCardIds = unsafeCardIds,
             )
         }
         if (companionMode) {
@@ -628,11 +635,21 @@ private fun LazyListScope.walletCardsContent(
                 val active = state.cards.firstOrNull { it.id == selectedCardId } ?: state.cards.first()
                 val isCredit = canUseCreditCardActions(active)
                 val creditSnapshot = if (isCredit) creditWorkspaceFinancialSnapshot(active) else null
+                val safeCardIdentity = active.id !in unsafeCardIds
                 MyFinHubSectionCard(
                     modifier = Modifier.fillMaxWidth().testTag("card_companion_summary"),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                         Text(active.nickname, style = MaterialTheme.typography.titleMedium)
+                        if (!safeCardIdentity) {
+                            Text(
+                                "Μη μοναδική ή κενή ταυτότητα κάρτας · οι ενέργειες " +
+                                    "είναι διαθέσιμες μόνο για μοναδική κάρτα.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.testTag("card_companion_identity_warning"),
+                            )
+                        }
                         if (isCredit) {
                             Text("Τρέχουσα οφειλή", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
@@ -640,9 +657,9 @@ private fun LazyListScope.walletCardsContent(
                                     ?: "Μη διαθέσιμο ποσό",
                                 style = MaterialTheme.typography.titleLarge,
                             )
-                            val canRecordPurchase =
+                            val canRecordPurchase = safeCardIdentity &&
                                 canOpenCreditCardQuickEntry(active, payment = false)
-                            val canPayCredit =
+                            val canPayCredit = safeCardIdentity &&
                                 canOpenCreditCardQuickEntry(active, payment = true) &&
                                     (creditSnapshot?.outstanding ?: 0.0) > 0.005
                             if (canPayCredit) {
@@ -686,6 +703,21 @@ private fun LazyListScope.walletCardsContent(
         } else {
         item("card-workspace") {
             val active = state.cards.firstOrNull { it.id == selectedCardId } ?: state.cards.first()
+            if (active.id in unsafeCardIds) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                    .testTag("inline_credit_card_identity_warning")) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text(active.nickname, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Η ταυτότητα αυτής της κάρτας δεν είναι μοναδική ή είναι κενή. " +
+                                "Οι αγορές, πληρωμές και σύνδεσμοι διαχείρισης " +
+                                "δεν είναι διαθέσιμοι μέχρι να διορθωθούν τα δεδομένα.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            } else {
             InlineCreditCardWorkspace(
                 card = active,
                 statements = state.creditStatementsByCard[active.id].orEmpty(),
@@ -702,6 +734,7 @@ private fun LazyListScope.walletCardsContent(
                 fullActivityIdCounts = fullActivityIdCounts,
                 onOpenDetails = { onOpenCard(active.id) },
             )
+            }
         }
         }
     }
@@ -713,13 +746,11 @@ private fun LazyListScope.walletCardsContent(
                 fontWeight = FontWeight.SemiBold,
             )
         }
-        val cardIdCounts = (state.cards + state.archivedCards).groupingBy { it.id }.eachCount()
         itemsIndexed(
             state.archivedCards,
             key = { index, card -> "archived-$index-${card.id}" },
         ) { index, card ->
-            val restorable = card.id.isNotBlank() &&
-                card.id == card.id.trim() && cardIdCounts[card.id] == 1
+            val restorable = card.id !in unsafeCardIds
             Column(
                 modifier = Modifier.fillMaxWidth()
                     .padding(vertical = MyFinHubSpacing.xs)
