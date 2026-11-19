@@ -343,3 +343,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Budget month picker and previous/next month actions now have explicit minimum-48dp targets while keeping their existing dirty-draft, save-in-flight and mutation-blocked navigation gates. At 130%+ font, the monthly budget's balance/overrun label and masked amount stack without competing for one horizontal row; normal-size layout stays unchanged.
 - The category-limit editor preserves exact category strings, but offers one visual menu row per name when the source list contains duplicates, and announces the selected category both visually and via accessibility semantics. The original selected name, validation, save/delete callbacks, existing test tags and budget calculations are unchanged.
 - Source-only and not device/CI validated. No build, tests, lint, static analysis, screenshots, merges or release.
+
+## Checkpoint 47 — consistent Quick Entry search and calendar touch targets
+
+- Searchable account/category/counterparty option bottom sheets in Quick Entry now use the same shared native search field as Activity, Account Detail, Lending and Card Create. Its in-field clear action resets only the local search query, never the selected option, and the old label/subtitle search semantics, list order, identity fences and source callbacks remain intact.
+- Both Quick Entry calendar variants (ordinary DateEntryField and the keyboard-aware ProductionDateChoice) now provide explicit 48dp minimum touch targets on Confirm and Cancel. Date/time parsing, selected values, keyboard-dismiss choreography, optional-date clearing and finance drafts are unchanged.
+- This is a native presentation/accessibility-only change without finance write or security logic modifications. Source committed without build, tests, lint, static analysis, screenshot/device validation.

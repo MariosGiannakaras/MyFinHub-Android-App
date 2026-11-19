@@ -77,6 +77,7 @@ import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
@@ -690,11 +691,11 @@ private fun CompactChoice(
             ) {
                 Text(label, style = MaterialTheme.typography.titleLarge)
                 if (searchable) {
-                    MyFinHubOutlinedField(
+                    MyFinHubSearchField(
                         value = query,
                         onValueChange = { query = it },
-                        label = "Αναζήτηση",
-                        singleLine = true,
+                        placeholder = "Αναζήτηση επιλογής",
+                        modifier = Modifier.testTag("quick_entry_choice_search"),
                     )
                 }
                 LazyColumn(
@@ -1054,10 +1055,14 @@ internal fun DateEntryField(
                         pickerOpen = false
                     },
                     enabled = pickerState.selectedDateMillis != null,
+                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                 ) { Text("Επιλογή") }
             },
             dismissButton = {
-                TextButton(onClick = { pickerOpen = false }) { Text("Ακύρωση") }
+                TextButton(
+                    onClick = { pickerOpen = false },
+                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                ) { Text("Ακύρωση") }
             },
         ) {
             GreekDatePicker(
@@ -1151,12 +1156,16 @@ private fun ProductionDateChoice(
                         pickerOpen = false
                     },
                     enabled = pickerState.selectedDateMillis != null,
+                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                 ) {
                     Text("Επιλογή")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { pickerOpen = false }) {
+                TextButton(
+                    onClick = { pickerOpen = false },
+                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                ) {
                     Text("Ακύρωση")
                 }
             },
