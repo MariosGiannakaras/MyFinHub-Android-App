@@ -230,7 +230,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         result = self.check()
         self.assertEqual(result["version_code"], 10016)
         self.assertEqual(
-            result["candidate_check"], "published_rc19_version_only_requires_signer_and_owner_verification",
+            result["candidate_check"], "older_than_published_rc19",
         )
 
     def test_missing_exact_package_section_fails_closed(self):
