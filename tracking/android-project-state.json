@@ -1340,8 +1340,18 @@
           "app/src/main/java/app/myfinhub/android/feature/utilities/UpdateSettingsCard.kt",
           "app/src/main/java/app/myfinhub/android/feature/utilities/NoticeHistoryScreen.kt"
         ]
+      },
+      {
+        "id": "UI2",
+        "status": "implemented_unvalidated",
+        "summary": "Activity new-entry action moved into accessible adaptive header; Cards compact toolbar entry and credit-only contextual summary, card detail secondary actions and no disabled debt-payment button.",
+        "files": [
+          "app/src/main/java/app/myfinhub/android/feature/activity/ActivityS3Screens.kt",
+          "app/src/main/java/app/myfinhub/android/feature/money/WalletAccountsScreens.kt",
+          "app/src/main/java/app/myfinhub/android/feature/money/CanonicalCardDetailScreen.kt"
+        ]
       }
     ],
-    "next_action": "Review remaining live Home/Activity/Cards, account/card detail, Quick Entry and auth presentation; implement only safe UI changes, without validation."
+    "next_action": "Review Home, Account detail, Quick Entry and support screens; finish safe presentation refinements. Validation explicitly prohibited."
   }
 }

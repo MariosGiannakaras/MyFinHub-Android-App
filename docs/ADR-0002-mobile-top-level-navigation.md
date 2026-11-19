@@ -36,3 +36,10 @@ The new three-tab companion interaction is covered by unit and Android instrumen
 The November compact-UI follow-up preserves this three-destination companion model and its existing finance/security routes. The Settings presentation uses flat Material 3 rows and direct switches instead of nested cards and full-width secondary actions. Update/install rejection, local amount privacy, Android notification settings, notice history, diagnostics, sign-out and package identity remain unchanged at the interaction contract level.
 
 This is an **unvalidated source checkpoint**: no builds, tests, lint, screenshots, device acceptance or static-analysis commands were executed, per explicit owner instruction. Source work is recorded separately from completed historical UI acceptance and pending physical release acceptance in `tracking/android-project-state.json`.
+
+### Active Activity and Cards hierarchy
+
+- Activity new-entry action lives in the page header; search and filtering occupy the top of the history list. At large font scales, the header action uses an accessible icon rather than compressing the title.
+- The three-tab companion Cards route keeps Quick Entry in the page header. The selected credit card retains purchase and payoff entry but avoids a second oversized primary card/action surface; debit cards do not show an irrelevant debt summary.
+- Card detail keeps distinct purchase and payment actions; unavailable repayment is explained without a disabled full-width button. Card switching remains discoverable and separate from sensitive details.
+- All changes are authored source only; no screen was rendered, built or executed in this pass.

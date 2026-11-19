@@ -29,6 +29,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -194,6 +195,24 @@ fun ActivityLedgerScreen(
                     "Ιστορικό κινήσεων"
                 },
                 navigation = onBack?.let { back -> { MyFinHubBackButton(back) } },
+                trailing = {
+                    if (!analyticsScope) {
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            IconButton(
+                                onClick = onOpenQuickEntry,
+                                modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget),
+                            ) {
+                                Icon(MyFinHubIcons.Add, contentDescription = "Δημιουργία νέας κίνησης")
+                            }
+                        } else {
+                            TextButton(
+                                onClick = onOpenQuickEntry,
+                                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .semantics { contentDescription = "Δημιουργία νέας κίνησης" },
+                            ) { Text("Νέα κίνηση") }
+                        }
+                    }
+                },
             )
         },
     ) { innerPadding ->
@@ -228,24 +247,6 @@ fun ActivityLedgerScreen(
                     )
                 }
             } else {
-                item(key = "new-transaction") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = MyFinHubSpacing.sm),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        Button(
-                            onClick = onOpenQuickEntry,
-                            modifier = Modifier.semantics {
-                                contentDescription = "Δημιουργία νέας κίνησης"
-                            },
-                        ) {
-                            Text("Νέα κίνηση")
-                        }
-                    }
-                }
-
                 item(key = "search") {
                     MyFinHubSearchField(
                         value = state.query,

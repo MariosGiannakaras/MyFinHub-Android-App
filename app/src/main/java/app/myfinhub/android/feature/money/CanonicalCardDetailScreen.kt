@@ -29,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -163,10 +164,11 @@ fun CanonicalCardDetailScreen(
                             MyFinHubIconBadge(MyFinHubIcons.Card, FinanceTone.Transfer, null)
                         }
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(card.nickname, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                            provider?.institutionLabel?.let {
-                                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
+                            Text(
+                                provider?.institutionLabel ?: card.nickname,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                         Text(canonicalCardMaskedLastFour(card.last4) ?: "••••", style = MaterialTheme.typography.labelLarge)
                     }
@@ -175,9 +177,9 @@ fun CanonicalCardDetailScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (cards.size > 1) {
-                        OutlinedButton(
+                        TextButton(
                             onClick = { cardPickerOpen = true },
-                            modifier = Modifier.fillMaxWidth().testTag("card_switcher"),
+                            modifier = Modifier.testTag("card_switcher"),
                         ) { Text("Αλλαγή κάρτας") }
                     }
                     if (isCredit) {
@@ -220,7 +222,7 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
                                 icon = null,
                             )
-                            OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
+                            TextButton(onClick = onAddPurchase, modifier = Modifier.align(Alignment.Start)) {
                                 Text("Καταχώριση αγοράς")
                             }
                         } else {
@@ -230,11 +232,6 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.fillMaxWidth().testTag("card_detail_purchase_primary"),
                                 icon = null,
                             )
-                            OutlinedButton(
-                                onClick = onPayCard,
-                                enabled = false,
-                                modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
-                            ) { Text("Πληρωμή κάρτας") }
                             Text(
                                 if (creditFinancial?.outstanding == null)
                                     "Η οφειλή δεν είναι διαθέσιμη."

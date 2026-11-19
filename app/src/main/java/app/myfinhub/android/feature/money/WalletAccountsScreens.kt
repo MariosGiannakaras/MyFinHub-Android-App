@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -173,6 +174,24 @@ fun CanonicalWalletScreen(
             MyFinHubScreenHeader(
                 title = when { cardsOnly -> "Κάρτες"; accountsOnly -> "Λογαριασμοί"; else -> "Πορτοφόλι" },
                 subtitle = if (cardsOnly || accountsOnly) null else selected.label,
+                trailing = {
+                    if (cardsOnly && companionMode) {
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            IconButton(
+                                onClick = onOpenQuickEntry,
+                                modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("cards_primary_action"),
+                            ) {
+                                Icon(MyFinHubIcons.Add, contentDescription = "Νέα κίνηση")
+                            }
+                        } else {
+                            TextButton(
+                                onClick = onOpenQuickEntry,
+                                modifier = Modifier.testTag("cards_primary_action"),
+                            ) { Text("Νέα κίνηση") }
+                        }
+                    }
+                },
             )
         },
     ) { padding ->
@@ -533,12 +552,14 @@ private fun LazyListScope.walletCardsContent(
     companionMode: Boolean,
     onOpenQuickEntry: () -> Unit,
 ) {
-    item("cards-action") {
-        MyFinHubPrimaryAction(
-            label = if (companionMode) "Νέα κίνηση" else "Νέα κάρτα",
-            onClick = if (companionMode) onOpenQuickEntry else onAddCard,
-            modifier = Modifier.fillMaxWidth().testTag("cards_primary_action"),
-        )
+    if (!companionMode) {
+        item("cards-action") {
+            MyFinHubPrimaryAction(
+                label = "Νέα κάρτα",
+                onClick = onAddCard,
+                modifier = Modifier.fillMaxWidth().testTag("cards_primary_action"),
+            )
+        }
     }
     if (state.cards.isEmpty()) {
         item("cards-empty") {
@@ -563,34 +584,37 @@ private fun LazyListScope.walletCardsContent(
                 val active = state.cards.firstOrNull { it.id == selectedCardId } ?: state.cards.first()
                 val isCredit = canUseCreditCardActions(active)
                 val creditSnapshot = if (isCredit) creditWorkspaceFinancialSnapshot(active) else null
-                MyFinHubSectionCard(
-                    modifier = Modifier.fillMaxWidth().testTag("card_companion_summary"),
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                        Text(active.nickname, style = MaterialTheme.typography.titleMedium)
-                        if (isCredit) {
-                            Text("Τρέχουσα οφειλή", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (isCredit) {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("card_companion_summary"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text(
+                                "Τρέχουσα οφειλή",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                             Text(
                                 creditSnapshot?.outstanding?.let { walletAmountText(it, amountsVisible) }
                                     ?: "Μη διαθέσιμο ποσό",
                                 style = MaterialTheme.typography.titleLarge,
                             )
-                            OutlinedButton(
-                                onClick = { onAddCreditPurchase(active.id) },
-                                enabled = canOpenCreditCardQuickEntry(active, payment = false),
-                                modifier = Modifier.fillMaxWidth().testTag("card_companion_purchase"),
-                            ) { Text("Αγορά με πιστωτική") }
-                            OutlinedButton(
-                                onClick = { onPayCreditCard(active.id) },
-                                enabled = canOpenCreditCardQuickEntry(active, payment = true) &&
-                                    (creditSnapshot?.outstanding ?: 0.0) > 0.005,
-                                modifier = Modifier.fillMaxWidth().testTag("card_companion_payment"),
-                            ) { Text("Εξόφληση πιστωτικής") }
-                        } else {
-                            Text(
-                                "Οι αγορές χρεωστικής ή προπληρωμένης καταχωρίζονται ως κινήσεις λογαριασμού.",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                            ) {
+                                TextButton(
+                                    onClick = { onAddCreditPurchase(active.id) },
+                                    enabled = canOpenCreditCardQuickEntry(active, payment = false),
+                                    modifier = Modifier.weight(1f).testTag("card_companion_purchase"),
+                                ) { Text("Νέα αγορά") }
+                                TextButton(
+                                    onClick = { onPayCreditCard(active.id) },
+                                    enabled = canOpenCreditCardQuickEntry(active, payment = true) &&
+                                        (creditSnapshot?.outstanding ?: 0.0) > 0.005,
+                                    modifier = Modifier.weight(1f).testTag("card_companion_payment"),
+                                ) { Text("Εξόφληση") }
+                            }
                         }
                     }
                 }
