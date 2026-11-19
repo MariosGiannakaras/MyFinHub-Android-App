@@ -103,3 +103,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Apply the design-system minimum touch target to existing card-create selection fields without changing PAN/expiry/CVV input or storage behavior.
 - Remove repeated idle-state update instruction text when the actual update-check action already communicates its purpose; no state-machine or update verification changes.
 - No tests, builds, static analysis, screenshot tooling or lint executed.
+
+## Checkpoint 11 — finish responsive destructive states and reconcile tracking
+
+- Explicitly mute disabled destructive labels in Activity and budget rows; do not visually imply a blocked operation can run.
+- Record all three recent UI refinement commits in canonical project tracking.
+- Keep the pre-existing finance Web-parity, signed-APK, device acceptance, and project progress fields unchanged.
+- Source is deliberately unvalidated: no compilation, CI, tests, static analysis, lint, screenshots or physical acceptance. No pull request, merge, APK or release.

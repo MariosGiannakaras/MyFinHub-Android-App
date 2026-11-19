@@ -1353,6 +1353,18 @@
       {
         "sha": "6ee814aef238d3b7c2a107638cb73f4ca6de99ae",
         "focus": "Settings accessibility, 150% IBAN actions, Wallet card-create hierarchy"
+      },
+      {
+        "sha": "f856cc23337902a860c02edbdb3d58d9bbb005b3",
+        "focus": "Activity detail destructive-action discoverability; compact budget month selection; clearer recurring-payment action"
+      },
+      {
+        "sha": "1d1d36d6c2a6581d7498e2a21fc0551d0fe6280d",
+        "focus": "Quick Entry note disclosure, contextual credit-card action layout, card picker affordances"
+      },
+      {
+        "sha": "ca65b875cff791e1492e46ffb59ab0f37a377cec",
+        "focus": "Responsive category and subcategory budget action rows; card picker touch targets; compact update idle state"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",

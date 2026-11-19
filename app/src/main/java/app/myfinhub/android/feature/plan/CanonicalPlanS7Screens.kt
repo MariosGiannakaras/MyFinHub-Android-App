@@ -1840,7 +1840,13 @@ private fun BudgetRowActions(
             modifier = modifier
                 .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                 .testTag(deleteTag),
-        ) { Text("Διαγραφή", color = MaterialTheme.colorScheme.error) }
+        ) {
+            Text(
+                "Διαγραφή",
+                color = if (enabled) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+            )
+        }
     }
     if (LocalDensity.current.fontScale >= 1.3f) {
         Column(

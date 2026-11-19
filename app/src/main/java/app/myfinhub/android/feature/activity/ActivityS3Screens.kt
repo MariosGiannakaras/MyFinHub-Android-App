@@ -1211,7 +1211,11 @@ fun ActivityReadDetailScreen(
                                 enabled = !mutationBlocked,
                                 modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                             ) {
-                                Text("Διαγραφή κίνησης", color = MaterialTheme.colorScheme.error)
+                                Text(
+                                    "Διαγραφή κίνησης",
+                                    color = if (!mutationBlocked) MaterialTheme.colorScheme.error
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                )
                             }
                         }
                         if (item.isInternalTransfer()) {
