@@ -1457,6 +1457,11 @@
         "sha": "087d43b7987826c6dfca2cb8818492493ab9da0a",
         "focus": "Responsive Insights month navigation and secondary chart details disclosure",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "75ff3e18d62f5931fc623419b41ad1a0a7315024",
+        "focus": "Plan 30-day forecast read-only monetary drilldown rows at large font",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
