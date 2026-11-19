@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.text.NumberFormat
@@ -200,18 +201,19 @@ fun InlineCreditCardWorkspace(
                         Button(onClick = onPayCard, modifier = Modifier.fillMaxWidth()) {
                             Text("Πληρωμή κάρτας")
                         }
-                        OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
-                            Text("Καταχώριση αγοράς")
-                        }
+                        TextButton(
+                            onClick = onAddPurchase,
+                            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                        ) { Text("Καταχώριση αγοράς") }
                     } else {
                         Button(
                             onClick = onAddPurchase,
                             modifier = Modifier.fillMaxWidth().testTag("inline_credit_purchase_primary"),
                         ) { Text("Καταχώριση αγοράς") }
-                        OutlinedButton(
+                        TextButton(
                             onClick = onPayCard,
                             enabled = false,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                         ) { Text("Πληρωμή κάρτας") }
                         Text(
                             if (financial.outstanding == null) "Η οφειλή δεν είναι διαθέσιμη."
@@ -222,7 +224,10 @@ fun InlineCreditCardWorkspace(
                         )
                     }
                 }
-                TextButton(onClick = onOpenDetails) { Text("Στοιχεία / διαχείριση κάρτας") }
+                TextButton(
+                    onClick = onOpenDetails,
+                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                ) { Text("Στοιχεία και διαχείριση κάρτας") }
             }
         }
         if (credit) {
@@ -235,27 +240,45 @@ fun InlineCreditCardWorkspace(
                     } else {
                         // For a short one/two-statement history, avoid needless controls on a phone.
                         if (scopedStatements.size > 2) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                                FilterChip(
-                                    selected = statementFilter == CardStatementFilter.ALL,
-                                    onClick = {
-                                        statementFilter = CardStatementFilter.ALL
-                                        statementBatches = 1
-                                    },
-                                    label = { Text("Όλες") },
-                                    modifier = Modifier.heightIn(min = 48.dp)
-                                        .testTag("inline_credit_filter_all"),
-                                )
-                                FilterChip(
-                                    selected = statementFilter == CardStatementFilter.PAYABLE,
-                                    onClick = {
-                                        statementFilter = CardStatementFilter.PAYABLE
-                                        statementBatches = 1
-                                    },
-                                    label = { Text("Πληρωτέες ($payableStatementCount)") },
-                                    modifier = Modifier.heightIn(min = 48.dp)
-                                        .testTag("inline_credit_filter_payable"),
-                                )
+                            val statementFilterChoice: @Composable (CardStatementFilter, String, Modifier, String) -> Unit =
+                                { choice, title, modifier, tag ->
+                                    FilterChip(
+                                        selected = statementFilter == choice,
+                                        onClick = {
+                                            statementFilter = choice
+                                            statementBatches = 1
+                                        },
+                                        label = { Text(title) },
+                                        modifier = modifier
+                                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                            .testTag(tag),
+                                    )
+                                }
+                            if (largeFont) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                                ) {
+                                    statementFilterChoice(
+                                        CardStatementFilter.ALL, "Όλες",
+                                        Modifier.fillMaxWidth(), "inline_credit_filter_all",
+                                    )
+                                    statementFilterChoice(
+                                        CardStatementFilter.PAYABLE, "Πληρωτέες ($payableStatementCount)",
+                                        Modifier.fillMaxWidth(), "inline_credit_filter_payable",
+                                    )
+                                }
+                            } else {
+                                Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                                    statementFilterChoice(
+                                        CardStatementFilter.ALL, "Όλες",
+                                        Modifier, "inline_credit_filter_all",
+                                    )
+                                    statementFilterChoice(
+                                        CardStatementFilter.PAYABLE, "Πληρωτέες ($payableStatementCount)",
+                                        Modifier, "inline_credit_filter_payable",
+                                    )
+                                }
                             }
                         }
                         if (filteredStatements.isEmpty()) {

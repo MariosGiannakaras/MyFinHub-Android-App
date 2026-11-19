@@ -145,3 +145,11 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Activity month overview: arrange income, expense and net values in readable full-width rows at enlarged font scales; place the month label and accessible prev/next actions on separate rows at that size. Keep existing data scope, count, privacy masking, date navigation, summaries and test tags.
 - Settings: subscribe to the existing device SharedPreferences changes so the appearance and amount-visibility selection reflect changes from other active UI routes, including the Home privacy button. Preserve local-only storage and current callbacks. Enforce a minimum target for logout.
 - Source-only commit; no builds, lint, automated tests, screenshot diffs or device verification were run.
+
+## Checkpoint 17 — credit-card actions and large-font statement filters
+
+- Align the actual Wallet inline credit workspace with card details: keep the primary pay-card action for payable balances (or primary purchase action otherwise), render secondary purchase and disabled pay-card actions as compact text buttons. Preserve the original callbacks, disabled-state explanatory text and statement/card safety gates.
+- Change the card-details entry to a touch-sized secondary action without modifying the secure-card route or secret authorization.
+- For large Android font scales, stack the existing All/Payable statement filters instead of compressing Greek labels into one row. Preserve the selected filter, pagination reset, exact test tags and payment identity guards.
+- Improve Activity filter accessibility: the repeated Remove action now announces the filter being removed, and empty-state actions respect a 48dp minimum touch target.
+- This remains a source-only, unvalidated checkpoint, with no change to finance, auth, backend, update contracts or release state.

@@ -1380,9 +1380,18 @@
         "status": "source_committed_unvalidated"
       },
       {
+        "sha": "3fdf22e743f0026054577bc8fba1a8f3143a8106",
+        "focus": "Savings goal create hierarchy, compact empty state and destructive action semantics",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "3dd389b6d6815dd10b975ae0c7cb12556ac2c405",
+        "focus": "Responsive Home account charts/actions, Activity monthly overview and Settings local preference observation"
+      },
+      {
         "sha": null,
         "ref": "android/ui-ux-interaction-redesign-20261119",
-        "focus": "Savings goal create hierarchy, compact empty state and destructive action semantics",
+        "focus": "Wallet inline credit-card action hierarchy, 150% statement filters, Activity filter accessibility",
         "status": "source_committed_unvalidated"
       }
     ],

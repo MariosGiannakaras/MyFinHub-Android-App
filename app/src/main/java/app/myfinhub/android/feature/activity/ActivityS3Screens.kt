@@ -771,7 +771,12 @@ private fun ActivityScopeLine(label: String, onRemove: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
-        TextButton(onClick = onRemove) { Text("Αφαίρεση") }
+        TextButton(
+            onClick = onRemove,
+            modifier = Modifier
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                .semantics { contentDescription = "Αφαίρεση φίλτρου: $label" },
+        ) { Text("Αφαίρεση") }
     }
 }
 
@@ -794,7 +799,10 @@ private fun ActivityEmptyState(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (actionLabel != null && onAction != null) {
-            OutlinedButton(onClick = onAction) { Text(actionLabel) }
+            OutlinedButton(
+                onClick = onAction,
+                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            ) { Text(actionLabel) }
         }
     }
 }
