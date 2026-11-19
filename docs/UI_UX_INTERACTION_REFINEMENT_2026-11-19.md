@@ -283,3 +283,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Lending person selector now reuses the shared native search field, giving an in-field one-tap clear action. The search still uses the same exact person filter and resets the initial displayed-person limit to 24 on query edits; existing test tags and selected-person/history filters are unchanged.
 - For 130%+ system fonts, show long person names and their status above the read-only outstanding amount. Normal fonts retain the original compact identity-plus-amount row. A person without a unique active receivable still has no implied balance, and amount visibility continues to obey the existing device preference.
 - All original person/source identities, repayment/lending callbacks, duplicate-identity fences and projected history remain intact. No builds, tests, lint, static analysis, screenshots or physical-device acceptance were performed.
+
+## Checkpoint 38 — self-loan savings destination cannot equal payer
+
+- In the existing self-loan payment dialog, a savings account used as the selected payment source is visibly disabled as a savings destination, with an explanatory suffix. Other eligible savings destinations are unchanged and remain selectable.
+- Extend the reusable radio-choice row with an optional enabled flag, preserving the same 48dp touch geometry and TalkBack radio semantics; default enabled behavior keeps ordinary loan payer selection unchanged.
+- The canonical payment preview still independently rejects same-source transfers and all other invalid routes. No default payer/target is chosen, no finance identity is rewritten, and no payment is created until the existing confirm callback.
+- Source-only, without builds, tests, lint, static analysis, UI snapshots or device acceptance.

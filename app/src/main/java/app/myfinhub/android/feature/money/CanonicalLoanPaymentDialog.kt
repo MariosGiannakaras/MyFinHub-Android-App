@@ -207,9 +207,12 @@ fun CanonicalLoanPaymentDialog(
                         )
                     }
                     savings.forEach { acc ->
+                        val distinctFromPayer = acc.id != source
                         LoanAccountChoiceRow(
-                            name = acc.name,
-                            selected = saving == acc.id,
+                            name = if (distinctFromPayer) acc.name
+                                else acc.name + " · Ίδιος με λογαριασμό πληρωμής",
+                            selected = saving == acc.id && distinctFromPayer,
+                            enabled = distinctFromPayer,
                             testTag = "loan_payment_savings_" + acc.id,
                             onClick = { saving = acc.id },
                         )
@@ -255,19 +258,30 @@ private fun LoanAccountChoiceRow(
     name: String,
     selected: Boolean,
     testTag: String,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .selectable(
+                selected = selected,
+                enabled = enabled,
+                role = Role.RadioButton,
+                onClick = onClick,
+            )
             .testTag(testTag)
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        RadioButton(selected = selected, onClick = null)
-        Text(name, style = MaterialTheme.typography.bodyLarge)
+        RadioButton(selected = selected, enabled = enabled, onClick = null)
+        Text(
+            name,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
