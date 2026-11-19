@@ -1327,7 +1327,7 @@
   "ui_ux_refinement_2026_11_19": {
     "branch": "android/ui-ux-interaction-redesign-20261119",
     "base_branch": "develop",
-    "status": "ci_verified_unmerged_pending_owner_acceptance",
+    "status": "merged_ci_verified_pending_owner_device_acceptance",
     "scope": "Android existing UI screens and interactions; no backend or releases",
     "checkpoints": [
       {
@@ -1560,10 +1560,10 @@
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
-    "validation": "pr_490_source_head_9a36918f8bce6e99f9af79dc8a25e796e75222a5_six_exact_head_checks_passed_2026_11_19; verify final head checks again before merge",
+    "validation": "PR #490 exact final head 11c64d48ec0a4cfff97d0b346902069c37b91f2d: tracking-verify, android-verify, screenshot-regression, both S24 emulator shards and aggregate SUCCESS; squash merged develop 0f49d12fce1acc329daa30fccd85a69918eea8d1; post-merge Android CI and Project Tracking SUCCESS. Physical owner D7 is not established.",
     "owner_device_acceptance": "not_claimed",
     "pull_request": 490,
     "release_created": false,
-    "merging_to_develop": "not_performed_pending_explicit_owner_approval"
+    "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
   }
 }
