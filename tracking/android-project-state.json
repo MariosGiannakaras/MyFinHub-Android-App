@@ -1507,6 +1507,26 @@
         "sha": "fd60e10706781d626fdfae30b506f0316f286401",
         "focus": "Loan payment forms distinguish unavailable eligible payer/savings targets from missing selection",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "93670ce858ecbe746f7a664c5e5f858865035d7b",
+        "focus": "Wallet duplicate-safe source list keys, account/archive mutation guards, and Quick Entry unique option identity gating",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "691a80c1328a2b1a19e8375e7c319a17f7dd021d",
+        "focus": "Responsive Activity month/filter/sort controls, duplicate-safe legacy/activity dropdowns, and credit statement large-font rows",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "e1ba873b92c01c6615dac8d03a5d9956d0c63a6f",
+        "focus": "Home account-scoped navigation identity guards and readable large-font recent activity",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "2c41bb0616ea8f38c966ed8701ccb116344e9fc0",
+        "focus": "Preserve every Home account source row when IDs collide with primary accounts",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
