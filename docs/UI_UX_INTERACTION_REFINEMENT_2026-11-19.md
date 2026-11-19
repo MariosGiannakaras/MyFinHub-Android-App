@@ -259,3 +259,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Transaction details: in the canonical split-history section, keep the original part label, optional category path, exact part amount and divider. At 130%+ Android font scale, render each part amount beneath its description so long labels cannot crowd the amount. Retain the original compact row for standard fonts, all source part indices and existing amount-privacy masking.
 - Plan Forecast: show each known movement's source/date and its signed net impact on separate lines at enlarged font scale, keeping the normal horizontal compact presentation, canonical movement order, zero-amount presentation and masking unchanged.
 - This is presentation-only. No changes to split accounting, future movement inclusion, transaction mutations, source identities or forecasts. No build, tests, lint, static analysis, UI screenshots or physical-device validation.
+
+## Checkpoint 34 — truthful counterparty actions in transaction detail
+
+- Transaction Detail's merchant/beneficiary identity picker already blocks its menu and mutation while a transaction is pending sync, but its "Αλλαγή ταυτότητας" button still appeared enabled. Disable that button under the same existing pending-sync gate, without changing canonical write authorization.
+- Expose the currently selected unique counterparty or "Καμία ταυτότητα" in the dropdown both visually and through accessibility selected semantics. Do not mark an imported ambiguous/stale ID as any matching candidate: use the existing safely resolved `matches.singleOrNull()` instead.
+- Preserve original `onChooseCounterparty` IDs, clearing action, duplicate-ID guard and test tags. Source only; no builds, tests, lint, analysis or device verification.

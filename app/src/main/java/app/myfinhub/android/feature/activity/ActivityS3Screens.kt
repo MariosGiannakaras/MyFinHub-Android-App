@@ -1166,16 +1166,21 @@ fun ActivityReadDetailScreen(
                             if (onChooseCounterparty != null) {
                                 TextButton(
                                     onClick = { counterpartyMenuOpen = true },
-                                    enabled = !mutationBlocked,
-                                    modifier = Modifier.heightIn(min = 48.dp)
+                                    enabled = !mutationBlocked && !item.pendingSync,
+                                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                         .testTag("activity_choose_counterparty"),
                                 ) { Text("Αλλαγή ταυτότητας") }
                                 DropdownMenu(
                                     expanded = counterpartyMenuOpen && !mutationBlocked && !item.pendingSync,
                                     onDismissRequest = { counterpartyMenuOpen = false },
                                 ) {
+                                    val noSelection = item.counterpartyId.isNullOrBlank()
                                     DropdownMenuItem(
                                         text = { Text("Καμία ταυτότητα") },
+                                        trailingIcon = if (noSelection) {
+                                            { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                                        } else null,
+                                        modifier = Modifier.semantics { selected = noSelection },
                                         onClick = {
                                             counterpartyMenuOpen = false
                                             if (!mutationBlocked && !item.pendingSync) {
@@ -1187,8 +1192,13 @@ fun ActivityReadDetailScreen(
                                         .filter { row ->
                                             counterpartyRows.count { it.id == row.id } == 1
                                         }.forEach { candidate ->
+                                            val isCurrentIdentity = selected?.id == candidate.id
                                             DropdownMenuItem(
                                                 text = { Text(candidate.displayName) },
+                                                trailingIcon = if (isCurrentIdentity) {
+                                                    { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                                                } else null,
+                                                modifier = Modifier.semantics { selected = isCurrentIdentity },
                                                 onClick = {
                                                     counterpartyMenuOpen = false
                                                     if (!mutationBlocked && !item.pendingSync) {
