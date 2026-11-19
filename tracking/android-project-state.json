@@ -1427,6 +1427,21 @@
         "sha": "6097848b7e7d34100445f82ec9a6186cd808624a",
         "focus": "Disambiguate Compose Wallet section selected semantics; no behavior changes",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "745aaf1a58cbc4064feba3e1b3709d9ab64f25cf",
+        "focus": "Quick Entry stale source selection awareness, duplicate-safe option rendering, clear optional expected-return date",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "d7d90fe3ebfb5876ba2b0d4b9857c8325a375d1d",
+        "focus": "Quick Entry canonical debt source masking under privacy preference and accessible split-part removal",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "a17a05bd90d21cb484418d07dc4e3eb4846cedce",
+        "focus": "Large-font Quick Entry split-part action layout and divider-separated part fields",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
