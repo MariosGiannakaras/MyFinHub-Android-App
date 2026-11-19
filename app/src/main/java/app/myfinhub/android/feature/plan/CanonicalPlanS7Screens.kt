@@ -272,7 +272,12 @@ fun CanonicalPlan2026Screen(
                     itemsIndexed(group, key = { index, item ->
                         "remaining-${plannedItemSourceKey(item)}-row-$index"
                     }) { _, item ->
-                        PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
+                        PlanS7Row(
+                            item = item,
+                            amountsVisible = amountsVisible,
+                            glyphOverrides = state.categoryGlyphOverrides,
+                            emphasized = false,
+                        )
                     }
                 }
             } else if (urgent.isEmpty()) {
@@ -395,15 +400,17 @@ private fun BudgetS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onClic
 }
 
 @Composable
-private fun PlanS7Row(item: PlannedItem, amountsVisible: Boolean, glyphOverrides: Map<String, String> = emptyMap()) {
+private fun PlanS7Row(
+    item: PlannedItem,
+    amountsVisible: Boolean,
+    glyphOverrides: Map<String, String> = emptyMap(),
+    emphasized: Boolean = true,
+) {
     val tone = planS7Tone(item.flow)
     val icon = planS7Icon(item, glyphOverrides)
     val amountText = planS7Amount(item, amountsVisible)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
-
-    MyFinHubSectionCard(
-        modifier = Modifier.fillMaxWidth().testTag("s7_plan_item_${plannedItemSourceKey(item)}"),
-    ) {
+    val rowContent: @Composable () -> Unit = {
         if (largeFont) {
             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                 Row(
@@ -428,8 +435,21 @@ private fun PlanS7Row(item: PlannedItem, amountsVisible: Boolean, glyphOverrides
             }
         }
     }
+    val rowModifier = Modifier.fillMaxWidth()
+        .testTag("s7_plan_item_${plannedItemSourceKey(item)}")
+    if (emphasized) {
+        // Keep urgent items prominent without giving every future source a card.
+        MyFinHubSectionCard(modifier = rowModifier) { rowContent() }
+    } else {
+        Column(
+            modifier = rowModifier.padding(vertical = MyFinHubSpacing.xs),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        ) {
+            rowContent()
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        }
+    }
 }
-
 @Composable
 private fun PlanS7Identity(item: PlannedItem, modifier: Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {

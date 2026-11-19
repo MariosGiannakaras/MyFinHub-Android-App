@@ -247,3 +247,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Preserve all canonical Plan 30-day forecast data, daily portfolio amounts, per-account balances, movement impacts and warning/identity tags. At Android 130%+ font, place long account names or date labels above their own masked financial amount rather than forcing two columns to overlap.
 - Reuse one private UI-only amount row for per-day portfolio totals, per-day account balances and projected movement account legs. At normal font sizes the familiar horizontal row stays intact.
 - No forecast calculation, inclusion rules, dates, source identities, display privacy preference or write callbacks were altered. Source-only; no build, tests, lint, static analysis or device validation.
+
+## Checkpoint 32 — compact nonurgent Plan ledger
+
+- The real Plan root keeps overdue and next-seven-day obligation items as prominent individual cards. Only the lower-priority "Υπόλοιπο πλάνου" items become flat, divider-separated rows, reducing repeated card chrome in long schedules.
+- Keep original date grouping, source item order, unique lazy keys, `s7_plan_item_*` tags, icons, amount privacy and large-font layout. Both urgent and remaining rows share exactly the same row contents, without changing financial model or callbacks.
+- This is a source-only visual change; no build, test, lint, analysis, screenshot or physical device validation was performed.
