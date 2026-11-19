@@ -734,15 +734,10 @@ private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible
                     .testTag("s7_forecast_point_" + window.days + "_" + index),
                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(point.dateIso, style = MaterialTheme.typography.bodySmall)
-                    Text(amountVisibilityText(formatPlanS7Euro(point.portfolio), amountsVisible),
-                        style = MaterialTheme.typography.bodySmall)
-                }
+                ForecastS7AmountLine(
+                    label = point.dateIso,
+                    value = amountVisibilityText(formatPlanS7Euro(point.portfolio), amountsVisible),
+                )
                 if (point.balancesByAccount.isNotEmpty()) {
                     var showDailyAccounts by rememberSaveable(window.days, point.dateIso) {
                         mutableStateOf(false)
@@ -758,17 +753,14 @@ private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible
                     if (showDailyAccounts) {
                         window.accountBreakdown.forEach { account ->
                             point.balancesByAccount[account.accountId]?.let { balance ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                        .testTag("s7_forecast_point_account_" +
-                                            window.days + "_" + index + "_" + account.accountId),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(account.accountLabel, style = MaterialTheme.typography.bodySmall)
-                                    Text(amountVisibilityText(formatPlanS7Euro(balance), amountsVisible),
-                                        style = MaterialTheme.typography.bodySmall)
-                                }
+                                ForecastS7AmountLine(
+                                    label = account.accountLabel,
+                                    value = amountVisibilityText(formatPlanS7Euro(balance), amountsVisible),
+                                    modifier = Modifier.testTag(
+                                        "s7_forecast_point_account_" +
+                                            window.days + "_" + index + "_" + account.accountId,
+                                    ),
+                                )
                             }
                         }
                     }
@@ -850,25 +842,23 @@ private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible
                         style = MaterialTheme.typography.bodySmall)
                 }
                 movement.accountImpacts.forEachIndexed { legIndex, impact ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth()
-                            .testTag("s7_forecast_movement_account_" +
-                                window.days + "_" + index + "_" + legIndex),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(impact.accountLabel, style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        val prefix = when {
-                            impact.delta > 0.0 -> "+"
-                            impact.delta < 0.0 -> "−"
-                            else -> ""
-                        }
-                        Text(amountVisibilityText(
+                    val prefix = when {
+                        impact.delta > 0.0 -> "+"
+                        impact.delta < 0.0 -> "−"
+                        else -> ""
+                    }
+                    ForecastS7AmountLine(
+                        label = impact.accountLabel,
+                        value = amountVisibilityText(
                             prefix + formatPlanS7Euro(kotlin.math.abs(impact.delta)),
                             amountsVisible,
-                        ), style = MaterialTheme.typography.bodySmall)
-                    }
+                        ),
+                        modifier = Modifier.testTag(
+                            "s7_forecast_movement_account_" +
+                                window.days + "_" + index + "_" + legIndex,
+                        ),
+                        mutedLabel = true,
+                    )
                 }
             }
         }
@@ -887,6 +877,41 @@ private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+/** Same financial source line; flexible layout only when Android font scale is enlarged. */
+@Composable
+private fun ForecastS7AmountLine(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    mutedLabel: Boolean = false,
+) {
+    val labelColor = if (mutedLabel) MaterialTheme.colorScheme.onSurfaceVariant
+        else MaterialTheme.colorScheme.onSurface
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(
+            modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
+        ) {
+            Text(label, style = MaterialTheme.typography.bodySmall, color = labelColor)
+            Text(value, style = MaterialTheme.typography.bodySmall)
+        }
+    } else {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodySmall,
+                color = labelColor,
+            )
+            Text(value, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 

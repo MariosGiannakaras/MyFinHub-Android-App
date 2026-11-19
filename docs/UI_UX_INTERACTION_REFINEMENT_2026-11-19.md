@@ -241,3 +241,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - When calendar-month Reports navigation is visible, stack Previous/Next actions at 130%+ Android font instead of forcing two labels into one narrow row. Preserve previous and next historical period identities, disabled boundaries and original action tags. Standard fonts retain the existing horizontal layout.
 - In the secondary income/net/trajectory analysis card, place the disclosure action below the heading at enlarged fonts while keeping the disclosure state, amount privacy and six-month reporting source unchanged.
 - Both controls retain minimum 48dp hit targets; no new finance actions, analytics calculations or persistence changes. No build/tests/lint/static-analysis/device checks executed.
+
+## Checkpoint 31 — responsive forecast drilldown monetary rows
+
+- Preserve all canonical Plan 30-day forecast data, daily portfolio amounts, per-account balances, movement impacts and warning/identity tags. At Android 130%+ font, place long account names or date labels above their own masked financial amount rather than forcing two columns to overlap.
+- Reuse one private UI-only amount row for per-day portfolio totals, per-day account balances and projected movement account legs. At normal font sizes the familiar horizontal row stays intact.
+- No forecast calculation, inclusion rules, dates, source identities, display privacy preference or write callbacks were altered. Source-only; no build, tests, lint, static analysis or device validation.
