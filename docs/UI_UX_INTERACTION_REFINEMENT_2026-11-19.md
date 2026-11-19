@@ -229,3 +229,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - The live Insights period selector now wraps the exact existing periods and titles instead of squeezing all choices into one equal-width chip row. Each chip meets the minimum 48dp touch target and retains its historical-report/month selection logic and existing tags.
 - Monthly operating-report financial rows switch to readable, vertically arranged label/amount pairs at 130%+ Android font, preserving all source amounts and the existing device-local privacy masking. The expanded account-balance listing uses the same responsive layout.
 - Standard-font layout, canonical calculations and navigation callbacks remain unchanged. Source-only; no build, tests, lint, static analysis or physical-device acceptance.
+
+## Checkpoint 29 — account ledger search and empty list
+
+- The canonical Account Detail ledger now uses the same native search field as Activity, including an accessible in-field clear action that removes only the query; the kind filter and account scope are unaffected. Keep the original `account_history_search` test tag, the six-record threshold, Web search indexing and existing explicit clear-all-filters button.
+- When no transactions match, show the existing message as a compact text state instead of a nested card. Preserve the original distinction between an empty ledger and an empty filtered result.
+- No account metadata, IBAN validation, financial totals, unique source IDs or navigation callback was changed. Source only, not validated by build/tests/lint/device.

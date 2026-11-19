@@ -43,6 +43,7 @@ import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
@@ -267,12 +268,11 @@ fun CanonicalAccountDetailScreen(
             if (historyControlsVisible) {
                 item(key = "account-history-controls") {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                        OutlinedTextField(
+                        MyFinHubSearchField(
                             value = historyQuery,
                             onValueChange = { historyQuery = it },
-                            label = { Text("Αναζήτηση κινήσεων λογαριασμού") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth().testTag("account_history_search"),
+                            placeholder = "Αναζήτηση κινήσεων λογαριασμού",
+                            modifier = Modifier.testTag("account_history_search"),
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
@@ -318,14 +318,15 @@ fun CanonicalAccountDetailScreen(
 
             if (visibleHistory.isEmpty()) {
                 item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            if (activityItems.isEmpty()) "Δεν υπάρχουν κινήσεις για αυτόν τον λογαριασμό."
-                            else "Δεν βρέθηκαν κινήσεις με τα επιλεγμένα φίλτρα.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    Text(
+                        if (activityItems.isEmpty()) "Δεν υπάρχουν κινήσεις για αυτόν τον λογαριασμό."
+                        else "Δεν βρέθηκαν κινήσεις με τα επιλεγμένα φίλτρα.",
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(vertical = MyFinHubSpacing.lg),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
+            }
             } else {
                 val sections = sourceHistoryRows.groupBy { it.value.rawDate.take(10) }.toList()
                 sections.forEach { (date, sectionItems) ->
