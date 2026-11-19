@@ -1492,6 +1492,21 @@
         "sha": "0a30de796837ebe77ed38740fbe4325b4a044126",
         "focus": "Shared Lending person search clear and large-font receivable identity/amount rows",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "e33a595e90621a8451a5bbd12c8fdbad16e6c67c",
+        "focus": "Self-loan payment disallows selecting identical savings source and destination in the UI",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "809eb145af52ec3dada40593f4e43dca4f925b85",
+        "focus": "Mask PAN and CVV entered in Card Create while preserving secret vault write contracts",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "fd60e10706781d626fdfae30b506f0316f286401",
+        "focus": "Loan payment forms distinguish unavailable eligible payer/savings targets from missing selection",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
