@@ -276,7 +276,7 @@ fun CanonicalWalletScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
-                            .semantics { selected = isCurrentSection },
+                            .semantics { this.selected = isCurrentSection },
                         shape = MaterialTheme.shapes.small,
                         color = if (isCurrentSection) MaterialTheme.colorScheme.secondaryContainer
                             else MaterialTheme.colorScheme.surface,

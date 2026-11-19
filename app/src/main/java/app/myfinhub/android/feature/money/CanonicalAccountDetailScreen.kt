@@ -326,7 +326,6 @@ fun CanonicalAccountDetailScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            }
             } else {
                 val sections = sourceHistoryRows.groupBy { it.value.rawDate.take(10) }.toList()
                 sections.forEach { (date, sectionItems) ->

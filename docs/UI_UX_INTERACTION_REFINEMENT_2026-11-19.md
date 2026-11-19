@@ -381,3 +381,11 @@ This document records source code changes only, not validated Android behavior. 
 **D7/D8 are separate:** D7 requires actual owner acceptance; D8 requires independently authorized protected release/publishing. Historical GET /api/data HTTP400 INVALID_DATA, November missing-purchase reports and physical acceptance cannot be declared resolved on source edits or emulator green checks alone. Do not edit generated `STATUS.md`, `TODO.md` or `docs/CURRENT_HANDOFF.md` manually.
 
 Handoff order after authorization: validate this exact feature branch with targeted Android compile/unit/Compose checks, then applicable screenshot/hosted-S24 CI; repair failures on the same branch, review and merge only with protected gates, produce a new signed candidate through the guarded release workflow, and obtain separate real-S24 owner approval before D8. Until permission changes: remain `source_committed_unvalidated`.
+
+## Checkpoint 51 — first real PR Android compilation corrections
+
+- After the owner lifted the earlier no-validation restriction, draft PR #490 triggered real Android CI on its original source-only head. The first `compileDebugKotlin` failed on four source defects; these edits repair only the exact compiler diagnostics.
+- Activity counterparty selected semantics and Wallet section selected semantics now explicitly use `this.selected` to avoid shadowing their local `val selected` declarations. No mutation, selected identity or dropdown behavior changes.
+- Account Detail history had one stray closing brace before its `else` date-section branch; restored the original empty-vs-dated-history conditional without changing source keys, empty messages or ledger rows.
+- Mobile Recurring Overview already used `.padding` in the UI but lacked its Compose layout import; added that import only.
+- Previously reported failure is actual CI evidence, not a passing claim. This change is intended for exact-new-head Android CI, screenshot and S24 emulator rerun on the same draft PR. Real physical S24 D7 and protected release D8 remain pending.

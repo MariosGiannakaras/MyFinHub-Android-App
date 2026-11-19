@@ -1230,7 +1230,7 @@ fun ActivityReadDetailScreen(
                                         trailingIcon = if (noSelection) {
                                             { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
                                         } else null,
-                                        modifier = Modifier.semantics { selected = noSelection },
+                                        modifier = Modifier.semantics { this.selected = noSelection },
                                         onClick = {
                                             counterpartyMenuOpen = false
                                             if (!mutationBlocked && !item.pendingSync) {
@@ -1248,7 +1248,7 @@ fun ActivityReadDetailScreen(
                                                 trailingIcon = if (isCurrentIdentity) {
                                                     { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
                                                 } else null,
-                                                modifier = Modifier.semantics { selected = isCurrentIdentity },
+                                                modifier = Modifier.semantics { this.selected = isCurrentIdentity },
                                                 onClick = {
                                                     counterpartyMenuOpen = false
                                                     if (!mutationBlocked && !item.pendingSync) {

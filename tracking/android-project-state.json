@@ -1560,10 +1560,10 @@
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
-    "validation": "not_run_as_explicitly_requested",
+    "validation": "pr_490_ci_rerun_pending_after_compile_fixes",
     "owner_device_acceptance": "not_claimed",
-    "pull_request": null,
+    "pull_request": 490,
     "release_created": false,
-    "merging_to_develop": "not_performed_no_checks"
+    "merging_to_develop": "not_performed_pending_ci"
   }
 }
