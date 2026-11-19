@@ -131,3 +131,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Historical lending transactions display as flat, divider-separated rows. Preserve every displayed note, original amount, direction, historical outstanding balance, account label, imported legacy marker and the indexed source identity; no history becomes a write target.
 - Empty filtered history uses a compact explanatory message instead of a large card. Existing query/filter/clear and safe mutation flows remain unchanged.
 - Source-only changes; no automated checks, static analysis, builds, lint, screenshot or device tests were run.
+
+## Checkpoint 15 — Savings goal creation and empty states
+
+- When no savings goal exists, elevate the existing "new goal" entry point to one tonal action labelled "Ορισμός στόχου αποταμίευσης", retaining the same form callback and mutation-block gate.
+- When a goal already exists, retain a compact secondary "Νέος στόχος αποταμίευσης" action. Preserve existing goal progress and all advisory cards without changing calculations.
+- Flatten the no-goal explanatory card into a short empty state; make goal deletion visibly destructive (and muted when blocked) while retaining the confirmation dialog and identity checks.
+- No validation commands were executed. Device review and release remain separate pending gates.

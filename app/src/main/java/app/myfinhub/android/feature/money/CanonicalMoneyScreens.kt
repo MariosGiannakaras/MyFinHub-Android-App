@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -747,11 +748,24 @@ fun CanonicalSavingsScreen(
             }
             if (onSaveGoal != null) {
                 item("savings-goal-add") {
-                    TextButton(
-                        enabled = !mutationBlocked,
-                        onClick = { editGoal(null) },
-                        modifier = Modifier.testTag("savings_goal_new"),
-                    ) { Text("Νέος στόχος αποταμίευσης") }
+                    val firstGoal = state.savingsGoalItems.isEmpty() && state.savingsGoal == null
+                    if (firstGoal) {
+                        FilledTonalButton(
+                            enabled = !mutationBlocked,
+                            onClick = { editGoal(null) },
+                            modifier = Modifier
+                                .heightIn(min = 48.dp)
+                                .testTag("savings_goal_new"),
+                        ) { Text("Ορισμός στόχου αποταμίευσης") }
+                    } else {
+                        TextButton(
+                            enabled = !mutationBlocked,
+                            onClick = { editGoal(null) },
+                            modifier = Modifier
+                                .heightIn(min = 48.dp)
+                                .testTag("savings_goal_new"),
+                        ) { Text("Νέος στόχος αποταμίευσης") }
+                    }
                 }
             }
             if (state.savingsGoalItems.isNotEmpty()) {
@@ -830,7 +844,14 @@ fun CanonicalSavingsScreen(
                                     enabled = !mutationBlocked && uniqueGoal,
                                     onClick = { if (uniqueGoal) confirmDeleteId = goal.id },
                                     modifier = Modifier.testTag("savings_goal_delete_" + goal.id),
-                                ) { Text("Διαγραφή στόχου") }
+                                ) {
+                                    Text(
+                                        "Διαγραφή στόχου",
+                                        color = if (!mutationBlocked && uniqueGoal)
+                                            MaterialTheme.colorScheme.error
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                    )
+                                }
                             }
                         }
                     }
@@ -838,19 +859,19 @@ fun CanonicalSavingsScreen(
             }
             if (state.savingsGoalItems.isEmpty() && state.savingsGoal == null) {
                 item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                if (onSaveGoal != null) "Δεν έχεις ορίσει στόχο αποταμίευσης" else "Ο στόχος δεν είναι διαθέσιμος ακόμη",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                if (onSaveGoal != null) "Δημιούργησε στόχο από την ενέργεια παραπάνω. Οι αποταμιεύσεις σου δεν μεταφέρονται αυτόματα." else "Μπορείς να βλέπεις το αποταμιευμένο ποσό σου. Η επεξεργασία στόχου θα εμφανιστεί όταν υποστηρίζεται από τον λογαριασμό σου.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text(
+                            if (onSaveGoal != null) "Δεν έχεις ορίσει στόχο αποταμίευσης"
+                            else "Ο στόχος δεν είναι διαθέσιμος ακόμη",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            if (onSaveGoal != null) "Ο στόχος δεν μεταφέρει χρήματα αυτόματα."
+                            else "Το αποταμιευμένο ποσό παραμένει διαθέσιμο για προβολή.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }

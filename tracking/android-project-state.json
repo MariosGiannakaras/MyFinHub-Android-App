@@ -1375,9 +1375,14 @@
         "focus": "Flat Savings history, compact Loans sorting and Lending filter controls"
       },
       {
+        "sha": "279e942727de39d7bb01582b84e60ba2f577caef",
+        "focus": "Lending selected-person affordance and flat read-only history",
+        "status": "source_committed_unvalidated"
+      },
+      {
         "sha": null,
         "ref": "android/ui-ux-interaction-redesign-20261119",
-        "focus": "Lending selected-person affordance and flat read-only history",
+        "focus": "Savings goal create hierarchy, compact empty state and destructive action semantics",
         "status": "source_committed_unvalidated"
       }
     ],
