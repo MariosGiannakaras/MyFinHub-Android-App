@@ -46,7 +46,7 @@ class WebParityLargeTypeComposeTest {
                     CanonicalRecurringManagementScreen(
                         state=state,onBack={},
                         onStatusChanged={_,_->error("No unconfirmed mutation")},
-                        mutationBlocked=true,
+                        mutationBlocked=false,
                     )
                 }
             }

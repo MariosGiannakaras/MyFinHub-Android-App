@@ -1,0 +1,59 @@
+# Temporary one-shot mirror reconciliation for PR #490; delete after success.
+name: PR490 synchronize reviewed screenshots
+
+on:
+  push:
+    branches:
+      - android/ui-ux-interaction-redesign-20261119
+    paths:
+      - .github/workflows/ui-ux-pr490-sync-mirrors.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync-public-screenshots:
+    if: github.repository == 'MariosGiannakaras/MyFinHub-Android-App' && github.ref == 'refs/heads/android/ui-ux-interaction-redesign-20261119'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout existing UI/UX PR branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: true
+
+      - name: Copy official Compose goldens to public mirrors
+        run: python3 scripts/verify_visual_reference_mirrors.py --sync
+
+      - name: Ensure public visual invariant and canonical tracking pass
+        run: |
+          python3 scripts/render_project_tracking.py --check
+          python3 -m unittest discover -s scripts -p 'test_project_tracking.py'
+
+      - name: Stage exact visual mirrors and reject unrelated content
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- screenshots
+          git diff --cached --check
+          mapfile -t changed < <(git diff --cached --name-only)
+          if (( ${#changed[@]} != 26 )); then
+            echo "Expected exactly 26 stale public mirrors, got ${#changed[@]}" >&2
+            exit 1
+          fi
+          for path in "${changed[@]}"; do
+            if [[ "$path" != screenshots/*.png && "$path" != screenshots/*/*.png ]]; then
+              echo "Unexpected staged path: $path" >&2
+              exit 1
+            fi
+          done
+          echo "Validated ${#changed[@]} synchronized public mirrors."
+
+      - name: Commit exact mirror updates to the existing PR
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -m 'test(android): sync public UI/UX screenshot mirrors with Compose goldens'
+          git push origin HEAD:refs/heads/android/ui-ux-interaction-redesign-20261119

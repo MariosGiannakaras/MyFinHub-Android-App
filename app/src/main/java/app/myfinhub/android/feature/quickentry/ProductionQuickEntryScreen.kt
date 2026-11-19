@@ -89,6 +89,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 private val FastKinds = listOf(
     QuickEntryKind.EXPENSE,
@@ -1094,10 +1095,11 @@ private fun ProductionDateChoice(
     var pickerRequested by remember { mutableStateOf(false) }
     var pickerOpen by remember { mutableStateOf(false) }
 
-    // The IME animates out asynchronously. Wait until the calendar has the
-    // whole viewport rather than racing its layout against the keyboard.
+    // Prefer opening after the keyboard closes, but do not strand the user
+    // when an OEM IME or emulator fails to report a final zero inset.
     LaunchedEffect(pickerRequested, imeBottom) {
-        if (pickerRequested && imeBottom == 0) {
+        if (pickerRequested) {
+            if (imeBottom > 0) delay(600)
             pickerOpen = true
             pickerRequested = false
         }
