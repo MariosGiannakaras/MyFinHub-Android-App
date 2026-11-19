@@ -712,35 +712,36 @@ fun CanonicalSavingsScreen(
             }
                 // Web history may contain duplicate legacy IDs. Compose identity is
                 // presentation-only: never expose any row as an unsafe mutation target.
+                // Savings history is read-only: flat rows avoid a card for every event.
                 itemsIndexed(state.savingsHistory, key = { index, row ->
                     "savings-history-$index-${row.origin}-${row.id}"
                 }) { index, row ->
-                    MyFinHubSectionCard(
-                        modifier = Modifier.fillMaxWidth()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = MyFinHubSpacing.xs)
                             .testTag("savings_history_row_$index"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(row.primary, style = MaterialTheme.typography.titleSmall)
-                                    Text(
-                                        row.date + " · " +
-                                            if (row.hasUserNote) "Τύπος: ${row.sourceLabel}"
-                                            else "Χωρίς ξεχωριστό σχόλιο",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                MyFinHubAmountText(
-                                    amountVisibilityText(formatCanonicalEuro(row.amount), amountsVisible),
-                                    FinanceTone.Savings,
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(row.primary, style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    row.date + if (row.hasUserNote) " · Τύπος: ${row.sourceLabel}" else "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                            MyFinHubAmountText(
+                                amountVisibilityText(formatCanonicalEuro(row.amount), amountsVisible),
+                                FinanceTone.Savings,
+                            )
                         }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
             }
@@ -1263,38 +1264,38 @@ fun CanonicalLoansScreen(
                 }
             } else {
                 item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
-                        .testTag("loan_sort_controls")) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text("Ταξινόμηση", style = MaterialTheme.typography.titleSmall)
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                listOf("remaining" to "Δόσεις", "amount" to "Ποσό")
-                                    .forEach { (key, label) ->
-                                        androidx.compose.material3.FilterChip(
-                                            selected = sortKey == key,
-                                            onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
-                                            label = { Text(label) },
-                                        )
-                                    }
-                            }
-                            Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                                listOf("name" to "Όνομα", "next" to "Ημέρα")
-                                    .forEach { (key, label) ->
-                                        androidx.compose.material3.FilterChip(
-                                            selected = sortKey == key,
-                                            onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
-                                            label = { Text(label) },
-                                        )
-                                    }
-                            }
-                            TextButton(
-                                onClick = { ascending = !ascending },
-                                modifier = Modifier.testTag("loan_sort_direction"),
-                            ) { Text(if (ascending) "Αύξουσα ↑" else "Φθίνουσα ↓") }
+                    Column(
+                        modifier = Modifier.fillMaxWidth().testTag("loan_sort_controls"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        Text("Ταξινόμηση", style = MaterialTheme.typography.titleSmall)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            listOf("remaining" to "Δόσεις", "amount" to "Ποσό")
+                                .forEach { (key, label) ->
+                                    androidx.compose.material3.FilterChip(
+                                        selected = sortKey == key,
+                                        onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
+                                        label = { Text(label) },
+                                    )
+                                }
                         }
+                        Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            listOf("name" to "Όνομα", "next" to "Ημέρα")
+                                .forEach { (key, label) ->
+                                    androidx.compose.material3.FilterChip(
+                                        selected = sortKey == key,
+                                        onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
+                                        label = { Text(label) },
+                                    )
+                                }
+                        }
+                        TextButton(
+                            onClick = { ascending = !ascending },
+                            modifier = Modifier.testTag("loan_sort_direction"),
+                        ) { Text(if (ascending) "Αύξουσα ↑" else "Φθίνουσα ↓") }
                     }
                 }
                 item {
@@ -1479,27 +1480,23 @@ fun CanonicalLendingScreen(
                 }
             } else {
                 item {
-                    MyFinHubSectionCard(
-                        modifier = Modifier.fillMaxWidth().testTag("lending_person_selector")
+                    Column(
+                        modifier = Modifier.fillMaxWidth().testTag("lending_person_selector"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text("Πρόσωπα", style = MaterialTheme.typography.titleMedium)
-                            OutlinedTextField(
-                                value = query,
-                                onValueChange = { query = it; peopleLimit = 24 },
-                                label = { Text("Αναζήτηση προσώπου") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("lending_person_search"),
-                            )
+                        Text("Πρόσωπα", style = MaterialTheme.typography.titleMedium)
+                        OutlinedTextField(
+                            value = query,
+                            onValueChange = { query = it; peopleLimit = 24 },
+                            label = { Text("Αναζήτηση προσώπου") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth().testTag("lending_person_search"),
+                        )
+                        if (focusPerson != null) {
                             TextButton(
                                 onClick = { selectedPerson = null; historyLimit = 30 },
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("lending_all_people"),
-                            ) {
-                                Text(if (focusPerson == null) "✓ Όλα τα πρόσωπα"
-                                else "Προβολή όλων των προσώπων")
-                            }
+                                modifier = Modifier.testTag("lending_all_people"),
+                            ) { Text("Προβολή όλων των προσώπων") }
                         }
                     }
                 }
@@ -1610,39 +1607,39 @@ fun CanonicalLendingScreen(
                     )
                 }
                 item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
-                        .testTag("lending_history_filters")) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            ) {
-                                androidx.compose.material3.FilterChip(
-                                    selected = actionFilter == "all",
-                                    onClick = { actionFilter = "all"; historyLimit = 30 },
-                                    label = { Text("Όλες") },
-                                )
-                                androidx.compose.material3.FilterChip(
-                                    selected = actionFilter == "lent",
-                                    onClick = { actionFilter = "lent"; historyLimit = 30 },
-                                    label = { Text("Έδωσα") },
-                                )
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            ) {
-                                androidx.compose.material3.FilterChip(
-                                    selected = actionFilter == "repaid",
-                                    onClick = { actionFilter = "repaid"; historyLimit = 30 },
-                                    label = { Text("Επιστροφές") },
-                                )
-                                androidx.compose.material3.FilterChip(
-                                    selected = actionFilter == "forgiven",
-                                    onClick = { actionFilter = "forgiven"; historyLimit = 30 },
-                                    label = { Text("Διαγραφές") },
-                                )
-                            }
+                    Column(
+                        modifier = Modifier.fillMaxWidth().testTag("lending_history_filters"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                        ) {
+                            androidx.compose.material3.FilterChip(
+                                selected = actionFilter == "all",
+                                onClick = { actionFilter = "all"; historyLimit = 30 },
+                                label = { Text("Όλες") },
+                            )
+                            androidx.compose.material3.FilterChip(
+                                selected = actionFilter == "lent",
+                                onClick = { actionFilter = "lent"; historyLimit = 30 },
+                                label = { Text("Έδωσα") },
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                        ) {
+                            androidx.compose.material3.FilterChip(
+                                selected = actionFilter == "repaid",
+                                onClick = { actionFilter = "repaid"; historyLimit = 30 },
+                                label = { Text("Επιστροφές") },
+                            )
+                            androidx.compose.material3.FilterChip(
+                                selected = actionFilter == "forgiven",
+                                onClick = { actionFilter = "forgiven"; historyLimit = 30 },
+                                label = { Text("Διαγραφές") },
+                            )
                         }
                     }
                 }

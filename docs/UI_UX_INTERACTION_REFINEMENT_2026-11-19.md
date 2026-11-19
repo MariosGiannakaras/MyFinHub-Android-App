@@ -117,3 +117,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Loan payments: replace account names prefixed by a visual tick with full-width 48dp radio-selection rows, readable at enlarged font sizes and accessible as selected/unselected choices. Preserve eligible account filtering, explicit payer/destination selection, payment preview and confirm-only financial posting.
 - Loan metadata: make the long-term recurring checkbox label a single tappable target, with one checkbox interaction instead of separate row/control targets. Preserve the original boolean state and validation/write callback.
 - No builds, tests, lint, static analysis, or physical UI validation were executed by instruction.
+
+## Checkpoint 13 — contextual savings, loans and lending lists
+
+- Savings history uses compact read-only rows and dividers rather than individually framed cards; retain canonical row ordering, existing identity keys, test tags, amount privacy and all historical amounts. Avoid repeating "no separate comment" on every item.
+- Loans sorting is a flat control group rather than a card nested between the hero and results; retain all four sort modes, the direction switch, pagination resets, tags and payment/editor behavior.
+- Lending person selection and history filters are flat. The "show all" action appears only when a person is selected; no inactive all-people button consumes space on the default overview. Keep the existing query, selected person, filter state and history semantics.
+- No domain finance, mutation, backend or persistence code was modified. UI changes remain unvalidated by instruction (no build, automated tests, lint or other checks).
