@@ -47,3 +47,7 @@ Additional screens and flows continue in subsequent source-only checkpoints on t
 | Auth | Login, MFA, PIN enrollment/unlock, biometric, loading/error | Less redundant text and shared responsive components; security rules unchanged |
 
 This branch delivers source-only UI refinements; pixel-level, device, runtime, and regression acceptance is NOT established. No validation commands or physical UI review have been performed. Existing finance/release workstream progress and release state remain unchanged.
+
+## Canonical tracking and Git integration state
+
+The separate source-only workstream is recorded under `ui_ux_refinement_2026_11_19` in `tracking/android-project-state.json`. Historical completed redesign counts, active finance-contract issue #155, release candidate facts, server/API state and S24 physical acceptance are intentionally unchanged. Generated STATUS/TODO/handoff fields have not been changed. This feature branch is not merged to `develop` and has no pull request because the owner prohibited builds, tests and other validation, including CI; no APK/release publication was performed.

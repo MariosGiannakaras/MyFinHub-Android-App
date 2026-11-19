@@ -1323,5 +1323,31 @@
         "evidence": []
       }
     ]
+  },
+  "ui_ux_refinement_2026_11_19": {
+    "branch": "android/ui-ux-interaction-redesign-20261119",
+    "base_branch": "develop",
+    "status": "source_committed_unvalidated",
+    "scope": "Android existing UI screens and interactions; no backend or releases",
+    "checkpoints": [
+      {
+        "sha": "0514298e41d8b06bb2731fcc78974b489239ee16",
+        "focus": "Shared visual density, Settings, update actions"
+      },
+      {
+        "sha": "621c8d4676924a32f57a5f63c64d0387d2af42ab",
+        "focus": "Home, Wallet, Plan, Analysis, notices and diagnostics"
+      },
+      {
+        "sha": "0fe799044017248270f3b31271552a7992abafc1",
+        "focus": "Quick Entry, Activity, Card details, account tap targets and login"
+      }
+    ],
+    "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
+    "validation": "not_run_as_explicitly_requested",
+    "owner_device_acceptance": "not_claimed",
+    "pull_request": null,
+    "release_created": false,
+    "merging_to_develop": "not_performed_no_checks"
   }
 }

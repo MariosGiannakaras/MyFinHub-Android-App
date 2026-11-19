@@ -103,7 +103,7 @@ fun MyFinHubScreenHeader(
                 subtitle?.let {
                     Text(
                         text = it,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
