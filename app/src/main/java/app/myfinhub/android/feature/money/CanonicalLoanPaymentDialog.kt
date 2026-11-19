@@ -178,7 +178,9 @@ fun CanonicalLoanPaymentDialog(
                 Text("Λογαριασμός πληρωμής", style = MaterialTheme.typography.labelLarge)
                 if (usable.none { it.id == source }) {
                     Text(
-                        "Επίλεξε ρητά διαθέσιμο λογαριασμό πληρωμής.",
+                        if (usable.isEmpty())
+                            "Δεν υπάρχει διαθέσιμος μοναδικός λογαριασμός πληρωμής."
+                        else "Επίλεξε ρητά διαθέσιμο λογαριασμό πληρωμής.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.testTag("loan_payment_payer_required"),
@@ -200,7 +202,9 @@ fun CanonicalLoanPaymentDialog(
                     Text("Λογαριασμός αποταμίευσης",style=MaterialTheme.typography.labelLarge)
                     if (savings.none { it.id == saving && it.id != source }) {
                         Text(
-                            "Επίλεξε ρητά διαφορετικό αποταμιευτικό λογαριασμό.",
+                            if (savings.none { it.id != source })
+                                "Δεν υπάρχει διαθέσιμος αποταμιευτικός λογαριασμός διαφορετικός από την πηγή."
+                            else "Επίλεξε ρητά διαφορετικό αποταμιευτικό λογαριασμό.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.testTag("loan_payment_savings_required"),

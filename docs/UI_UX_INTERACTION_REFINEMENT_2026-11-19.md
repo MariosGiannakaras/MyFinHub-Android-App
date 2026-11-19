@@ -296,3 +296,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Card Create's plain visible input for the full primary account number and CVV now uses Compose's standard password visual transformation to mask entered digits on screen, consistent with device-local secret-data handling. This is a presentation-only safeguard against inadvertent shoulder-surfing during typing.
 - Preserve the existing original digit-only input filters, length limits, numeric keyboards, validation error strings, input test tags and secure local vault write of the unchanged characters. The expiration field and non-secret card profile fields remain unchanged. No credentials are persisted to new storage, and no secret is added to UI logs or tracking.
 - Source-only and unvalidated; no build, tests, lint, static analysis, screenshots or physical device verification.
+
+## Checkpoint 40 — actionable empty payment-account explanations
+
+- When the canonical loan payment dialog has zero unique eligible payer accounts, its existing required-account message now distinguishes missing account availability from an unselected existing account. The loan payment preview continues to reject both situations unchanged.
+- A self-loan return also explains when no eligible savings destination distinct from the selected source exists; if one exists but none is chosen, the original explicit-choice instruction remains. The same warning tags, canonical route checks and final confirmation gate stay intact.
+- No new account suggestions, default identities, finance writes, storage changes or altered validation logic. Source-only; no build, tests, lint, static analysis or device verification.
