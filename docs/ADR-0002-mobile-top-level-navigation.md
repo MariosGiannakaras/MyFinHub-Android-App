@@ -30,3 +30,9 @@ The earlier five-destination approach optimized for Web feature parity. The owne
 ## Validation
 
 The new three-tab companion interaction is covered by unit and Android instrumentation tests. No successful build, CI, device rendering, or physical sign-off is implied by authoring those tests. All existing release and installation-safety gates remain in force.
+
+## November 19, 2026 — source-only interaction refresh
+
+The November compact-UI follow-up preserves this three-destination companion model and its existing finance/security routes. The Settings presentation uses flat Material 3 rows and direct switches instead of nested cards and full-width secondary actions. Update/install rejection, local amount privacy, Android notification settings, notice history, diagnostics, sign-out and package identity remain unchanged at the interaction contract level.
+
+This is an **unvalidated source checkpoint**: no builds, tests, lint, screenshots, device acceptance or static-analysis commands were executed, per explicit owner instruction. Source work is recorded separately from completed historical UI acceptance and pending physical release acceptance in `tracking/android-project-state.json`.

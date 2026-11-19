@@ -6,14 +6,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.core.update.UpdateFailureKind
 import app.myfinhub.android.core.update.UpdateUiState
-import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
-import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSettingsSection
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.util.Locale
 
@@ -27,8 +26,7 @@ internal fun updateRecoveryAction(kind: UpdateFailureKind, releaseAvailable: Boo
     UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH -> if (releaseAvailable) UpdateRecoveryAction.DOWNLOAD else UpdateRecoveryAction.CHECK
 
     UpdateFailureKind.INSTALL_PERMISSION_REQUIRED -> UpdateRecoveryAction.INSTALL_PERMISSION
-    // If the OS/package verifier rejected the APK, never offer a bypass or
-    // an immediate retry of the same rejected file.
+    // OS/package-verifier rejection must not offer a bypass or retry of the rejected file.
     UpdateFailureKind.INSTALL_BLOCKED -> UpdateRecoveryAction.NO_RETRY
     UpdateFailureKind.INSTALL_FAILED -> if (releaseAvailable) UpdateRecoveryAction.INSTALL else UpdateRecoveryAction.CHECK
 
@@ -45,26 +43,20 @@ internal fun UpdateSettingsCard(
     onOpenInstallPermission: () -> Unit,
     onAuthRecovery: () -> Unit = {},
 ) {
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+    MyFinHubSettingsSection("Ενημερώσεις") {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            Text("Ενημερώσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-            Text(
-                "Τρέχουσα έκδοση $currentVersionName",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             when (state) {
                 UpdateUiState.Idle -> {
-                    StatusText("Έλεγξε αν υπάρχει νεότερη εγκεκριμένη έκδοση.")
-                    MyFinHubOutlinedAction("Έλεγχος για ενημερώσεις", onCheck, Modifier.fillMaxWidth())
+                    StatusText("Έλεγχος για νεότερη έκδοση.")
+                    TextButton(onClick = onCheck) { Text("Έλεγχος ενημερώσεων") }
                 }
                 UpdateUiState.Checking -> {
-                    StatusText("Έλεγχος για νέα έκδοση…")
+                    StatusText("Γίνεται έλεγχος ενημερώσεων…")
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
                 UpdateUiState.UpToDate -> {
-                    StatusText("Η εφαρμογή είναι ενημερωμένη.")
-                    MyFinHubOutlinedAction("Έλεγχος ξανά", onCheck, Modifier.fillMaxWidth())
+                    StatusText("Η έκδοση $currentVersionName είναι ενημερωμένη.")
+                    TextButton(onClick = onCheck) { Text("Έλεγχος ξανά") }
                 }
                 is UpdateUiState.Available -> {
                     ReleaseCopy(state.release.versionName, state.release.sizeBytes, state.release.notes, state.release.mandatory)
@@ -80,35 +72,30 @@ internal fun UpdateSettingsCard(
                 }
                 is UpdateUiState.ReadyToInstall -> {
                     ReleaseCopy(state.release.versionName, state.release.sizeBytes, state.release.notes, state.release.mandatory)
-                    StatusText("Το αρχείο επαληθεύτηκε και είναι έτοιμο για εγκατάσταση.")
+                    StatusText("Το επαληθευμένο αρχείο είναι έτοιμο.")
                     MyFinHubPrimaryAction("Εγκατάσταση ενημέρωσης", onInstall, Modifier.fillMaxWidth(), icon = null)
                 }
                 is UpdateUiState.PermissionRequired -> {
                     ReleaseCopy(state.release.versionName, state.release.sizeBytes, state.release.notes, state.release.mandatory)
-                    StatusText("Το Android χρειάζεται άδεια για εγκατάσταση αυτής της ιδιωτικής ενημέρωσης.")
-                    MyFinHubPrimaryAction("Άνοιγμα ρύθμισης εγκατάστασης", onOpenInstallPermission, Modifier.fillMaxWidth(), icon = null)
+                    StatusText("Το Android απαιτεί άδεια για αυτή την ιδιωτική ενημέρωση.")
+                    MyFinHubPrimaryAction("Ρύθμιση εγκατάστασης", onOpenInstallPermission, Modifier.fillMaxWidth(), icon = null)
                 }
                 is UpdateUiState.Installing -> {
-                    StatusText("Η εγκατάσταση της έκδοσης ${state.release.versionName} ξεκίνησε. Το Android μπορεί να ζητήσει επιβεβαίωση.")
+                    StatusText("Ξεκίνησε η εγκατάσταση της ${state.release.versionName}. Το Android μπορεί να ζητήσει επιβεβαίωση.")
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
                 is UpdateUiState.Failure -> {
                     StatusText(updateFailureMessage(state.kind))
                     when (updateRecoveryAction(state.kind, state.release != null)) {
-                        UpdateRecoveryAction.AUTH -> MyFinHubOutlinedAction("Σύνδεση ξανά", onAuthRecovery, Modifier.fillMaxWidth())
-                        UpdateRecoveryAction.DOWNLOAD -> MyFinHubOutlinedAction("Λήψη ξανά", onDownload, Modifier.fillMaxWidth())
-                        UpdateRecoveryAction.INSTALL -> MyFinHubOutlinedAction("Εγκατάσταση ξανά", onInstall, Modifier.fillMaxWidth())
-                        UpdateRecoveryAction.INSTALL_PERMISSION -> MyFinHubOutlinedAction("Άνοιγμα ρύθμισης εγκατάστασης", onOpenInstallPermission, Modifier.fillMaxWidth())
-                        UpdateRecoveryAction.CHECK -> MyFinHubOutlinedAction("Έλεγχος ξανά", onCheck, Modifier.fillMaxWidth())
+                        UpdateRecoveryAction.AUTH -> TextButton(onClick = onAuthRecovery) { Text("Σύνδεση ξανά") }
+                        UpdateRecoveryAction.DOWNLOAD -> TextButton(onClick = onDownload) { Text("Λήψη ξανά") }
+                        UpdateRecoveryAction.INSTALL -> TextButton(onClick = onInstall) { Text("Εγκατάσταση ξανά") }
+                        UpdateRecoveryAction.INSTALL_PERMISSION -> TextButton(onClick = onOpenInstallPermission) { Text("Ρύθμιση εγκατάστασης") }
+                        UpdateRecoveryAction.CHECK -> TextButton(onClick = onCheck) { Text("Έλεγχος ξανά") }
                         UpdateRecoveryAction.NO_RETRY -> Unit
                     }
                 }
             }
-            Text(
-                "Πριν από εγκατάσταση ελέγχονται πηγή, ακεραιότητα, πακέτο, νεότερη έκδοση και υπογραφή.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

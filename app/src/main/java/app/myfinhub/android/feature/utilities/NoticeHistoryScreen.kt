@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -22,7 +23,6 @@ import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
-import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.time.Instant
 import java.time.ZoneId
@@ -39,7 +39,6 @@ fun NoticeHistoryScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Ιστορικό ειδοποιήσεων",
-                subtitle = "Συμβάντα εφαρμογής για ενημέρωση και υποστήριξη",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -54,78 +53,68 @@ fun NoticeHistoryScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            item {
+            item("privacy-note") {
                 Text(
-                    "Το ιστορικό βοηθά στην αντιμετώπιση προβλημάτων και κρατά μόνο χρόνο και ασφαλή κωδικό υποστήριξης. Δεν αποθηκεύει ποσά, οικονομικά δεδομένα ή στοιχεία λογαριασμού και κάρτας.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    "Μόνο ασφαλείς κωδικοί συμβάντων και χρόνος καταγραφής. Χωρίς οικονομικά ή στοιχεία καρτών.",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             if (entries.isEmpty()) {
-                item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                            Text(
-                                "Δεν υπάρχουν ειδοποιήσεις",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                "Όταν υπάρξει συμβάν σύνδεσης, συγχρονισμού ή εφαρμογής, θα εμφανιστεί εδώ χωρίς οικονομικές λεπτομέρειες.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                item("empty") {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                        Text("Δεν υπάρχουν ειδοποιήσεις", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Τα συμβάντα σύνδεσης και συγχρονισμού θα εμφανίζονται εδώ.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             } else {
-                item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            entries.forEachIndexed { index, entry ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                                    verticalAlignment = Alignment.Top,
-                                ) {
-                                    MyFinHubIconBadge(
-                                        icon = MyFinHubIcons.Attention,
-                                        tone = FinanceTone.Neutral,
-                                        contentDescription = null,
+                itemsIndexed(entries) { index, entry ->
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            MyFinHubIconBadge(
+                                icon = MyFinHubIcons.Attention,
+                                tone = FinanceTone.Neutral,
+                                contentDescription = null,
+                            )
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                Text(
+                                    entry.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Text(
+                                    diagnosticCodeDescription(entry.diagnosticCode)
+                                        ?: "Συμβάν εφαρμογής για υποστήριξη.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    formatNoticeTime(entry.occurredAtEpochMillis),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                SelectionContainer {
+                                    Text(
+                                        "Κωδικός υποστήριξης · ${entry.diagnosticCode}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
-                                    Column(
-                                        modifier = Modifier.weight(1f),
-                                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
-                                    ) {
-                                        Text(
-                                            entry.title,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                        )
-                                        Text(
-                                            diagnosticCodeDescription(entry.diagnosticCode)
-                                                ?: "Καταγράφηκε συμβάν εφαρμογής για υποστήριξη.",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            formatNoticeTime(entry.occurredAtEpochMillis),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        SelectionContainer {
-                                            Text(
-                                                "Κωδικός υποστήριξης · ${entry.diagnosticCode}",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            )
-                                        }
-                                    }
-                                }
-                                if (index != entries.lastIndex) {
-                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                                 }
                             }
+                        }
+                        if (index != entries.lastIndex) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }
                 }

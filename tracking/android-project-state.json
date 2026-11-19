@@ -1323,5 +1323,25 @@
         "evidence": []
       }
     ]
+  },
+  "ui_ux_refresh_20261119": {
+    "branch": "android/ui-ux-interaction-refresh-20261119",
+    "scope": "Live three-tab Android companion and its reachable detail, editor, settings and support surfaces; no finance/backend/release changes.",
+    "status": "in_progress_source_only",
+    "validation": "Not run (owner explicitly prohibited builds, tests, static analysis, lint and validation commands).",
+    "checkpoints": [
+      {
+        "id": "UI1",
+        "status": "implemented_unvalidated",
+        "summary": "Flat, responsive Material 3 settings rows; compact appearance/privacy controls, notifications, about/version, updates and notice history.",
+        "files": [
+          "app/src/main/java/app/myfinhub/android/designsystem/MyFinHubSettingsComponents.kt",
+          "app/src/main/java/app/myfinhub/android/feature/utilities/MobileDeviceSettingsScreen.kt",
+          "app/src/main/java/app/myfinhub/android/feature/utilities/UpdateSettingsCard.kt",
+          "app/src/main/java/app/myfinhub/android/feature/utilities/NoticeHistoryScreen.kt"
+        ]
+      }
+    ],
+    "next_action": "Review remaining live Home/Activity/Cards, account/card detail, Quick Entry and auth presentation; implement only safe UI changes, without validation."
   }
 }
