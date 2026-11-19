@@ -114,25 +114,42 @@ fun InsightsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            val earlier = if (historicIndex < 0) state.historicalMonths.firstOrNull()
-                                else state.historicalMonths.getOrNull(historicIndex + 1)
-                            val later = if (historicIndex <= 0) state.periods
-                                .firstOrNull { it.id == INSIGHTS_PERIOD_MONTH }
-                                else state.historicalMonths.getOrNull(historicIndex - 1)
+                        val earlier = if (historicIndex < 0) state.historicalMonths.firstOrNull()
+                            else state.historicalMonths.getOrNull(historicIndex + 1)
+                        val later = if (historicIndex <= 0) state.periods
+                            .firstOrNull { it.id == INSIGHTS_PERIOD_MONTH }
+                            else state.historicalMonths.getOrNull(historicIndex - 1)
+                        val previousAction: @Composable (Modifier) -> Unit = { modifier ->
                             TextButton(
                                 enabled = earlier != null,
                                 onClick = { earlier?.let { onPeriodSelected(it.id) } },
-                                modifier = Modifier.testTag("insights_report_previous_month"),
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("insights_report_previous_month"),
                             ) { Text("Προηγούμενος") }
+                        }
+                        val nextAction: @Composable (Modifier) -> Unit = { modifier ->
                             TextButton(
                                 enabled = later != null && historicIndex >= 0,
                                 onClick = { later?.let { onPeriodSelected(it.id) } },
-                                modifier = Modifier.testTag("insights_report_next_month"),
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("insights_report_next_month"),
                             ) { Text("Επόμενος") }
+                        }
+                        if (largeFont) {
+                            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                                previousAction(Modifier.fillMaxWidth())
+                                nextAction(Modifier.fillMaxWidth())
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                previousAction(Modifier)
+                                nextAction(Modifier)
+                            }
                         }
                     }
                 }
@@ -847,17 +864,44 @@ private fun AnalysisDetailsCard(
 ) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("insights_details")) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Έσοδα, καθαρό & πορεία", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    Text("Δευτερεύουσα ανάλυση", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val detailsHeading: @Composable (Modifier) -> Unit = { modifier ->
+                Column(modifier = modifier) {
+                    Text(
+                        "Έσοδα, καθαρό & πορεία",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        "Δευτερεύουσα ανάλυση",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-                TextButton(onClick = onToggle, modifier = Modifier.testTag("insights_details_toggle")) {
-                    Text(if (expanded) "Απόκρυψη" else "Προβολή")
+            }
+            val detailsAction: @Composable () -> Unit = {
+                TextButton(
+                    onClick = onToggle,
+                    modifier = Modifier
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                        .testTag("insights_details_toggle"),
+                ) { Text(if (expanded) "Απόκρυψη" else "Προβολή") }
+            }
+            if (LocalDensity.current.fontScale >= 1.3f) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                ) {
+                    detailsHeading(Modifier.fillMaxWidth())
+                    detailsAction()
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    detailsHeading(Modifier.weight(1f))
+                    detailsAction()
                 }
             }
             if (expanded) {

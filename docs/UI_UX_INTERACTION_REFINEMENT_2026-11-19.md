@@ -235,3 +235,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - The canonical Account Detail ledger now uses the same native search field as Activity, including an accessible in-field clear action that removes only the query; the kind filter and account scope are unaffected. Keep the original `account_history_search` test tag, the six-record threshold, Web search indexing and existing explicit clear-all-filters button.
 - When no transactions match, show the existing message as a compact text state instead of a nested card. Preserve the original distinction between an empty ledger and an empty filtered result.
 - No account metadata, IBAN validation, financial totals, unique source IDs or navigation callback was changed. Source only, not validated by build/tests/lint/device.
+
+## Checkpoint 30 — Insights month navigation and secondary details at large font
+
+- When calendar-month Reports navigation is visible, stack Previous/Next actions at 130%+ Android font instead of forcing two labels into one narrow row. Preserve previous and next historical period identities, disabled boundaries and original action tags. Standard fonts retain the existing horizontal layout.
+- In the secondary income/net/trajectory analysis card, place the disclosure action below the heading at enlarged fonts while keeping the disclosure state, amount privacy and six-month reporting source unchanged.
+- Both controls retain minimum 48dp hit targets; no new finance actions, analytics calculations or persistence changes. No build/tests/lint/static-analysis/device checks executed.
