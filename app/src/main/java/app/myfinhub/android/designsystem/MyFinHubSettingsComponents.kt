@@ -8,13 +8,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -35,6 +40,7 @@ fun MyFinHubSettingsSection(
             title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.semantics { heading() },
         )
         content()
         HorizontalDivider(
@@ -74,11 +80,14 @@ fun MyFinHubSettingsLinkRow(
                 )
             }
         }
-        Text(
-            "›",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.clearAndSetSemantics {},
+        Icon(
+            imageVector = MyFinHubIcons.ChevronDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .size(MyFinHubDesignMetrics.compactIconSize)
+                .rotate(-90f)
+                .clearAndSetSemantics {},
         )
     }
 }
@@ -114,6 +123,10 @@ fun MyFinHubSettingsToggleRow(
                 )
             }
         }
-        Switch(checked = checked, onCheckedChange = null)
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            modifier = Modifier.clearAndSetSemantics {},
+        )
     }
 }

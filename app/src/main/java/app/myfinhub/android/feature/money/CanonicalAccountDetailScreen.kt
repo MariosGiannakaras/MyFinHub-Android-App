@@ -28,6 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.core.ui.AccountIbanRow
@@ -218,19 +219,34 @@ fun CanonicalAccountDetailScreen(
                         if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
                             AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
                             if (accountMetadataLoaded && amountsVisible && onSaveAccountIban != null) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                                ) {
+                                val editIbanAction: @Composable () -> Unit = {
                                     TextButton(
                                         enabled = !accountMetadataSaving,
                                         onClick = { editingIban = true },
+                                        modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                                     ) { Text(if (ibanRecord?.iban == null) "Προσθήκη IBAN" else "Αλλαγή IBAN") }
+                                }
+                                val removeIbanAction: @Composable () -> Unit = {
                                     if (ibanRecord?.iban != null) {
                                         TextButton(
                                             enabled = !accountMetadataSaving,
                                             onClick = { deletingIban = true },
+                                            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                                         ) { Text("Αφαίρεση IBAN") }
+                                    }
+                                }
+                                if (LocalDensity.current.fontScale >= 1.3f) {
+                                    Column {
+                                        editIbanAction()
+                                        removeIbanAction()
+                                    }
+                                } else {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                    ) {
+                                        editIbanAction()
+                                        removeIbanAction()
                                     }
                                 }
                             }

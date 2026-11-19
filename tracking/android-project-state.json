@@ -1347,8 +1347,12 @@
         "focus": "Recurring/scheduled action hierarchy, account balance and attention details"
       },
       {
-        "sha": "checkpoint-6-commit-to-be-recorded",
+        "sha": "f1a966815562c6dd3853fa818ee02d6afcacbb83",
         "focus": "Real Wallet route/navigation, flat archived/empty rows and recurring overview"
+      },
+      {
+        "sha": "checkpoint-7-commit-to-be-recorded",
+        "focus": "Settings accessibility, 150% IBAN actions, Wallet card-create hierarchy"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",

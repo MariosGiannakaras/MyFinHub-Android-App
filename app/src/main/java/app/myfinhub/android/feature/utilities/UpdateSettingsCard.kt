@@ -3,6 +3,7 @@ package app.myfinhub.android.feature.utilities
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import app.myfinhub.android.core.update.UpdateFailureKind
 import app.myfinhub.android.core.update.UpdateUiState
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubSettingsSection
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.util.Locale
@@ -107,7 +109,10 @@ private fun UpdateSecondaryAction(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TextButton(onClick = onClick, modifier = modifier) {
+    TextButton(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+    ) {
         Text(label)
     }
 }

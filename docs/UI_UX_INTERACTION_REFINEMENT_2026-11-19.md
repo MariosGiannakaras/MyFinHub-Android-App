@@ -73,3 +73,11 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Flatten empty account/card states and archived-card rows, preserving card restore, archive and secure-card/vault behavior.
 - Flatten the read-only recurring overview item list and surface its actual management entry more clearly; do not reinterpret estimates as actual payments.
 - Changes remain unbuilt, untested, unlinted and visually unverified by explicit request. No release, APK or PR.
+
+## Checkpoint 7 — accessibility and action prominence
+
+- Make every flat settings section a TalkBack heading, use the design-system chevron instead of an unrelated text glyph, and expose one parent toggle target without duplicate internal Switch semantics.
+- Keep manual update secondary actions at the product's minimum 48dp target without changing update, installation or blocked-file handling.
+- Stack IBAN edit/delete actions at 150% font so Greek labels remain usable; keep all existing privacy and authenticated metadata requirements.
+- On the actual Wallet Cards tab, use an appropriately prominent creation action only for the first card, or the existing companion Quick Entry flow; render additional-card creation as a secondary action when cards already exist. Retain archived-card restore with an accessible touch target.
+- Source-only: no builds, lint, automated tests, screenshots or other validation. No release or PR.

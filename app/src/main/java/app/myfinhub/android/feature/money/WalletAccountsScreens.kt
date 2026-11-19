@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -538,11 +539,28 @@ private fun LazyListScope.walletCardsContent(
     onOpenQuickEntry: () -> Unit,
 ) {
     item("cards-action") {
-        MyFinHubPrimaryAction(
-            label = if (companionMode) "Νέα κίνηση" else "Νέα κάρτα",
-            onClick = if (companionMode) onOpenQuickEntry else onAddCard,
-            modifier = Modifier.fillMaxWidth().testTag("cards_primary_action"),
-        )
+        if (companionMode || state.cards.isEmpty()) {
+            MyFinHubPrimaryAction(
+                label = when {
+                    companionMode -> "Νέα κίνηση"
+                    else -> "Προσθήκη κάρτας"
+                },
+                onClick = if (companionMode) onOpenQuickEntry else onAddCard,
+                modifier = Modifier.fillMaxWidth().testTag("cards_primary_action"),
+            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    onClick = onAddCard,
+                    modifier = Modifier
+                        .testTag("cards_primary_action")
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                ) { Text("Νέα κάρτα") }
+            }
+        }
     }
     if (state.cards.isEmpty()) {
         item("cards-empty") {
@@ -643,7 +661,9 @@ private fun LazyListScope.walletCardsContent(
                     )
                     TextButton(
                         onClick = { onRestoreCard(card.id) },
-                        modifier = Modifier.testTag("restore_archived_card_" + card.id),
+                        modifier = Modifier
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .testTag("restore_archived_card_" + card.id),
                     ) { Text("Επαναφορά") }
                 }
             }
