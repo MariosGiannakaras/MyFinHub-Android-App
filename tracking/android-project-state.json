@@ -1327,7 +1327,7 @@
   "ui_ux_refinement_2026_11_19": {
     "branch": "android/ui-ux-interaction-redesign-20261119",
     "base_branch": "develop",
-    "status": "source_committed_unvalidated",
+    "status": "ci_verified_unmerged_pending_owner_acceptance",
     "scope": "Android existing UI screens and interactions; no backend or releases",
     "checkpoints": [
       {
@@ -1560,10 +1560,10 @@
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
-    "validation": "pr_490_ci_rerun_pending_after_compile_fixes",
+    "validation": "pr_490_source_head_9a36918f8bce6e99f9af79dc8a25e796e75222a5_six_exact_head_checks_passed_2026_11_19; verify final head checks again before merge",
     "owner_device_acceptance": "not_claimed",
     "pull_request": 490,
     "release_created": false,
-    "merging_to_develop": "not_performed_pending_ci"
+    "merging_to_develop": "not_performed_pending_explicit_owner_approval"
   }
 }
