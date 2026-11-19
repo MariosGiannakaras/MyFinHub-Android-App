@@ -202,3 +202,11 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 
 - Use a local `isCurrentSection` boolean for the Wallet bottom-sheet selected semantics and selected visual state, avoiding ambiguity between the Compose semantics `selected` receiver property and the screen's `selected` enum value.
 - This only clarifies the existing presentation expression; all section callbacks/routes stay unchanged. Still source-only and not compiled or tested.
+
+## Checkpoint 25 — safer everyday Quick Entry selections and editable optional date
+
+- The Quick Entry searchable choice sheet now distinguishes an unavailable/stale selected source ID from an unset choice; it never substitutes the first available account/card/category label. Show explicit "no available choices" when the source list is empty.
+- Compose display keys include row ordinal plus the original option ID so repeated legacy source IDs cannot crash the LazyColumn; preserve original IDs and existing selection callbacks without synthesizing finance identities.
+- Retain the selected label and add selected accessibility semantics to the full-width, minimum-48dp choice rows. No new financial options or default accounts are introduced.
+- Add a clear action only to the optional Quick Entry expected-return date once it has a value. Clear through the already-existing `DateChanged("")`-style callback, leaving the required transaction date, picker/IME handling, validation and save behavior unchanged.
+- Unvalidated source-only checkpoint: no compilation, tests, lint, static analysis, screenshots, or device testing executed.

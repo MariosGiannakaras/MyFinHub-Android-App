@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -627,7 +628,11 @@ private fun CompactChoice(
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
-    val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second ?: "Επιλογή"
+    val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second ?: when {
+        choices.isEmpty() -> "Δεν υπάρχουν διαθέσιμες επιλογές"
+        selectedId.isNotBlank() -> "Η επιλογή δεν είναι πλέον διαθέσιμη"
+        else -> "Επιλογή"
+    }
 
     MyFinHubSelectorButton(
         label = label,
@@ -686,7 +691,12 @@ private fun CompactChoice(
                         .heightIn(max = 420.dp),
                     contentPadding = PaddingValues(bottom = MyFinHubSpacing.sm),
                 ) {
-                    items(filteredChoices, key = { it.first }) { (id, text) ->
+                    // Imported source IDs may repeat. Render every option without using
+                    // an ambiguous external ID as the sole Compose LazyColumn key.
+                    itemsIndexed(
+                        filteredChoices,
+                        key = { index, choice -> "choice-$index-${choice.first}" },
+                    ) { _, (id, text) ->
                         val vector = choiceIcon?.invoke(id)
                         ListItem(
                             headlineContent = { Text(text) },
@@ -701,11 +711,15 @@ private fun CompactChoice(
                             } else {
                                 null
                             },
-                            modifier = Modifier.clickable {
-                                onSelected(id)
-                                sheetOpen = false
-                                query = ""
-                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                .clickable {
+                                    onSelected(id)
+                                    sheetOpen = false
+                                    query = ""
+                                }
+                                .semantics { selected = id == selectedId },
                         )
                         HorizontalDivider()
                     }
@@ -1065,6 +1079,15 @@ private fun ProductionDateChoice(
             contentDescription = null,
             modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
         )
+    }
+
+    if (optional && value.isNotBlank()) {
+        TextButton(
+            onClick = { onValueChange("") },
+            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                .testTag("quick_entry_optional_date_clear")
+                .semantics { contentDescription = "Καθαρισμός: $label" },
+        ) { Text("Καθαρισμός ημερομηνίας") }
     }
 
     if (pickerOpen) {
