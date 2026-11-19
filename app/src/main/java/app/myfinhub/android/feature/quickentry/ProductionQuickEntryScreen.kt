@@ -636,10 +636,14 @@ private fun CompactChoice(
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
-    val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second ?: when {
-        choices.isEmpty() -> "Δεν υπάρχουν διαθέσιμες επιλογές"
-        selectedId.isNotBlank() -> "Η επιλογή δεν είναι πλέον διαθέσιμη"
-        else -> "Επιλογή"
+    val identityCounts = choices.groupingBy { it.first }.eachCount()
+    val selectedLabel = when {
+        identityCounts[selectedId]?.let { it > 1 } == true -> "Η επιλογή δεν είναι μοναδική"
+        else -> choices.firstOrNull { it.first == selectedId }?.second ?: when {
+            choices.isEmpty() -> "Δεν υπάρχουν διαθέσιμες επιλογές"
+            selectedId.isNotBlank() -> "Η επιλογή δεν είναι πλέον διαθέσιμη"
+            else -> "Επιλογή"
+        }
     }
 
     MyFinHubSelectorButton(
@@ -650,7 +654,7 @@ private fun CompactChoice(
             contentDescription = "$label: $selectedLabel. Αλλαγή επιλογής"
         },
     ) {
-        choiceIcon?.invoke(selectedId)?.let { vector ->
+        choiceIcon?.takeIf { identityCounts[selectedId] == 1 }?.invoke(selectedId)?.let { vector ->
             Icon(imageVector = vector, contentDescription = null, modifier = Modifier.size(20.dp))
         }
         Text(selectedLabel, modifier = Modifier.weight(1f))
@@ -705,16 +709,25 @@ private fun CompactChoice(
                         filteredChoices,
                         key = { index, choice -> "choice-$index-${choice.first}" },
                     ) { _, (id, text) ->
+                        val uniqueIdentity = identityCounts[id] == 1
                         val vector = choiceIcon?.invoke(id)
                         ListItem(
                             headlineContent = { Text(text) },
                             leadingContent = if (vector == null) null else {
                                 { Icon(imageVector = vector, contentDescription = null) }
                             },
-                            supportingContent = subtitles[id]?.let { subtitle ->
+                            supportingContent = if (!uniqueIdentity) {
+                                {
+                                    Text(
+                                        "Μη μοναδική ταυτότητα · δεν μπορεί να επιλεγεί",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                }
+                            } else subtitles[id]?.let { subtitle ->
                                 { Text(subtitle) }
                             },
-                            trailingContent = if (id == selectedId) {
+                            trailingContent = if (uniqueIdentity && id == selectedId) {
                                 { Text("Επιλεγμένο", color = MaterialTheme.colorScheme.primary) }
                             } else {
                                 null
@@ -722,12 +735,12 @@ private fun CompactChoice(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
-                                .clickable {
+                                .clickable(enabled = uniqueIdentity) {
                                     onSelected(id)
                                     sheetOpen = false
                                     query = ""
                                 }
-                                .semantics { selected = id == selectedId },
+                                .semantics { selected = uniqueIdentity && id == selectedId },
                         )
                         HorizontalDivider()
                     }

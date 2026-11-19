@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -381,20 +382,38 @@ private fun LazyListScope.walletAccountsContent(
             )
         }
     } else {
+        val accountIdCounts = state.accounts.groupingBy { it.id }.eachCount()
         WalletAccountGroup.entries.forEach { group ->
             val accounts = walletAccountsInGroup(state, group)
             if (accounts.isNotEmpty()) {
                 item("account-heading-${group.name}") {
                     Text(group.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }
-                items(accounts, key = MoneyAccount::id) { account ->
+                itemsIndexed(
+                    accounts,
+                    key = { index, account -> "account-${group.name}-$index-${account.id}" },
+                ) { index, account ->
+                    val unambiguousId = account.id.isNotBlank() &&
+                        account.id == account.id.trim() && accountIdCounts[account.id] == 1
                     WalletAccountRow(
                         account = account,
                         amountsVisible = amountsVisible,
-                        ibanRecord = accountMetadata[account.id],
-                        accountMetadataLoaded = accountMetadataLoaded,
-                        onClick = { onOpenAccount(account.id) },
+                        // A duplicated source ID must not display another account's IBAN.
+                        ibanRecord = if (unambiguousId) accountMetadata[account.id] else null,
+                        accountMetadataLoaded = accountMetadataLoaded && unambiguousId,
+                        canOpen = unambiguousId,
+                        onClick = { if (unambiguousId) onOpenAccount(account.id) },
                     )
+                    if (!unambiguousId) {
+                        Text(
+                            "Μη μοναδική ή κενή ταυτότητα λογαριασμού · δεν είναι δυνατή η ασφαλής προβολή λεπτομερειών.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .padding(bottom = MyFinHubSpacing.xs)
+                                .testTag("wallet_account_identity_warning_${group.name}_$index"),
+                        )
+                    }
                 }
             }
         }
@@ -438,6 +457,7 @@ private fun WalletAccountRow(
     amountsVisible: Boolean,
     ibanRecord: AccountMetadataRecord?,
     accountMetadataLoaded: Boolean,
+    canOpen: Boolean = true,
     onClick: () -> Unit,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -445,10 +465,13 @@ private fun WalletAccountRow(
     val tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense
     Surface(
         onClick = onClick,
+        enabled = canOpen,
         modifier = Modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
-                contentDescription = if (amountsVisible) "${account.name}, $amountText" else "${account.name}, ποσό κρυφό"
+                contentDescription = (if (amountsVisible) "${account.name}, $amountText"
+                    else "${account.name}, ποσό κρυφό") +
+                    if (canOpen) "" else ", μη διαθέσιμη ασφαλής προβολή"
             },
         color = MaterialTheme.colorScheme.background,
     ) {
@@ -690,7 +713,13 @@ private fun LazyListScope.walletCardsContent(
                 fontWeight = FontWeight.SemiBold,
             )
         }
-        items(state.archivedCards, key = { "archived-" + it.id }) { card ->
+        val cardIdCounts = (state.cards + state.archivedCards).groupingBy { it.id }.eachCount()
+        itemsIndexed(
+            state.archivedCards,
+            key = { index, card -> "archived-$index-${card.id}" },
+        ) { index, card ->
+            val restorable = card.id.isNotBlank() &&
+                card.id == card.id.trim() && cardIdCounts[card.id] == 1
             Column(
                 modifier = Modifier.fillMaxWidth()
                     .padding(vertical = MyFinHubSpacing.xs)
@@ -705,11 +734,20 @@ private fun LazyListScope.walletCardsContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     TextButton(
-                        onClick = { onRestoreCard(card.id) },
+                        onClick = { if (restorable) onRestoreCard(card.id) },
+                        enabled = restorable,
                         modifier = Modifier
                             .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                             .testTag("restore_archived_card_" + card.id),
                     ) { Text("Επαναφορά") }
+                    if (!restorable) {
+                        Text(
+                            "Μη μοναδική ή κενή ταυτότητα κάρτας · η επαναφορά δεν είναι διαθέσιμη.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.testTag("archived_card_identity_warning_$index"),
+                        )
+                    }
                 }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
