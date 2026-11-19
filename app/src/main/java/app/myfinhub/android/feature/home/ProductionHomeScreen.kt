@@ -104,8 +104,14 @@ fun ProductionHomeScreen(
     }
 
     val primaryAccounts = homePrimaryAccounts(state.accounts)
-    val primaryIds = primaryAccounts.mapTo(mutableSetOf(), HomeAccount::id)
-    val secondaryAccounts = state.accounts.filterNot { it.id in primaryIds }
+    // Select only the FIRST source row for each primary role. Filtering by account
+    // ID would silently hide imported rows sharing an ID with a primary account.
+    val primarySourceOrdinals = HomePrimaryRole.entries.mapNotNull { role ->
+        state.accounts.indexOfFirst { it.primaryRole == role }.takeIf { it >= 0 }
+    }.toSet()
+    val secondaryAccounts = state.accounts.filterIndexed { index, _ ->
+        index !in primarySourceOrdinals
+    }
     val accountIdCounts = state.accounts.groupingBy(HomeAccount::id).eachCount()
     val canAddressAccount: (String) -> Boolean = { id ->
         id.isNotBlank() && id == id.trim() && accountIdCounts[id] == 1

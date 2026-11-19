@@ -324,3 +324,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Secondary account rows apply the same identity check before opening a detail route, retaining their original order and source balances. Accounts with ambiguous identities remain visible with an inline warning.
 - Recent transactions in Home now put amounts below long transaction labels at 130%+ Android font without altering amounts, privacy preference, existing unique-event navigation fences or row test tags. At normal fonts the compact row remains. Recent and attention row touch surfaces meet the 48dp minimum.
 - No account financial projections, balance calculations, history chart data, source IDs or callbacks were modified. Source-only; no builds, tests, lint, static analysis, screenshots or Galaxy S24 owner acceptance.
+
+## Checkpoint 44 — keep colliding Home source rows visible
+
+- When selecting one displayed primary account for each Cash/Payroll/Savings role, exclude only that exact selected source ordinal from the secondary list. Never exclude all accounts merely because their ID equals a chosen primary ID.
+- Imported accounts with colliding IDs or additional rows in the same primary role therefore remain visible in the secondary account roster, where the checkpoint-43 unique-ID guard disables unsafe account opening. The three original primary cards, balances and real history charts remain unchanged; no source account is merged, deleted or silently preferred for a write.
+- Source-only follow-up to the same Home identity-safety batch; no build, tests, lint, static analysis, screenshot or physical owner acceptance.
