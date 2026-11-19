@@ -51,3 +51,12 @@ This branch delivers source-only UI refinements; pixel-level, device, runtime, a
 ## Canonical tracking and Git integration state
 
 The separate source-only workstream is recorded under `ui_ux_refinement_2026_11_19` in `tracking/android-project-state.json`. Historical completed redesign counts, active finance-contract issue #155, release candidate facts, server/API state and S24 physical acceptance are intentionally unchanged. Generated STATUS/TODO/handoff fields have not been changed. This feature branch is not merged to `develop` and has no pull request because the owner prohibited builds, tests and other validation, including CI; no APK/release publication was performed.
+
+## Checkpoint 4 — recurring, scheduled and account details
+
+- Recurring management: retain edit and real-payment entry directly visible; move pause/resume and stop to a labelled contextual menu with the existing stop confirmation. Keep disabled and duplicate-ID mutation fences and all original destination callbacks; no payment is posted by opening an action.
+- Scheduled management: prioritize execution recording; place skip and cancellation behind a contextual menu. Preserve exact completion prefill, existing confirmation flow and non-writable invalid/duplicate rows.
+- Make new recurring/scheduled creation an appropriately visible contextual primary operation rather than a bare full-width text link. Remove redundant headers above these lists.
+- Account detail: present current balance before IBAN metadata/actions, preserve visibility and server-backed edit/delete conditions and existing histories. Remove repeated scoping explanation.
+- Attention detail: keep primary navigation and the reversible hide action, but reduce redundant warning copy and make hide secondary.
+- Changes are source-only, committed without builds, tests, lint, static analysis or device verification as required. Existing finance/domain semantics and physical-acceptance status are untouched.

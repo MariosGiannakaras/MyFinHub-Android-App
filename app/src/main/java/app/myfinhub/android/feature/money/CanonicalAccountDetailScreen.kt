@@ -210,32 +210,31 @@ fun CanonicalAccountDetailScreen(
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                         Text("Τρέχον υπόλοιπο", style = MaterialTheme.typography.labelLarge)
-                        if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
-                            AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
-                            if (accountMetadataLoaded && amountsVisible &&
-                                onSaveAccountIban != null) {
-                                TextButton(
-                                    enabled = !accountMetadataSaving,
-                                    onClick = { editingIban = true },
-                                ) { Text(if (ibanRecord?.iban == null) "Προσθήκη IBAN" else "Αλλαγή IBAN") }
-                                if (ibanRecord?.iban != null) {
-                                    TextButton(
-                                        enabled = !accountMetadataSaving,
-                                        onClick = { deletingIban = true },
-                                    ) { Text("Αφαίρεση IBAN") }
-                                }
-                            }
-                        }
                         MyFinHubAmountText(
                             text = if (amountsVisible) formatAccountEuro(account.balance) else "•••• €",
                             tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        Text(
-                            "Οι κινήσεις παρακάτω είναι φιλτραρισμένες σε αυτόν τον λογαριασμό.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
+                            AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                            if (accountMetadataLoaded && amountsVisible && onSaveAccountIban != null) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                ) {
+                                    TextButton(
+                                        enabled = !accountMetadataSaving,
+                                        onClick = { editingIban = true },
+                                    ) { Text(if (ibanRecord?.iban == null) "Προσθήκη IBAN" else "Αλλαγή IBAN") }
+                                    if (ibanRecord?.iban != null) {
+                                        TextButton(
+                                            enabled = !accountMetadataSaving,
+                                            onClick = { deletingIban = true },
+                                        ) { Text("Αφαίρεση IBAN") }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
