@@ -271,3 +271,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - In the canonical loan metadata editor, do not open an empty payer menu when the existing eligible unique canonical payer list is empty; the same validation still prevents saving. Make the missing-payer condition explicit in the label rather than suggesting that an option can be selected.
 - Mark the actual selected loan kind, payer account and expense category visually and with accessibility selected semantics. Keep existing source option IDs, eligibility checks, original test tags, total/installment recalc, finance mutations and invalid-state save gates unchanged.
 - Kind, account and category actions use the existing minimum 48dp touch target. This checkpoint is source-only and unvalidated: no builds, tests, lint, static analysis, screenshots or device validation.
+
+## Checkpoint 36 — searchable certified card provider picker
+
+- In the real Card Create bottom-sheet picker, show the shared native search field only when the certified-issuer/provider option catalog exceeds eight entries. Filter by provider label or canonical provider ID with case-insensitive matching; no source IDs are normalized, discarded or reordered outside the displayed filter.
+- An empty filtered search shows "Δεν βρέθηκε εκδότης" and keeps the original selected provider unchanged. The existing field clears its query without dismissing the sheet. Standard small option pickers (type/network/form factor) remain unchanged and all original selection tags and callbacks are retained.
+- This is only a UI lookup over the already supplied session catalog, not a change to card/vault creation, bank identity or security contracts. No build, tests, lint, static analysis or device acceptance was performed.

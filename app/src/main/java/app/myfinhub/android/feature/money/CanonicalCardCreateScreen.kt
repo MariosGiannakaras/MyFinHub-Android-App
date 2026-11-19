@@ -47,6 +47,7 @@ import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.util.UUID
 
@@ -463,6 +464,15 @@ private fun CardCreatePickerSheet(
     onSelect: (String) -> Unit,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
+    val searchable = picker == "provider" && options.size > 8
+    var query by rememberSaveable(picker) { mutableStateOf("") }
+    val filteredOptions = if (searchable && query.isNotBlank()) {
+        val normalized = query.trim()
+        options.filter { option ->
+            option.label.contains(normalized, ignoreCase = true) ||
+                option.value.contains(normalized, ignoreCase = true)
+        }
+    } else options
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -471,6 +481,22 @@ private fun CardCreatePickerSheet(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
         ) {
             Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            if (searchable) {
+                MyFinHubSearchField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = "Αναζήτηση τράπεζας ή εκδότη",
+                    modifier = Modifier.testTag("card_create_provider_search"),
+                )
+            }
+            if (filteredOptions.isEmpty()) {
+                Text(
+                    "Δεν βρέθηκε εκδότης.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("card_create_provider_search_empty"),
+                )
+            }
             // Many certified providers can be returned from the session catalog.
             // Keep every choice reachable on a small phone or with enlarged fonts.
             LazyColumn(
@@ -481,7 +507,7 @@ private fun CardCreatePickerSheet(
                 contentPadding = PaddingValues(bottom = MyFinHubSpacing.xl),
                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
             ) {
-                items(options, key = { it.value }) { option ->
+                items(filteredOptions, key = { it.value }) { option ->
                     val isSelected = option.value == selectedValue
                     Surface(
                         onClick = { onSelect(option.value) },
