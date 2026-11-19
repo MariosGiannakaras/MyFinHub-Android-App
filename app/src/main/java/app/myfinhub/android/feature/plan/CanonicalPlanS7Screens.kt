@@ -842,24 +842,37 @@ private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible
                     .testTag("s7_forecast_movement_" + window.days + "_" + index),
                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
+                val movementIdentity: @Composable (Modifier) -> Unit = { modifier ->
+                    Column(modifier = modifier) {
                         Text(movement.label.ifBlank { "Χωρίς περιγραφή" },
                             style = MaterialTheme.typography.bodySmall)
                         Text((sourceLabels[movement.source] ?: movement.source) +
                             " · " + movement.dateIso, style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    val delta = movement.portfolioDelta
-                    val amount = if (kotlin.math.abs(delta) < 0.005) "0€ καθαρά"
-                        else (if (delta > 0.0) "+" else "−") +
-                            formatPlanS7Euro(kotlin.math.abs(delta))
-                    Text(amountVisibilityText(amount, amountsVisible),
-                        style = MaterialTheme.typography.bodySmall)
+                }
+                val delta = movement.portfolioDelta
+                val amount = if (kotlin.math.abs(delta) < 0.005) "0€ καθαρά"
+                    else (if (delta > 0.0) "+" else "−") +
+                        formatPlanS7Euro(kotlin.math.abs(delta))
+                val amountLabel = amountVisibilityText(amount, amountsVisible)
+                if (LocalDensity.current.fontScale >= 1.3f) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                    ) {
+                        movementIdentity(Modifier.fillMaxWidth())
+                        Text(amountLabel, style = MaterialTheme.typography.bodySmall)
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        movementIdentity(Modifier.weight(1f))
+                        Text(amountLabel, style = MaterialTheme.typography.bodySmall)
+                    }
                 }
                 movement.accountImpacts.forEachIndexed { legIndex, impact ->
                     val prefix = when {

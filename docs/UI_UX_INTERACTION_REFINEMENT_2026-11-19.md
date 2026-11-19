@@ -253,3 +253,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - The real Plan root keeps overdue and next-seven-day obligation items as prominent individual cards. Only the lower-priority "Υπόλοιπο πλάνου" items become flat, divider-separated rows, reducing repeated card chrome in long schedules.
 - Keep original date grouping, source item order, unique lazy keys, `s7_plan_item_*` tags, icons, amount privacy and large-font layout. Both urgent and remaining rows share exactly the same row contents, without changing financial model or callbacks.
 - This is a source-only visual change; no build, test, lint, analysis, screenshot or physical device validation was performed.
+
+## Checkpoint 33 — large-font read-only movement amounts
+
+- Transaction details: in the canonical split-history section, keep the original part label, optional category path, exact part amount and divider. At 130%+ Android font scale, render each part amount beneath its description so long labels cannot crowd the amount. Retain the original compact row for standard fonts, all source part indices and existing amount-privacy masking.
+- Plan Forecast: show each known movement's source/date and its signed net impact on separate lines at enlarged font scale, keeping the normal horizontal compact presentation, canonical movement order, zero-amount presentation and masking unchanged.
+- This is presentation-only. No changes to split accounting, future movement inclusion, transaction mutations, source identities or forecasts. No build, tests, lint, static analysis, UI screenshots or physical-device validation.

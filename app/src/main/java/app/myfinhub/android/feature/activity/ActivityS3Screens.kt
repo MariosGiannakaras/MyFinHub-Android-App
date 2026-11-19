@@ -1056,6 +1056,7 @@ fun ActivityReadDetailScreen(
     onChooseCounterparty: ((String?) -> Unit)? = null,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     var counterpartyMenuOpen by remember { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var deleteRequested by rememberSaveable { mutableStateOf(false) }
@@ -1230,13 +1231,9 @@ fun ActivityReadDetailScreen(
                     }
                     items(count = item.splitParts.size, key = { "split-part-$it" }) { index ->
                         val part = item.splitParts[index]
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = MyFinHubSpacing.sm),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
+                        val partDescription: @Composable (Modifier) -> Unit = { modifier ->
                             Column(
-                                modifier = Modifier.weight(1f),
+                                modifier = modifier,
                                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                             ) {
                                 Text(part.displayLabel, style = MaterialTheme.typography.bodyLarge)
@@ -1250,13 +1247,32 @@ fun ActivityReadDetailScreen(
                                     )
                                 }
                             }
+                        }
+                        val partAmount: @Composable () -> Unit = {
                             Text(
-                                amountVisibilityText(
-                                    formatActivityPartEuro(part.amount),
-                                    amountsVisible,
-                                ),
+                                amountVisibilityText(formatActivityPartEuro(part.amount), amountsVisible),
                                 style = MaterialTheme.typography.titleSmall,
                             )
+                        }
+                        if (largeFont) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(vertical = MyFinHubSpacing.sm),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                partDescription(Modifier.fillMaxWidth())
+                                partAmount()
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(vertical = MyFinHubSpacing.sm),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                partDescription(Modifier.weight(1f))
+                                partAmount()
+                            }
                         }
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
