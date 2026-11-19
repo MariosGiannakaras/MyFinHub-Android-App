@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -270,9 +271,13 @@ fun CanonicalWalletScreen(
                             selectedName = section.name
                             sectionSheetOpen = false
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .semantics { selected = section == selected },
                         shape = MaterialTheme.shapes.small,
-                        color = if (section == selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                        color = if (section == selected) MaterialTheme.colorScheme.secondaryContainer
+                            else MaterialTheme.colorScheme.surface,
                     ) {
                         Row(
                             modifier = Modifier.padding(MyFinHubSpacing.md),
@@ -280,7 +285,18 @@ fun CanonicalWalletScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(section.icon(), contentDescription = null)
-                            Text(section.label, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                section.label,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f),
+                            )
+                            if (section == selected) {
+                                Text(
+                                    "Επιλεγμένο",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
                         }
                     }
                 }
@@ -297,7 +313,11 @@ private fun WalletSectionSelector(
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     if (largeFont) {
-        OutlinedButton(onClick = onOpenSheet, modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = onOpenSheet,
+            modifier = Modifier.fillMaxWidth()
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+        ) {
             Icon(selected.icon(), contentDescription = null)
             Spacer(Modifier.width(MyFinHubSpacing.xs))
             Text("Ενότητα: ${selected.label}")

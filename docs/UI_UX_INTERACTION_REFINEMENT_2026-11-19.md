@@ -190,3 +190,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Give both date-field clear actions a minimum 48dp touch target. For type/account/category dropdowns, identify the selected choice visibly and through native accessibility semantics without changing option values or the selected source IDs.
 - In the Quick Entry More Types sheet, identify the currently selected kind through accessibility semantics, with a minimum whole-row touch target. Preserve all kinds, order, callbacks, and history security behavior.
 - This checkpoint is source-only; no build, tests, lint, static analysis, screenshots, or device verification.
+
+## Checkpoint 23 — current-card awareness and Wallet section selection
+
+- The main card artwork retains its original proportions, swipe/stack behavior, expiry/PAN/CVV security and touch targets. At enlarged system fonts (130%+), expose the already-visible active card nickname as a separate native-sized label below the card-selector strip. This does not reveal card secrets or mutate selection.
+- In the contextual Wallet section-picker sheet, expose the currently selected section both visually and via selected accessibility semantics. Keep the same three sections, routes and callbacks and make each sheet row at least 48dp high.
+- Give the large-font Wallet section selector a consistent minimum touch target. No new primary navigation destinations were introduced.
+- Source-only and unvalidated: no compilation, tests, lint, screenshots, CI, device acceptance or release work.

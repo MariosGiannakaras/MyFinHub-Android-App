@@ -642,6 +642,19 @@ fun CreditCardStack(
             }
         }
 
+        // The artwork uses tiny fixed-size card text. At enlarged system fonts,
+        // expose the active card name separately without revealing secret values.
+        if (density.fontScale >= 1.3f && activeCard != null) {
+            Text(
+                "Ενεργή κάρτα: ${activeCard.nickname}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().testTag("credit_card_active_label"),
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+
         Text(
             statusMessage,
             modifier = Modifier
