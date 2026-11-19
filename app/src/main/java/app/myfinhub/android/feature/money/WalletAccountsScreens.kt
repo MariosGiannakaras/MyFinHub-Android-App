@@ -266,6 +266,7 @@ fun CanonicalWalletScreen(
             ) {
                 Text("Ενότητα πορτοφολιού", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 WalletSection.entries.forEach { section ->
+                    val isCurrentSection = section == selected
                     Surface(
                         onClick = {
                             selectedName = section.name
@@ -274,9 +275,9 @@ fun CanonicalWalletScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
-                            .semantics { selected = section == selected },
+                            .semantics { selected = isCurrentSection },
                         shape = MaterialTheme.shapes.small,
-                        color = if (section == selected) MaterialTheme.colorScheme.secondaryContainer
+                        color = if (isCurrentSection) MaterialTheme.colorScheme.secondaryContainer
                             else MaterialTheme.colorScheme.surface,
                     ) {
                         Row(
@@ -290,7 +291,7 @@ fun CanonicalWalletScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.weight(1f),
                             )
-                            if (section == selected) {
+                            if (isCurrentSection) {
                                 Text(
                                     "Επιλεγμένο",
                                     style = MaterialTheme.typography.labelSmall,

@@ -197,3 +197,8 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - In the contextual Wallet section-picker sheet, expose the currently selected section both visually and via selected accessibility semantics. Keep the same three sections, routes and callbacks and make each sheet row at least 48dp high.
 - Give the large-font Wallet section selector a consistent minimum touch target. No new primary navigation destinations were introduced.
 - Source-only and unvalidated: no compilation, tests, lint, screenshots, CI, device acceptance or release work.
+
+## Checkpoint 24 — Wallet selection semantics name resolution
+
+- Use a local `isCurrentSection` boolean for the Wallet bottom-sheet selected semantics and selected visual state, avoiding ambiguity between the Compose semantics `selected` receiver property and the screen's `selected` enum value.
+- This only clarifies the existing presentation expression; all section callbacks/routes stay unchanged. Still source-only and not compiled or tested.
