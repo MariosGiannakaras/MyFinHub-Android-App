@@ -265,3 +265,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Transaction Detail's merchant/beneficiary identity picker already blocks its menu and mutation while a transaction is pending sync, but its "Αλλαγή ταυτότητας" button still appeared enabled. Disable that button under the same existing pending-sync gate, without changing canonical write authorization.
 - Expose the currently selected unique counterparty or "Καμία ταυτότητα" in the dropdown both visually and through accessibility selected semantics. Do not mark an imported ambiguous/stale ID as any matching candidate: use the existing safely resolved `matches.singleOrNull()` instead.
 - Preserve original `onChooseCounterparty` IDs, clearing action, duplicate-ID guard and test tags. Source only; no builds, tests, lint, analysis or device verification.
+
+## Checkpoint 35 — loan form account availability and selected choices
+
+- In the canonical loan metadata editor, do not open an empty payer menu when the existing eligible unique canonical payer list is empty; the same validation still prevents saving. Make the missing-payer condition explicit in the label rather than suggesting that an option can be selected.
+- Mark the actual selected loan kind, payer account and expense category visually and with accessibility selected semantics. Keep existing source option IDs, eligibility checks, original test tags, total/installment recalc, finance mutations and invalid-state save gates unchanged.
+- Kind, account and category actions use the existing minimum 48dp touch target. This checkpoint is source-only and unvalidated: no builds, tests, lint, static analysis, screenshots or device validation.

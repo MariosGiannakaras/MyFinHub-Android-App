@@ -26,10 +26,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import java.time.LocalDate
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -163,14 +166,24 @@ fun CanonicalLoanMetadataEditor(
                 )
                 if (initial == null) {
                     TextButton(
-                        onClick = { kindMenu = true }, enabled = !mutationBlocked,
-                        modifier = Modifier.fillMaxWidth().testTag("loan_editor_kind"),
+                        onClick = { kindMenu = true },
+                        enabled = !mutationBlocked,
+                        modifier = Modifier.fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .testTag("loan_editor_kind"),
                     ) { Text(if (kind == "loan") "Μακροχρόνιο δάνειο" else "Αγορά σε δόσεις") }
                     DropdownMenu(expanded = kindMenu, onDismissRequest = { kindMenu = false }) {
                         listOf("installment" to "Αγορά σε δόσεις", "loan" to "Δάνειο")
                             .forEach { (value, label) ->
-                                DropdownMenuItem(text = { Text(label) },
-                                    onClick = { kind = value; kindMenu = false })
+                                val isCurrentKind = kind == value
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    trailingIcon = if (isCurrentKind) {
+                                        { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                                    } else null,
+                                    modifier = Modifier.semantics { selected = isCurrentKind },
+                                    onClick = { kind = value; kindMenu = false },
+                                )
                             }
                     }
                 }
@@ -226,11 +239,17 @@ fun CanonicalLoanMetadataEditor(
                     modifier = Modifier.fillMaxWidth().testTag("loan_editor_first_date"),
                 )
                 TextButton(
-                    onClick = { accountMenu = true }, enabled = !mutationBlocked,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    onClick = { accountMenu = true },
+                    enabled = !mutationBlocked && eligiblePayers.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth()
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                         .testTag("loan_editor_account"),
-                ) { Text("Λογαριασμός: " +
-                    (eligiblePayers.singleOrNull { it.id == accountId }?.name ?: "Επίλεξε")) }
+                ) {
+                    Text("Λογαριασμός: " + (
+                        eligiblePayers.singleOrNull { it.id == accountId }?.name
+                            ?: if (eligiblePayers.isEmpty()) "Δεν υπάρχει διαθέσιμος" else "Επίλεξε"
+                    ))
+                }
                 if (!accountEligible) {
                     Text(
                         "Επίλεξε διαθέσιμο, μοναδικό λογαριασμό πληρωμής. Δεν γίνεται αυτόματη επιλογή.",
@@ -239,23 +258,44 @@ fun CanonicalLoanMetadataEditor(
                         modifier = Modifier.testTag("loan_editor_account_required"),
                     )
                 }
-                DropdownMenu(expanded = accountMenu, onDismissRequest = { accountMenu = false }) {
+                DropdownMenu(
+                    expanded = accountMenu && eligiblePayers.isNotEmpty(),
+                    onDismissRequest = { accountMenu = false },
+                ) {
                     eligiblePayers.forEach { account ->
-                        DropdownMenuItem(text = { Text(account.name) },
-                            modifier = Modifier.testTag("loan_editor_account_choice_" + account.id),
-                            onClick = { accountId = account.id; accountMenu = false })
+                        val isCurrentAccount = accountEligible && accountId == account.id
+                        DropdownMenuItem(
+                            text = { Text(account.name) },
+                            trailingIcon = if (isCurrentAccount) {
+                                { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                            } else null,
+                            modifier = Modifier
+                                .semantics { selected = isCurrentAccount }
+                                .testTag("loan_editor_account_choice_" + account.id),
+                            onClick = { accountId = account.id; accountMenu = false },
+                        )
                     }
                 }
                 TextButton(
-                    onClick = { categoryMenu = true }, enabled = !mutationBlocked,
-                    modifier = Modifier.fillMaxWidth().testTag("loan_editor_expense_category"),
+                    onClick = { categoryMenu = true },
+                    enabled = !mutationBlocked,
+                    modifier = Modifier.fillMaxWidth()
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                        .testTag("loan_editor_expense_category"),
                 ) { Text("Κατηγορία δόσης: " + category.ifBlank { "Επίλεξε" }) }
                 DropdownMenu(expanded = categoryMenu, onDismissRequest = { categoryMenu = false }) {
                     (categories + listOfNotNull(initial?.expenseCategory)
                         .filter(String::isNotBlank) + if (categories.isEmpty()) listOf("Άλλο")
                         else emptyList()).distinct().forEach { option ->
-                        DropdownMenuItem(text = { Text(option) },
-                            onClick = { category = option; categoryMenu = false })
+                        val isCurrentCategory = category == option
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            trailingIcon = if (isCurrentCategory) {
+                                { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                            } else null,
+                            modifier = Modifier.semantics { selected = isCurrentCategory },
+                            onClick = { category = option; categoryMenu = false },
+                        )
                     }
                 }
                 if (kind == "loan" && initial == null) {
