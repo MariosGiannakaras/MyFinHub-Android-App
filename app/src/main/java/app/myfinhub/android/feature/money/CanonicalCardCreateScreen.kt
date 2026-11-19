@@ -39,6 +39,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.network.FinancialProviderRecord
 import app.myfinhub.android.core.ui.FinancialProvider
@@ -232,6 +233,7 @@ fun CanonicalCardCreateScreen(
                 modifier = Modifier.fillMaxWidth().testTag("card_create_pan"),
                 label = { Text("Αριθμός κάρτας") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 enabled = submittedId == null,
             )
@@ -257,6 +259,7 @@ fun CanonicalCardCreateScreen(
                 modifier = Modifier.fillMaxWidth().testTag("card_create_cvv"),
                 label = { Text("CVV") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 enabled = submittedId == null,
             )

@@ -290,3 +290,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Extend the reusable radio-choice row with an optional enabled flag, preserving the same 48dp touch geometry and TalkBack radio semantics; default enabled behavior keeps ordinary loan payer selection unchanged.
 - The canonical payment preview still independently rejects same-source transfers and all other invalid routes. No default payer/target is chosen, no finance identity is rewritten, and no payment is created until the existing confirm callback.
 - Source-only, without builds, tests, lint, static analysis, UI snapshots or device acceptance.
+
+## Checkpoint 39 — mask card PAN/CVV during initial creation
+
+- Card Create's plain visible input for the full primary account number and CVV now uses Compose's standard password visual transformation to mask entered digits on screen, consistent with device-local secret-data handling. This is a presentation-only safeguard against inadvertent shoulder-surfing during typing.
+- Preserve the existing original digit-only input filters, length limits, numeric keyboards, validation error strings, input test tags and secure local vault write of the unchanged characters. The expiration field and non-secret card profile fields remain unchanged. No credentials are persisted to new storage, and no secret is added to UI logs or tracking.
+- Source-only and unvalidated; no build, tests, lint, static analysis, screenshots or physical device verification.
