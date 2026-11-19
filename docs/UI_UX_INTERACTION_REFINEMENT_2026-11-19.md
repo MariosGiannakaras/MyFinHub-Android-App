@@ -349,3 +349,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Searchable account/category/counterparty option bottom sheets in Quick Entry now use the same shared native search field as Activity, Account Detail, Lending and Card Create. Its in-field clear action resets only the local search query, never the selected option, and the old label/subtitle search semantics, list order, identity fences and source callbacks remain intact.
 - Both Quick Entry calendar variants (ordinary DateEntryField and the keyboard-aware ProductionDateChoice) now provide explicit 48dp minimum touch targets on Confirm and Cancel. Date/time parsing, selected values, keyboard-dismiss choreography, optional-date clearing and finance drafts are unchanged.
 - This is a native presentation/accessibility-only change without finance write or security logic modifications. Source committed without build, tests, lint, static analysis, screenshot/device validation.
+
+## Checkpoint 48 — consistent detailed credit statement readability
+
+- The detailed credit statement history now presents payable amount, due date, purchase total and payment total on separate short rows at Android 130%+ fonts, matching the existing inline credit workspace behavior. The original compact combined rows remain at normal font sizes.
+- Keep original statement order/status, exact amounts and privacy masking, duplicate-ID/integrity fences, linked-activity navigation, bounded pagination, payment entry callbacks and existing test tags unchanged.
+- Give the linked-statement activity pagination action the same full-width 48dp target already used by overall statement pagination, without changing its 15-item batch size.
+- Source-only UI; no builds, tests, lint, static analysis, screenshot comparison, release or device acceptance.

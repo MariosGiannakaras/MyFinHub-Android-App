@@ -191,17 +191,45 @@ internal fun CanonicalCardStatementHistorySection(
                             statementHistoryStatus(statement.status),
                         style = MaterialTheme.typography.titleMedium,
                     )
-                    Text(
-                        "Λήξη ${statement.dueDate} · Πληρωτέο " +
-                            statementHistoryEuro(statement.remaining, amountsVisible),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        "Αγορές " + statementHistoryEuro(statement.purchaseTotal, amountsVisible) +
-                            " · Πληρωμές " + statementHistoryEuro(statement.paymentTotal, amountsVisible),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    if (largeFont) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                            Text(
+                                "Πληρωτέο: " +
+                                    statementHistoryEuro(statement.remaining, amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                "Λήξη: ${statement.dueDate}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "Αγορές: " +
+                                    statementHistoryEuro(statement.purchaseTotal, amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "Πληρωμές: " +
+                                    statementHistoryEuro(statement.paymentTotal, amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    } else {
+                        Text(
+                            "Λήξη ${statement.dueDate} · Πληρωτέο " +
+                                statementHistoryEuro(statement.remaining, amountsVisible),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            "Αγορές " + statementHistoryEuro(statement.purchaseTotal, amountsVisible) +
+                                " · Πληρωμές " +
+                                statementHistoryEuro(statement.paymentTotal, amountsVisible),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     if (identityUnique && statement.sourceIntegrityValid &&
                     statement.remaining.isFinite() && statement.remaining > 0.005) {
                         TextButton(
@@ -304,7 +332,10 @@ internal fun CanonicalCardStatementHistorySection(
                                     onClick = {
                                         linkedLimit = (linkedLimit + 15).coerceAtMost(linked.size)
                                     },
-                                    modifier = Modifier.testTag("card_statement_more_links_$index"),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 48.dp)
+                                        .testTag("card_statement_more_links_$index"),
                                 ) {
                                     Text("Περισσότερες κινήσεις (${linked.size - shown.size})")
                                 }
