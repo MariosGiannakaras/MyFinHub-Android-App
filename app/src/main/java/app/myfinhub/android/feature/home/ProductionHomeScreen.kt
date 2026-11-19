@@ -166,6 +166,11 @@ fun ProductionHomeScreen(
                     onOpenQuickEntry = onOpenQuickEntry,
                 )
             }
+            if (state.attentionItems.isNotEmpty()) {
+                item(key = "home-attention") {
+                    HomeAttentionSection(items = state.attentionItems.take(2), onOpen = onOpenAttention)
+                }
+            }
             item {
                 HomePrimaryAccountsSection(
                     accounts = primaryAccounts,
@@ -177,11 +182,6 @@ fun ProductionHomeScreen(
                     onAccountQuickEntry = onAccountQuickEntry,
                     onAccountTransactions = onAccountTransactions,
                 )
-            }
-            if (state.attentionItems.isNotEmpty()) {
-                item(key = "home-attention") {
-                    HomeAttentionSection(items = state.attentionItems.take(2), onOpen = onOpenAttention)
-                }
             }
             if (state.recentItems.isNotEmpty()) {
                 item(key = "home-recent") {
@@ -264,13 +264,10 @@ private fun HomeRecentSection(
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
         Text(
             "Πρόσφατες κινήσεις",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
         )
-        MyFinHubSectionCard(
-            modifier = Modifier.fillMaxWidth().testTag("home_recent_summary"),
-            contentPadding = PaddingValues(0.dp),
-        ) {
+        Column(modifier = Modifier.fillMaxWidth().testTag("home_recent_summary")) {
             Column {
                 items.forEachIndexed { index, item ->
                     Surface(
@@ -323,13 +320,10 @@ private fun HomeAttentionSection(
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
         Text(
             text = "Χρειάζεται προσοχή",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
         )
-        MyFinHubSectionCard(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(0.dp),
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Column {
                 items.forEachIndexed { index, item ->
                     HomeAttentionRow(item = item, onOpen = { onOpen(item.id) })
@@ -402,7 +396,7 @@ private fun HomePrimaryAccountsSection(
     onAccountTransactions: ((String) -> Unit)?,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-        Text("Κύριοι λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text("Κύριοι λογαριασμοί", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         HomePrimaryRole.entries.forEach { role ->
             val account = accounts.firstOrNull { it.primaryRole == role }
             if (account == null) {

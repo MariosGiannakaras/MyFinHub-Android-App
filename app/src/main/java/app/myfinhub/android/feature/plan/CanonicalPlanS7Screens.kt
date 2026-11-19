@@ -51,6 +51,7 @@ import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSettingsLinkRow
 import app.myfinhub.android.designsystem.MyFinHubSectionHeading
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
@@ -204,74 +205,49 @@ fun CanonicalPlan2026Screen(
                 BudgetS7LinkCard(state = state, amountsVisible = amountsVisible, onClick = onOpenBudget)
             }
             item("savings-link") {
-                MyFinHubActionCard(
+                MyFinHubSettingsLinkRow(
+                    label = "Στόχοι αποταμίευσης",
+                    supporting = "Υπόλοιπα και πρόοδος στόχων",
                     onClick = onOpenSavings,
-                    modifier = Modifier.fillMaxWidth().testTag("s7_savings_link"),
-                ) {
-                    MyFinHubSectionHeading(
-                        title = "Στόχοι αποταμίευσης",
-                        subtitle = "Υπόλοιπα, πρόοδος και διαχείριση στόχου",
-                        icon = MyFinHubIcons.Savings,
-                        tone = FinanceTone.Savings,
-                    )
-                }
+                    modifier = Modifier.testTag("s7_savings_link"),
+                )
             }
             item("loans-link") {
-                MyFinHubActionCard(
+                MyFinHubSettingsLinkRow(
+                    label = "Δάνεια και οφειλές",
+                    supporting = "Δόσεις και αποπληρωμές",
                     onClick = onOpenLoans,
-                    modifier = Modifier.fillMaxWidth().testTag("s7_loans_link"),
-                ) {
-                    MyFinHubSectionHeading(
-                        title = "Δάνεια και οφειλές",
-                        subtitle = "Υπόλοιπα, δόσεις και αποπληρωμές",
-                        icon = MyFinHubIcons.Account,
-                        tone = FinanceTone.Neutral,
-                    )
-                }
+                    modifier = Modifier.testTag("s7_loans_link"),
+                )
             }
             item("lending-link") {
-                MyFinHubActionCard(
+                MyFinHubSettingsLinkRow(
+                    label = "Χρήματα που μου οφείλουν",
+                    supporting = "Απαιτήσεις και επιστροφές",
                     onClick = onOpenLending,
-                    modifier = Modifier.fillMaxWidth().testTag("s7_lending_link"),
-                ) {
-                    MyFinHubSectionHeading(
-                        title = "Χρήματα που μου οφείλουν",
-                        subtitle = "Απαιτήσεις και επιστροφές",
-                        icon = MyFinHubIcons.Money,
-                        tone = FinanceTone.Neutral,
-                    )
-                }
+                    modifier = Modifier.testTag("s7_lending_link"),
+                )
             }
             item("recurring-management-link") {
-                MyFinHubActionCard(
+                MyFinHubSettingsLinkRow(
+                    label = "Πάγια & συνδρομές",
+                    supporting = "Επαναλαμβανόμενες χρεώσεις",
                     onClick = onOpenRecurring,
-                    modifier = Modifier.fillMaxWidth().testTag("s7_recurring_management_link"),
-                ) {
-                    MyFinHubSectionHeading(
-                        title = "Πάγια & συνδρομές",
-                        subtitle = "Προβολή επαναλαμβανόμενων χρεώσεων",
-                        icon = MyFinHubIcons.Plan,
-                        tone = FinanceTone.Neutral,
-                    )
-                }
+                    modifier = Modifier.testTag("s7_recurring_management_link"),
+                )
             }
 
-            // Entry is always available: a first planned payment must be reachable.
+            // A first planned payment must remain reachable from an empty Plan.
             item("scheduled-management") {
-                    MyFinHubActionCard(
-                        onClick = onOpenScheduled,
-                        modifier = Modifier.fillMaxWidth().testTag("s7_scheduled_management_link"),
-                    ) {
-                        MyFinHubSectionHeading(
-                            title = "Προγραμματισμένες κινήσεις",
-                            subtitle = if (state.scheduledManageItems.isEmpty())
-                                "Νέος προγραμματισμός και ιστορικό"
-                            else "Επιβεβαίωση, παράλειψη και ιστορικό",
-                            icon = MyFinHubIcons.Plan,
-                            tone = FinanceTone.Neutral,
-                        )
-                    }
-                }
+                MyFinHubSettingsLinkRow(
+                    label = "Προγραμματισμένες κινήσεις",
+                    supporting = if (state.scheduledManageItems.isEmpty())
+                        "Νέος προγραμματισμός και ιστορικό"
+                    else "Επιβεβαίωση, παράλειψη και ιστορικό",
+                    onClick = onOpenScheduled,
+                    modifier = Modifier.testTag("s7_scheduled_management_link"),
+                )
+            }
             if (remaining.isNotEmpty()) {
                 item("remaining-heading") {
                     MyFinHubSectionHeading(

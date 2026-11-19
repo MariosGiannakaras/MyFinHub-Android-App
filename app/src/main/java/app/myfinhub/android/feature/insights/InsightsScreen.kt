@@ -98,40 +98,39 @@ fun InsightsScreen(
             }
             if (isCalendarMonth) {
                 item("historical-calendar-month-navigation") {
-                    MyFinHubSectionCard(
+                    Column(
                         modifier = Modifier.fillMaxWidth().testTag("insights_report_month_nav"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                "Μήνας αναφοράς · " +
-                                    (if (historicIndex >= 0) scope.label else "Τρέχων"),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                "Η σύγκριση αφορά πραγματικούς ημερολογιακούς μήνες, " +
-                                    "όχι αυθαίρετα κυλιόμενα διαστήματα.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                val earlier = if (historicIndex < 0) state.historicalMonths.firstOrNull()
-                                    else state.historicalMonths.getOrNull(historicIndex + 1)
-                                val later = if (historicIndex <= 0) state.periods
-                                    .firstOrNull { it.id == INSIGHTS_PERIOD_MONTH }
-                                    else state.historicalMonths.getOrNull(historicIndex - 1)
-                                TextButton(
-                                    enabled = earlier != null,
-                                    onClick = { earlier?.let { onPeriodSelected(it.id) } },
-                                    modifier = Modifier.testTag("insights_report_previous_month"),
-                                ) { Text("Προηγούμενος") }
-                                TextButton(
-                                    enabled = later != null && historicIndex >= 0,
-                                    onClick = { later?.let { onPeriodSelected(it.id) } },
-                                    modifier = Modifier.testTag("insights_report_next_month"),
-                                ) { Text("Επόμενος") }
-                            }
+                        Text(
+                            "Μήνας αναφοράς · " +
+                                (if (historicIndex >= 0) scope.label else "Τρέχων"),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        Text(
+                            "Σύγκριση ημερολογιακών μηνών.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            val earlier = if (historicIndex < 0) state.historicalMonths.firstOrNull()
+                                else state.historicalMonths.getOrNull(historicIndex + 1)
+                            val later = if (historicIndex <= 0) state.periods
+                                .firstOrNull { it.id == INSIGHTS_PERIOD_MONTH }
+                                else state.historicalMonths.getOrNull(historicIndex - 1)
+                            TextButton(
+                                enabled = earlier != null,
+                                onClick = { earlier?.let { onPeriodSelected(it.id) } },
+                                modifier = Modifier.testTag("insights_report_previous_month"),
+                            ) { Text("Προηγούμενος") }
+                            TextButton(
+                                enabled = later != null && historicIndex >= 0,
+                                onClick = { later?.let { onPeriodSelected(it.id) } },
+                                modifier = Modifier.testTag("insights_report_next_month"),
+                            ) { Text("Επόμενος") }
                         }
                     }
                 }
@@ -141,20 +140,10 @@ fun InsightsScreen(
             }
             onOpenNetPosition?.let { open ->
                 item("net-position-link") {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                            Text("Συνολική οικονομική εικόνα", style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                "Λογαριασμοί, απαιτήσεις και υποχρεώσεις μαζί, με ανάλυση υπολογισμού.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            TextButton(
-                                onClick = open,
-                                modifier = Modifier.fillMaxWidth().testTag("insights_net_position"),
-                            ) { Text("Καθαρή οικονομική θέση") }
-                        }
-                    }
+                    TextButton(
+                        onClick = open,
+                        modifier = Modifier.fillMaxWidth().testTag("insights_net_position"),
+                    ) { Text("Καθαρή οικονομική θέση") }
                 }
             }
             if (scope.operationalReport != null) {

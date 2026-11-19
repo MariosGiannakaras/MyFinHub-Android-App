@@ -292,7 +292,9 @@ fun CanonicalMoneyScreen(
                         icon = MyFinHubIcons.Card,
                         tone = FinanceTone.Transfer,
                     )
-                    FilledTonalButton(onClick = onAddCard) { Text("Νέα κάρτα") }
+                    if (state.cards.isNotEmpty()) {
+                        FilledTonalButton(onClick = onAddCard) { Text("Νέα κάρτα") }
+                    }
                 }
             }
             state.frontendMessage?.takeIf { it.isNotBlank() }?.let { message ->
