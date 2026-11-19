@@ -1564,6 +1564,14 @@
     "owner_device_acceptance": "not_claimed",
     "pull_request": 490,
     "release_created": false,
-    "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
+    "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1",
+    "release_source_preparation": {
+      "source_branch": "android/d7-merged-ui-production-candidate-source-20261120",
+      "integrated_develop_base": "6f03633767f04c0411e70ced5e1aeece47d067cf",
+      "purpose": "Next signed S24 D7 test candidate containing integrated UI/UX from PR #490 and merged read-only device preflight PR #491",
+      "status": "source_pr_prepared_pending_exact_head_validation_and_separate_owner_gated_publication",
+      "physical_owner_acceptance": "pending",
+      "release_created": false
+    }
   }
 }

@@ -38,3 +38,30 @@ The device recording and privacy-safe acceptance contract is
 be filled only from a future actually published and independently verified APK,
 never by guessing from this marker. Production finance writes and signing
 material are explicitly outside this UI/device-readiness checkpoint.
+
+## Merged Android UI/UX — protected D7 signed-candidate source (2026-11-20)
+
+This source-only marker starts from authoritative `develop` commit
+`6f03633767f04c0411e70ced5e1aeece47d067cf`. The entire redesigned native
+Android UI/UX from squash PR #490 (`0f49d12fce1acc329daa30fccd85a69918eea8d1`)
+and read-only physical S24 preflight / canonical tracking correction from
+squash PR #491 (`6f03633767f04c0411e70ced5e1aeece47d067cf`) are integrated.
+Both PRs passed all six exact-head GitHub gates before merge; PR #490 post-merge
+CI and Project Tracking succeeded. The #491 post-merge results must be checked
+independently; a passing PR check is not a substitute for that evidence.
+
+This document creates an unchanged-app-code `android/...` source PR for
+the existing protected production publisher, which requires the source PR to
+remain **OPEN and NON-DRAFT**, with exact-final-head successful
+`tracking-verify`, `android-verify`, `screenshot-regression`,
+both S24 emulator shards and the `s24-ultra-target-instrumented` aggregate.
+The signed APK's versionCode, actual signer identity, checksums, bytes and
+release provenance can only be determined by the protected release job.
+
+Existing signed rc19 / 10018 was published before the UI merge and **cannot**
+serve as a D7 device test of this new UI. This source marker is NOT an APK,
+a release request, production signing authorization, a published version, or
+an assertion of Play Protect clearance, in-place upgrade, real finance GET,
+repaired historical credit purchases, device-specific D7 acceptance, or D8
+promotion. The protected release request remains an explicitly distinct,
+repository-owner-controlled action. Do not commit secrets, binaries or finance data.
