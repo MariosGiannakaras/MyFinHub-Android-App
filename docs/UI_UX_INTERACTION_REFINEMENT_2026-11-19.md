@@ -161,3 +161,11 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Bring the Activity Filters and Clear button affordances to the same 48dp minimum touch target as the shared search field.
 - Add a compact clear icon to the existing custom design-system icon registry, without introducing external dependencies.
 - Source-only; builds, tests, lint, static analysis and device validation remain unexecuted by explicit request.
+
+## Checkpoint 19 — scrollable card provider and metadata pickers
+
+- The new-card picker previously rendered every available provider/option in a single non-scrollable bottom-sheet Column; with a large certified-provider catalog, the final choices could be unreachable.
+- Replace the picker options body with a bounded, lazy, vertically scrollable list while keeping the title outside it. Retain all source values, selection callbacks, existing per-option test tags, conditional manual issuer behavior and sensitive PAN/expiry/CVV write flow.
+- Give each choice a 48dp minimum touch target, expose its selected semantics and stack the visual selected marker at enlarged font scales.
+- Remove an unused credit-workspace import from the preceding source-only checkpoint; no finance logic changes.
+- No builds, tests, lint, static analysis, screenshots or device verification were run.

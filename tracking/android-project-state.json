@@ -1394,9 +1394,14 @@
         "status": "source_committed_unvalidated"
       },
       {
+        "sha": "370b42ba7651d8bee7a814a2b6104e5459e91f83",
+        "focus": "One-tap native search clear with preserved finance filters and 48dp Activity filter controls",
+        "status": "source_committed_unvalidated"
+      },
+      {
         "sha": null,
         "ref": "android/ui-ux-interaction-redesign-20261119",
-        "focus": "One-tap native search clear with preserved finance filters and 48dp Activity filter controls",
+        "focus": "Scrollable card provider and metadata picker, large-font selected state and reachability",
         "status": "source_committed_unvalidated"
       }
     ],

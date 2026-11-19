@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -31,6 +34,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -456,32 +462,71 @@ private fun CardCreatePickerSheet(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(
-                start = MyFinHubSpacing.lg,
-                end = MyFinHubSpacing.lg,
-                bottom = MyFinHubSpacing.xl,
-            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = MyFinHubSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
         ) {
             Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            options.forEach { option ->
-                val selected = option.value == selectedValue
-                Surface(
-                    onClick = { onSelect(option.value) },
-                    modifier = Modifier.fillMaxWidth().testTag("card_create_${picker}_${option.value}"),
-                    shape = MaterialTheme.shapes.small,
-                    color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
-                ) {
-                    Row(
-                        modifier = Modifier.padding(MyFinHubSpacing.md),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+            // Many certified providers can be returned from the session catalog.
+            // Keep every choice reachable on a small phone or with enlarged fonts.
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 460.dp)
+                    .testTag("card_create_${picker}_choices"),
+                contentPadding = PaddingValues(bottom = MyFinHubSpacing.xl),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
+                items(options, key = { it.value }) { option ->
+                    val isSelected = option.value == selectedValue
+                    Surface(
+                        onClick = { onSelect(option.value) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                            .semantics { selected = isSelected }
+                            .testTag("card_create_${picker}_${option.value}"),
+                        shape = MaterialTheme.shapes.small,
+                        color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
+                            else MaterialTheme.colorScheme.surface,
                     ) {
-                        Text(option.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                        if (selected) {
-                            Text("Επιλεγμένο", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                        if (largeFont) {
+                            Column(
+                                modifier = Modifier.padding(MyFinHubSpacing.md),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                Text(option.label, style = MaterialTheme.typography.bodyLarge)
+                                if (isSelected) {
+                                    Text(
+                                        "Επιλεγμένο",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.padding(MyFinHubSpacing.md),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    option.label,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                if (isSelected) {
+                                    Text(
+                                        "Επιλεγμένο",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
