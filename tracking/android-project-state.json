@@ -1389,9 +1389,14 @@
         "focus": "Responsive Home account charts/actions, Activity monthly overview and Settings local preference observation"
       },
       {
+        "sha": "6b56d48597eee054defae1f3fb434c8969463f4f",
+        "focus": "Wallet inline credit-card action hierarchy, 150% statement filters, Activity filter accessibility",
+        "status": "source_committed_unvalidated"
+      },
+      {
         "sha": null,
         "ref": "android/ui-ux-interaction-redesign-20261119",
-        "focus": "Wallet inline credit-card action hierarchy, 150% statement filters, Activity filter accessibility",
+        "focus": "One-tap native search clear with preserved finance filters and 48dp Activity filter controls",
         "status": "source_committed_unvalidated"
       }
     ],

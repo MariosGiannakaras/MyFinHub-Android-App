@@ -259,7 +259,10 @@ fun ActivityLedgerScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        OutlinedButton(onClick = { filterSheetOpen = true }) {
+                        OutlinedButton(
+                            onClick = { filterSheetOpen = true },
+                            modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                        ) {
                             Text(
                                 if (state.activeFilterCount == 0) "Φίλτρα"
                                 else "Φίλτρα (${state.activeFilterCount})",
@@ -268,7 +271,9 @@ fun ActivityLedgerScreen(
                         if (state.hasActiveListScope && (state.visibleItems.isNotEmpty() || state.showingOverviewMonth)) {
                             TextButton(
                                 onClick = { onAction(ActivityAction.ClearFilters) },
-                                modifier = Modifier.testTag("activity_clear_all"),
+                                modifier = Modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("activity_clear_all"),
                             ) {
                                 Text("Καθαρισμός")
                             }

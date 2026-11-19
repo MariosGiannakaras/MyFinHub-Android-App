@@ -153,3 +153,11 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - For large Android font scales, stack the existing All/Payable statement filters instead of compressing Greek labels into one row. Preserve the selected filter, pagination reset, exact test tags and payment identity guards.
 - Improve Activity filter accessibility: the repeated Remove action now announces the filter being removed, and empty-state actions respect a 48dp minimum touch target.
 - This remains a source-only, unvalidated checkpoint, with no change to finance, auth, backend, update contracts or release state.
+
+## Checkpoint 18 — one-tap search clearing without resetting financial filters
+
+- Give the existing native search input a trailing, accessible Clear icon only while query text is nonempty. The action uses the existing `onValueChange("")` callback: it clears just the query and leaves the currently selected account/category/date/type filter and month-source state intact.
+- Retain the established "Καθαρισμός" for resetting all ordinary filters and the distinct "Όλο το ιστορικό" action for exiting an explicitly selected overview month. No reducer, canonical source or search indexing changes.
+- Bring the Activity Filters and Clear button affordances to the same 48dp minimum touch target as the shared search field.
+- Add a compact clear icon to the existing custom design-system icon registry, without introducing external dependencies.
+- Source-only; builds, tests, lint, static analysis and device validation remain unexecuted by explicit request.
