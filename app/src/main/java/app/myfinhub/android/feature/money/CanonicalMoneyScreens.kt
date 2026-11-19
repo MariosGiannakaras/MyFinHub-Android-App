@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,6 +49,7 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubActionCard
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubDestructiveTextAction
 import app.myfinhub.android.designsystem.MyFinHubHeroCard
 import app.myfinhub.android.designsystem.MyFinHubHeroHeading
@@ -1292,32 +1294,36 @@ fun CanonicalLoansScreen(
                         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
                         Text("Ταξινόμηση", style = MaterialTheme.typography.titleSmall)
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                        FlowRow(
                             modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                         ) {
-                            listOf("remaining" to "Δόσεις", "amount" to "Ποσό")
-                                .forEach { (key, label) ->
-                                    androidx.compose.material3.FilterChip(
-                                        selected = sortKey == key,
-                                        onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
-                                        label = { Text(label) },
-                                    )
-                                }
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            listOf("name" to "Όνομα", "next" to "Ημέρα")
-                                .forEach { (key, label) ->
-                                    androidx.compose.material3.FilterChip(
-                                        selected = sortKey == key,
-                                        onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
-                                        label = { Text(label) },
-                                    )
-                                }
+                            listOf(
+                                "remaining" to "Δόσεις",
+                                "amount" to "Ποσό",
+                                "name" to "Όνομα",
+                                "next" to "Ημέρα",
+                            ).forEach { (key, label) ->
+                                androidx.compose.material3.FilterChip(
+                                    selected = sortKey == key,
+                                    onClick = {
+                                        sortKey = key
+                                        activeLimit = 20
+                                        completedLimit = 20
+                                    },
+                                    label = { Text(label) },
+                                    modifier = Modifier.heightIn(
+                                        min = MyFinHubDesignMetrics.minimumTouchTarget,
+                                    ),
+                                )
+                            }
                         }
                         TextButton(
                             onClick = { ascending = !ascending },
-                            modifier = Modifier.testTag("loan_sort_direction"),
+                            modifier = Modifier
+                                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                .testTag("loan_sort_direction"),
                         ) { Text(if (ascending) "Αύξουσα ↑" else "Φθίνουσα ↓") }
                     }
                 }
@@ -1668,35 +1674,26 @@ fun CanonicalLendingScreen(
                         modifier = Modifier.fillMaxWidth().testTag("lending_history_filters"),
                         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
-                        Row(
+                        FlowRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                         ) {
-                            androidx.compose.material3.FilterChip(
-                                selected = actionFilter == "all",
-                                onClick = { actionFilter = "all"; historyLimit = 30 },
-                                label = { Text("Όλες") },
-                            )
-                            androidx.compose.material3.FilterChip(
-                                selected = actionFilter == "lent",
-                                onClick = { actionFilter = "lent"; historyLimit = 30 },
-                                label = { Text("Έδωσα") },
-                            )
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                        ) {
-                            androidx.compose.material3.FilterChip(
-                                selected = actionFilter == "repaid",
-                                onClick = { actionFilter = "repaid"; historyLimit = 30 },
-                                label = { Text("Επιστροφές") },
-                            )
-                            androidx.compose.material3.FilterChip(
-                                selected = actionFilter == "forgiven",
-                                onClick = { actionFilter = "forgiven"; historyLimit = 30 },
-                                label = { Text("Διαγραφές") },
-                            )
+                            listOf(
+                                "all" to "Όλες",
+                                "lent" to "Έδωσα",
+                                "repaid" to "Επιστροφές",
+                                "forgiven" to "Διαγραφές",
+                            ).forEach { (value, label) ->
+                                androidx.compose.material3.FilterChip(
+                                    selected = actionFilter == value,
+                                    onClick = { actionFilter = value; historyLimit = 30 },
+                                    label = { Text(label) },
+                                    modifier = Modifier.heightIn(
+                                        min = MyFinHubDesignMetrics.minimumTouchTarget,
+                                    ),
+                                )
+                            }
                         }
                     }
                 }
@@ -1729,12 +1726,8 @@ fun CanonicalLendingScreen(
                         modifier = Modifier.fillMaxWidth().padding(vertical = MyFinHubSpacing.xs),
                         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
+                        val historyIdentity: @Composable (Modifier) -> Unit = { modifier ->
+                            Column(modifier = modifier) {
                                 Text(
                                     "${history.personLabel} · ${history.date}",
                                     style = MaterialTheme.typography.titleSmall,
@@ -1745,10 +1738,36 @@ fun CanonicalLendingScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                        }
+                        val historyAmount: @Composable () -> Unit = {
                             MyFinHubAmountText(
-                                text = amountVisibilityText(formatCanonicalEuro(history.amount), amountsVisible),
+                                text = amountVisibilityText(
+                                    formatCanonicalEuro(history.amount),
+                                    amountsVisible,
+                                ),
                                 tone = tone,
                             )
+                        }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                historyIdentity(Modifier.fillMaxWidth())
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End,
+                                ) { historyAmount() }
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                historyIdentity(Modifier.weight(1f))
+                                historyAmount()
+                            }
                         }
                         if (history.note.isNotBlank()) {
                             Text(history.note, style = MaterialTheme.typography.bodySmall)

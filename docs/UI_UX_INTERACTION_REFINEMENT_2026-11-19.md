@@ -330,3 +330,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - When selecting one displayed primary account for each Cash/Payroll/Savings role, exclude only that exact selected source ordinal from the secondary list. Never exclude all accounts merely because their ID equals a chosen primary ID.
 - Imported accounts with colliding IDs or additional rows in the same primary role therefore remain visible in the secondary account roster, where the checkpoint-43 unique-ID guard disables unsafe account opening. The three original primary cards, balances and real history charts remain unchanged; no source account is merged, deleted or silently preferred for a write.
 - Source-only follow-up to the same Home identity-safety batch; no build, tests, lint, static analysis, screenshot or physical owner acceptance.
+
+## Checkpoint 45 — adaptive loan sorting and lending-history readability
+
+- The four existing Loans sort choices now use one wrapping Material FlowRow instead of two hard-coded rows, retaining `sortKey`, ascending/descending behavior, both list-pagination resets and all labels. Every sort chip and the direction action has at least a 48dp touch target.
+- Lending history action filters likewise wrap as needed instead of occupying two fixed rows; the same four exact filter values, historical records and 30-entry pagination behavior remain unchanged.
+- Lending history entries place the transaction amount beneath long person names/date/status at 130%+ Android font. Normal font stays compact, and historical running outstanding, account context, source ordinal keys and amount privacy are preserved.
+- Source-only Android UI. No validation commands, finance calculations, network changes, PR/merge or device acceptance.
