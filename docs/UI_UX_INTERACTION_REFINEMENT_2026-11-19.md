@@ -81,3 +81,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Stack IBAN edit/delete actions at 150% font so Greek labels remain usable; keep all existing privacy and authenticated metadata requirements.
 - On the actual Wallet Cards tab, use an appropriately prominent creation action only for the first card, or the existing companion Quick Entry flow; render additional-card creation as a secondary action when cards already exist. Retain archived-card restore with an accessible touch target.
 - Source-only: no builds, lint, automated tests, screenshots or other validation. No release or PR.
+
+## Checkpoint 8 — action discoverability and period controls
+
+- Activity detail: a one-item "More" menu made Delete unnecessarily hard to discover; expose a secondary destructive text action directly while retaining exactly the same confirmation dialog and mutation-block conditions. Hide the empty subcategory placeholder without hiding actual historical values.
+- Budget: replace the oversized month-selection card with a compact standalone section and remove repeated explanatory prose; retain the month picker, prior/next controls, existing callbacks, conditions, and test tags. Stack month controls at enlarged Android font scales.
+- Recurring management: use the complete action label "Καταχώριση πληρωμής" to avoid implying that the button itself posts a payment; preserve the actual Quick Entry path and write gates. Display payment/edit actions vertically at enlarged font scales and disable the additional-actions opener during blocked mutations.
+- All edits remain source-only. No builds, tests, lint, static analysis, screenshot comparison or device verification was performed.

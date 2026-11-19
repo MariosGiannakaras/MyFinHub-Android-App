@@ -1068,7 +1068,9 @@ fun ActivityReadDetailScreen(
                     }
                 }
                 item { ActivityReadField("Κατηγορία", activityDetailCategoryLabel(item)) }
-                item { ActivityReadField("Υποκατηγορία", item.subcategory ?: "Χωρίς υποκατηγορία") }
+                item.subcategory?.takeIf(String::isNotBlank)?.let { subcategory ->
+                    item { ActivityReadField("Υποκατηγορία", subcategory) }
+                }
                 val counterpartyKind = when (item.canonicalKind) {
                     "expense", "card_purchase", "split", "refund" -> "merchant"
                     "income", "lending", "repayment", "lending_writeoff" -> "beneficiary"
@@ -1204,10 +1206,13 @@ fun ActivityReadDetailScreen(
                             ) {
                                 Text("Επεξεργασία")
                             }
-                            ActivityMoreActions(
+                            TextButton(
+                                onClick = { confirmDelete = true },
                                 enabled = !mutationBlocked,
-                                onDelete = { confirmDelete = true },
-                            )
+                                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                            ) {
+                                Text("Διαγραφή κίνησης", color = MaterialTheme.colorScheme.error)
+                            }
                         }
                         if (item.isInternalTransfer()) {
                             Text(
@@ -1253,30 +1258,6 @@ fun ActivityReadDetailScreen(
                 TextButton(onClick = { confirmDelete = false }) { Text("Ακύρωση") }
             },
         )
-    }
-}
-
-@Composable
-private fun ActivityMoreActions(enabled: Boolean, onDelete: () -> Unit) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    Box(modifier = Modifier.fillMaxWidth()) {
-        OutlinedButton(
-            onClick = { expanded = true },
-            enabled = enabled,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-        ) {
-            Text("Περισσότερα")
-        }
-        DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text("Διαγραφή κίνησης") },
-                enabled = enabled,
-                onClick = {
-                    expanded = false
-                    if (enabled) onDelete()
-                },
-            )
-        }
     }
 }
 

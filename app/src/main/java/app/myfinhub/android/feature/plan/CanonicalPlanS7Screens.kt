@@ -1221,41 +1221,49 @@ fun CanonicalBudget2026Screen(
         ) {
             if (onShiftBudgetMonth != null) {
                 item("budget-month-selector") {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
-                        .testTag("s7_budget_month_selector")) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                "Περίοδος: " + state.budgetMonthLabel,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                "Κάθε μήνας έχει δικά του συνολικά όρια, όρια κατηγοριών " +
-                                    "και υποκατηγοριών. Η αλλαγή μήνα δεν αποθηκεύει οικονομική κίνηση.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (onSelectBudgetMonth != null) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().testTag("s7_budget_month_selector"),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        Text(
+                            "Περίοδος: " + state.budgetMonthLabel,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        if (onSelectBudgetMonth != null) {
+                            TextButton(
+                                enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
+                                onClick = {
+                                    selectedMonthDraft = state.budgetSelectedMonthIso
+                                    selectBudgetMonthOpen = true
+                                },
+                                modifier = Modifier.testTag("s7_budget_pick_month"),
+                            ) { Text("Επιλογή μήνα") }
+                        }
+                        val monthNavigationEnabled =
+                            !dirty && !saveRequested && !mutationInFlight && !mutationBlocked
+                        val shiftAction: @Composable (Int, String, String, Modifier) -> Unit =
+                            { shift, label, testTag, modifier ->
                                 TextButton(
-                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
-                                    onClick = {
-                                        selectedMonthDraft = state.budgetSelectedMonthIso
-                                        selectBudgetMonthOpen = true
-                                    },
-                                    modifier = Modifier.fillMaxWidth().testTag("s7_budget_pick_month"),
-                                ) { Text("Επιλογή συγκεκριμένου μήνα") }
+                                    enabled = monthNavigationEnabled,
+                                    onClick = { onShiftBudgetMonth(shift) },
+                                    modifier = modifier.testTag(testTag),
+                                ) { Text(label) }
                             }
-                            Row(modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween) {
-                                TextButton(
-                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
-                                    onClick = { onShiftBudgetMonth(-1) },
-                                    modifier = Modifier.testTag("s7_budget_previous_month"),
-                                ) { Text("‹ Προηγούμενος") }
-                                TextButton(
-                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
-                                    onClick = { onShiftBudgetMonth(1) },
-                                    modifier = Modifier.testTag("s7_budget_next_month"),
-                                ) { Text("Επόμενος ›") }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                shiftAction(-1, "Προηγούμενος μήνας", "s7_budget_previous_month", Modifier.fillMaxWidth())
+                                shiftAction(1, "Επόμενος μήνας", "s7_budget_next_month", Modifier.fillMaxWidth())
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                shiftAction(-1, "Προηγούμενος", "s7_budget_previous_month", Modifier)
+                                shiftAction(1, "Επόμενος", "s7_budget_next_month", Modifier)
                             }
                         }
                     }

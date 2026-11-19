@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.LocalRecurringServiceAssets
 import app.myfinhub.android.designsystem.MyFinHubCertifiedRecurringServiceMark
@@ -292,37 +293,54 @@ fun CanonicalRecurringManagementScreen(
                         // Keep the everyday payment and edit operations visible.
                         // Less frequent lifecycle actions belong to one contextual menu.
                         var moreActionsOpen by rememberSaveable(item.id, index) { mutableStateOf(false) }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            TextButton(
-                                enabled = !mutationBlocked && uniqueId,
-                                onClick = { editing = item },
-                                modifier = Modifier.weight(1f)
-                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
-                                    .testTag("recurring_edit_" + item.id),
-                            ) { Text("Επεξεργασία") }
+                        val paymentAction: @Composable (Modifier) -> Unit = { modifier ->
                             FilledTonalButton(
                                 enabled = !mutationBlocked && uniqueId &&
                                     item.status == "active" && paymentAccountAvailable &&
                                     (paymentAccountIds == null || item.accountId in paymentAccountIds),
                                 onClick = { onRecordPayment(item) },
-                                modifier = Modifier.weight(1f)
+                                modifier = modifier
                                     .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                     .testTag("recurring_record_payment_" + item.id),
-                            ) { Text("Πληρωμή") }
+                            ) { Text("Καταχώριση πληρωμής") }
+                        }
+                        val editAction: @Composable (Modifier) -> Unit = { modifier ->
+                            TextButton(
+                                enabled = !mutationBlocked && uniqueId,
+                                onClick = { editing = item },
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("recurring_edit_" + item.id),
+                            ) { Text("Επεξεργασία") }
+                        }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                paymentAction(Modifier.fillMaxWidth())
+                                editAction(Modifier.fillMaxWidth())
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                paymentAction(Modifier.weight(1f))
+                                editAction(Modifier.weight(1f))
+                            }
                         }
                         if (uniqueId) {
                             Box {
                                 TextButton(
                                     onClick = { moreActionsOpen = true },
+                                    enabled = !mutationBlocked,
                                     modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                         .testTag("recurring_more_actions_" + item.id),
                                 ) { Text("Περισσότερες ενέργειες") }
                                 DropdownMenu(
-                                    expanded = moreActionsOpen,
+                                    expanded = moreActionsOpen && !mutationBlocked,
                                     onDismissRequest = { moreActionsOpen = false },
                                 ) {
                                     DropdownMenuItem(
