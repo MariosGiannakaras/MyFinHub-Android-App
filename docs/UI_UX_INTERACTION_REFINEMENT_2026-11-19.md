@@ -309,3 +309,11 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Archived cards likewise preserve every visual row but use collision-safe ordinal list keys. A restore action is available only when that card ID is globally unique across both active and archived cards. Blank/duplicated IDs are disabled with an explanation rather than invoking an ambiguous restore callback.
 - Quick Entry's shared option picker preserves all visible account/category/statement options but refuses a duplicate option ID, marks that row unavailable, and no longer announces a duplicated selected ID as a valid choice. Unique original IDs and existing callbacks remain untouched; optional blank single-value choices retain their existing behavior.
 - Financial totals, ledger inclusion, source records, account/card IDs, vault state, security gates and save logic are unchanged. Source-only, no builds, tests, lint, static analysis, screenshots, or physical acceptance.
+
+## Checkpoint 42 — Activity selection integrity and responsive money navigation
+
+- Long Activity histories now separate selected-month context from the "Όλο το ιστορικό" action, and sort/count text from the sort control, when Android fonts are 130%+; normal-font compact rows and existing month/sort callback semantics remain unchanged. Month summary and sort actions meet minimum 48dp touch targets.
+- Active Activity filter chips/rows retain exact imported type/category/account IDs, but their removal control stacks beneath long scope labels on large fonts while preserving the existing one-filter removal callbacks and accessible labels.
+- Shared Activity selector menus now explicitly mark duplicated source IDs unavailable instead of showing the same duplicated identity as selected and allowing a first-match filter/legacy-edit choice. Stale selections remain visible, and normal unique choices keep the original semantics/actions.
+- In the credit card workspace, each statement's payable amount, due date, purchases and payments are separate short read-only lines at enlarged fonts, retaining all amounts, masking, source ID guard, status, due dates and payment callbacks. Normal-font presentation is unchanged.
+- Source-only Android UI changes; no finance calculations, transaction posting, backends, builds, tests, lint, static analysis, screenshots or physical-device acceptance.

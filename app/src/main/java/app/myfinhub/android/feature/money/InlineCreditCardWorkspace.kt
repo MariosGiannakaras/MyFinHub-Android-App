@@ -295,12 +295,47 @@ fun InlineCreditCardWorkspace(
                             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                                 Text("${statement.openDate} – ${statement.closeDate} · ${creditStatementStatusLabel(statement.status)}",
                                     style = MaterialTheme.typography.titleSmall)
-                                Text("Πληρωτέο: " + creditWorkspaceMoney(statement.remaining, amountsVisible)
-                                    + " · Λήξη ${statement.dueDate}", style = MaterialTheme.typography.bodyMedium)
-                                Text("Αγορές: " + creditWorkspaceMoney(statement.purchaseTotal, amountsVisible)
-                                    + " · Πληρωμές: " + creditWorkspaceMoney(statement.paymentTotal, amountsVisible),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (largeFont) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                                        Text(
+                                            "Πληρωτέο: " +
+                                                creditWorkspaceMoney(statement.remaining, amountsVisible),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                        )
+                                        Text(
+                                            "Λήξη: ${statement.dueDate}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        Text(
+                                            "Αγορές: " +
+                                                creditWorkspaceMoney(statement.purchaseTotal, amountsVisible),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        Text(
+                                            "Πληρωμές: " +
+                                                creditWorkspaceMoney(statement.paymentTotal, amountsVisible),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        "Πληρωτέο: " +
+                                            creditWorkspaceMoney(statement.remaining, amountsVisible) +
+                                            " · Λήξη ${statement.dueDate}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                    Text(
+                                        "Αγορές: " +
+                                            creditWorkspaceMoney(statement.purchaseTotal, amountsVisible) +
+                                            " · Πληρωμές: " +
+                                            creditWorkspaceMoney(statement.paymentTotal, amountsVisible),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                                 if (onPayStatement != null && unique && statement.sourceIntegrityValid &&
                                     statement.remaining.isFinite() &&
                                     statement.remaining > 0.005) {

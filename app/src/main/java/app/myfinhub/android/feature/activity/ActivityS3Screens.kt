@@ -292,21 +292,41 @@ fun ActivityLedgerScreen(
                         }.getOrDefault(raw)
                     }.orEmpty()
                     item(key = "month-source-indicator") {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().testTag("activity_month_source_indicator"),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
+                        val monthLabel: @Composable (Modifier) -> Unit = { modifier ->
                             Text(
                                 "Προβολή μήνα · $monthText",
-                                modifier = Modifier.weight(1f),
+                                modifier = modifier,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                        }
+                        val showHistory: @Composable (Modifier) -> Unit = { modifier ->
                             TextButton(
                                 onClick = { onAction(ActivityAction.ClearSearchAndFilters) },
-                                modifier = Modifier.testTag("activity_show_all_history"),
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("activity_show_all_history"),
                             ) { Text("Όλο το ιστορικό") }
+                        }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("activity_month_source_indicator"),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                monthLabel(Modifier.fillMaxWidth())
+                                showHistory(Modifier.fillMaxWidth())
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("activity_month_source_indicator"),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                monthLabel(Modifier.weight(1f))
+                                showHistory(Modifier)
+                            }
                         }
                     }
                 }
@@ -316,7 +336,9 @@ fun ActivityLedgerScreen(
                     item(key = "month-summary-toggle") {
                         TextButton(
                             onClick = { monthOverviewExpanded = !monthOverviewExpanded },
-                            modifier = Modifier.testTag("activity_month_summary_toggle"),
+                            modifier = Modifier
+                                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                .testTag("activity_month_summary_toggle"),
                         ) {
                             Text(if (monthOverviewExpanded) "Απόκρυψη σύνοψης μήνα" else "Σύνοψη μήνα")
                         }
@@ -354,11 +376,7 @@ fun ActivityLedgerScreen(
                 // sorting and total/filtered counts for large real-bank ledgers.
                 if (state.scopeSourceItems.size > 20) {
                     item(key = "history-order-and-count") {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
+                        val countLabel: @Composable () -> Unit = {
                             if (!state.hasActiveListScope) {
                                 Text(
                                     "Εμφανίζονται ${state.visibleItems.size} από ${state.scopeSourceItems.size} κινήσεις",
@@ -366,11 +384,33 @@ fun ActivityLedgerScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                        }
+                        val sortAction: @Composable (Modifier) -> Unit = { modifier ->
                             TextButton(
                                 onClick = { onAction(ActivityAction.ToggleSortDirection) },
-                                modifier = Modifier.testTag("activity_sort_toggle"),
+                                modifier = modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("activity_sort_toggle"),
                             ) {
                                 Text(if (state.sortOldestFirst) "Παλαιότερες πρώτα" else "Νεότερες πρώτα")
+                            }
+                        }
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                countLabel()
+                                sortAction(Modifier.fillMaxWidth())
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                countLabel()
+                                sortAction(Modifier)
                             }
                         }
                     }
@@ -767,22 +807,32 @@ private fun ActivityScopeSummary(
 
 @Composable
 private fun ActivityScopeLine(label: String, onRemove: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
-        )
+    val removeAction: @Composable (Modifier) -> Unit = { modifier ->
         TextButton(
             onClick = onRemove,
-            modifier = Modifier
+            modifier = modifier
                 .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                 .semantics { contentDescription = "Αφαίρεση φίλτρου: $label" },
         ) { Text("Αφαίρεση") }
+    }
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+        ) {
+            Text(label, style = MaterialTheme.typography.bodyMedium)
+            removeAction(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        ) {
+            Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            removeAction(Modifier)
+        }
     }
 }
 
@@ -1826,35 +1876,54 @@ private fun S3ChoiceField(
     onSelected: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val identityCounts = choices.groupingBy { it.first }.eachCount()
     // Never show an unrelated first choice as the owner's selected value.
     // A deleted/renamed historic filter still represents an active selection.
-    val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second
-        ?: placeholder
-        ?: if (selectedId.isNotBlank()) "Η επιλογή δεν είναι πλέον διαθέσιμη"
-            else "Επίλεξε επιλογή"
+    val selectedLabel = when {
+        identityCounts[selectedId]?.let { it > 1 } == true -> "Η επιλογή δεν είναι μοναδική"
+        else -> choices.firstOrNull { it.first == selectedId }?.second
+            ?: placeholder
+            ?: if (selectedId.isNotBlank()) "Η επιλογή δεν είναι πλέον διαθέσιμη"
+                else "Επίλεξε επιλογή"
+    }
     Box(modifier = Modifier.fillMaxWidth()) {
         MyFinHubSelectorButton(
             label = label,
             onClick = { if (enabled && choices.isNotEmpty()) expanded = true },
             enabled = enabled && choices.isNotEmpty(),
         ) {
-            choiceIcon?.invoke(selectedId)?.let { vector ->
+            choiceIcon?.takeIf { identityCounts[selectedId] == 1 }?.invoke(selectedId)?.let { vector ->
                 Icon(vector, contentDescription = null, modifier = Modifier.size(20.dp))
             }
             Text(selectedLabel, modifier = Modifier.weight(1f))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             choices.forEach { (id, text) ->
+                val uniqueIdentity = identityCounts[id] == 1
                 val vector = choiceIcon?.invoke(id)
                 DropdownMenuItem(
-                    text = { Text(text) },
+                    text = {
+                        Column {
+                            Text(text)
+                            if (!uniqueIdentity) {
+                                Text(
+                                    "Μη μοναδική ταυτότητα · μόνο προβολή",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                        }
+                    },
+                    enabled = enabled && uniqueIdentity,
                     leadingIcon = if (vector == null) null else {
                         { Icon(vector, contentDescription = null) }
                     },
-                    trailingIcon = if (id == selectedId) {
+                    trailingIcon = if (uniqueIdentity && id == selectedId) {
                         { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
                     } else null,
-                    modifier = Modifier.semantics { selected = id == selectedId },
+                    modifier = Modifier.semantics {
+                        selected = uniqueIdentity && id == selectedId
+                    },
                     onClick = {
                         expanded = false
                         onSelected(id)
