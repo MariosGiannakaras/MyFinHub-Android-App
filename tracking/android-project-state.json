@@ -1462,6 +1462,21 @@
         "sha": "75ff3e18d62f5931fc623419b41ad1a0a7315024",
         "focus": "Plan 30-day forecast read-only monetary drilldown rows at large font",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "73404ba1ba1ef2fa3935793eb7e24364e6e07e6a",
+        "focus": "Keep urgent Plan obligations prominent and flatten only remaining planned entries",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "a90ade986124f6a946624a90880cfeba0d488625",
+        "focus": "Responsive Activity split-detail amounts and Forecast movement rows at large font",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "1243a6ab51bc3ceb6d1fd3473095f61eb28fee96",
+        "focus": "Pending-sync counterparty identity action disabled; unique selected identity announced",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
