@@ -356,3 +356,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Keep original statement order/status, exact amounts and privacy masking, duplicate-ID/integrity fences, linked-activity navigation, bounded pagination, payment entry callbacks and existing test tags unchanged.
 - Give the linked-statement activity pagination action the same full-width 48dp target already used by overall statement pagination, without changing its 15-item batch size.
 - Source-only UI; no builds, tests, lint, static analysis, screenshot comparison, release or device acceptance.
+
+## Checkpoint 49 — card detail mobile geometry and safe card switching
+
+- Card Detail now stacks the credit-limit and available-credit metrics at Android font scales of 130% or larger, preserving the same privacy-aware canonical values and ordinary compact layout.
+- The five-entry card-activity preview retains the existing unique-ID navigation gate and signed amounts, but puts long titles and date labels above their amounts at enlarged fonts. The existing show-all/show-less control receives a full-width minimum-48dp touch target.
+- The card-switcher sheet is bounded and scrollable for long real card lists, marks the active card, and displays imported duplicate/blank/noncanonical IDs without allowing ambiguous selection. It never silently chooses a first matching card; normal unique-ID selection still passes exactly the same ID to the existing callback.
+- No vault secret reveal, card identity mutation, financial data, billing calculation, network route or secure clipboard behavior changed. Source-only, no validation commands or device acceptance.
