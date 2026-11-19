@@ -127,6 +127,8 @@ fun ProductionQuickEntryScreen(
     categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     var noteExpanded by rememberSaveable { mutableStateOf(false) }
+    // A prefilled note starts open; an explicit user toggle must still be respected.
+    var noteVisibilityChosen by rememberSaveable { mutableStateOf(false) }
     var advancedMenuOpen by remember { mutableStateOf(false) }
     var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
@@ -548,11 +550,18 @@ fun ProductionQuickEntryScreen(
                 )
             }
 
-            TextButton(onClick = { noteExpanded = !noteExpanded }) {
-                Text(if (noteExpanded) "Απόκρυψη σημείωσης" else "Προσθήκη σημείωσης")
+            val noteVisible = if (noteVisibilityChosen) noteExpanded else state.note.isNotBlank()
+            TextButton(
+                onClick = {
+                    noteExpanded = !noteVisible
+                    noteVisibilityChosen = true
+                },
+                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            ) {
+                Text(if (noteVisible) "Απόκρυψη σημείωσης" else if (state.note.isNotBlank()) "Εμφάνιση σημείωσης" else "Προσθήκη σημείωσης")
             }
             AnimatedVisibility(
-                visible = noteExpanded || state.note.isNotBlank(),
+                visible = noteVisible,
                 enter = fadeIn(tween(MyFinHubMotion.QuickDurationMillis)) +
                     expandVertically(tween(MyFinHubMotion.StandardDurationMillis)),
                 exit = fadeOut(tween(MyFinHubMotion.QuickDurationMillis)) +

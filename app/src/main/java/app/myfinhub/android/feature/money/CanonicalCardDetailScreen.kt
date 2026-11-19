@@ -206,9 +206,11 @@ fun CanonicalCardDetailScreen(
             }
 
             if (isCredit) {
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                        Text("Ενέργειες πιστωτικής", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                ) {
+                    Text("Ενέργειες πιστωτικής", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         if (hasPayableCreditDebt(creditFinancial?.outstanding)) {
                             MyFinHubPrimaryAction(
                                 label = "Πληρωμή κάρτας",
@@ -216,7 +218,10 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
                                 icon = null,
                             )
-                            OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
+                            TextButton(
+                                onClick = onAddPurchase,
+                                modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                            ) {
                                 Text("Καταχώριση αγοράς")
                             }
                         } else {
@@ -226,10 +231,12 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.fillMaxWidth().testTag("card_detail_purchase_primary"),
                                 icon = null,
                             )
-                            OutlinedButton(
+                            TextButton(
                                 onClick = onPayCard,
                                 enabled = false,
-                                modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
+                                modifier = Modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("card_detail_payment_action"),
                             ) { Text("Πληρωμή κάρτας") }
                             Text(
                                 if (creditFinancial?.outstanding == null)
@@ -241,7 +248,6 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.testTag("card_detail_payment_unavailable_reason"),
                             )
                         }
-                    }
                 }
 
                 if (!companionMode) {

@@ -88,3 +88,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Budget: replace the oversized month-selection card with a compact standalone section and remove repeated explanatory prose; retain the month picker, prior/next controls, existing callbacks, conditions, and test tags. Stack month controls at enlarged Android font scales.
 - Recurring management: use the complete action label "Καταχώριση πληρωμής" to avoid implying that the button itself posts a payment; preserve the actual Quick Entry path and write gates. Display payment/edit actions vertically at enlarged font scales and disable the additional-actions opener during blocked mutations.
 - All edits remain source-only. No builds, tests, lint, static analysis, screenshot comparison or device verification was performed.
+
+## Checkpoint 9 — form and credit-card interaction refinement
+
+- Quick Entry: correct the optional-note disclosure so an existing or prefilled note opens initially, but an explicit Hide/Show selection works even while the note has text. No note text, draft, or save logic is modified.
+- Card detail: remove a redundant nested card around credit actions, retain the prominent payable action and render secondary or disabled actions as compact text buttons with the original callbacks and test tags. Keep the unavailable-payment reason and all secure-card data untouched.
+- Card creation: replace four repeated "Αλλαγή" text labels on bottom-sheet selectors with a consistent, non-verbal dropdown chevron. Preserve labels, selected values, touch behavior and the sensitive-card input contract.
+- Source-only edits, committed without automated checks, builds, lint or device verification.
