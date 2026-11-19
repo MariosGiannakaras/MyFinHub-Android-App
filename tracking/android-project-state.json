@@ -1345,6 +1345,10 @@
       {
         "sha": "9213c45d3860211f615f7f7ab0447625a816160d",
         "focus": "Recurring/scheduled action hierarchy, account balance and attention details"
+      },
+      {
+        "sha": "checkpoint-6-commit-to-be-recorded",
+        "focus": "Real Wallet route/navigation, flat archived/empty rows and recurring overview"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",

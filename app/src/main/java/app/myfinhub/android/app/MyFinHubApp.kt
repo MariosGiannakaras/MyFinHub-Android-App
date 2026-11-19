@@ -388,6 +388,7 @@ internal fun MyFinHubAppContent(
                     CanonicalWalletScreen(
                         state = moneyProviderState,
                         accountsOnly = true,
+                        onBack = { homeBackStack.removeLastOrNull() },
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
                         onOpenAccount = { id -> homeBackStack.pushIfNew(AppRoute.AccountDetail(id)) },

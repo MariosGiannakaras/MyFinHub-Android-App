@@ -64,3 +64,12 @@ The separate source-only workstream is recorded under `ui_ux_refinement_2026_11_
 ### Scope correction for checkpoint 4
 
 Corrected the closing scopes of the two newly introduced action sections. This is a source-only correction, not compiler or runtime evidence. The last checkpoint commit identifier was reconciled in canonical tracking.
+
+## Checkpoint 6 — active Wallet and recurring overview
+
+- Traced the real `AppRoute.Money` and nested `AppRoute.Accounts` destinations to the production `CanonicalWalletScreen` (not the older legacy Money surface).
+- Show an explicit Back control only when Wallet is opened as the nested Accounts detail from Home; keep top-level Wallet without a misleading Back button. Do not alter navigation stacks or financial mutations.
+- Remove the repeating selected section from the Wallet title/subtitle, maintain labelled account/card/debt selectors, and use compact account group headers.
+- Flatten empty account/card states and archived-card rows, preserving card restore, archive and secure-card/vault behavior.
+- Flatten the read-only recurring overview item list and surface its actual management entry more clearly; do not reinterpret estimates as actual payments.
+- Changes remain unbuilt, untested, unlinted and visually unverified by explicit request. No release, APK or PR.

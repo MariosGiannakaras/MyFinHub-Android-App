@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -113,6 +115,7 @@ fun CanonicalWalletScreen(
     initiallyShowDebts: Boolean = false,
     cardsOnly: Boolean = false,
     accountsOnly: Boolean = false,
+    onBack: (() -> Unit)? = null,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
     onOpenCard: (String) -> Unit,
@@ -172,7 +175,9 @@ fun CanonicalWalletScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = when { cardsOnly -> "Κάρτες"; accountsOnly -> "Λογαριασμοί"; else -> "Πορτοφόλι" },
-                subtitle = if (cardsOnly || accountsOnly) null else selected.label,
+                navigation = if (accountsOnly) onBack?.let { back ->
+                    { MyFinHubBackButton(back) }
+                } else null,
             )
         },
     ) { padding ->
@@ -292,7 +297,8 @@ private fun WalletSectionSelector(
     if (largeFont) {
         OutlinedButton(onClick = onOpenSheet, modifier = Modifier.fillMaxWidth()) {
             Icon(selected.icon(), contentDescription = null)
-            Text("  Ενότητα: ${selected.label}")
+            Spacer(Modifier.width(MyFinHubSpacing.xs))
+            Text("Ενότητα: ${selected.label}")
         }
     } else {
         Row(
@@ -346,19 +352,17 @@ private fun LazyListScope.walletAccountsContent(
 
     if (state.accounts.isEmpty()) {
         item("accounts-empty") {
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "Δεν υπάρχουν διαθέσιμοι λογαριασμοί στην τρέχουσα canonical εικόνα.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                "Δεν υπάρχουν διαθέσιμοι λογαριασμοί.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     } else {
         WalletAccountGroup.entries.forEach { group ->
             val accounts = walletAccountsInGroup(state, group)
             if (accounts.isNotEmpty()) {
                 item("account-heading-${group.name}") {
-                    Text(group.label, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(group.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }
                 items(accounts, key = MoneyAccount::id) { account ->
                     WalletAccountRow(
@@ -542,9 +546,7 @@ private fun LazyListScope.walletCardsContent(
     }
     if (state.cards.isEmpty()) {
         item("cards-empty") {
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Text("Δεν υπάρχουν ενεργές κάρτες στο MyFinHub.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            Text("Δεν υπάρχουν ενεργές κάρτες στο MyFinHub.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
         item("cards-stack") {
@@ -626,7 +628,12 @@ private fun LazyListScope.walletCardsContent(
             )
         }
         items(state.archivedCards, key = { "archived-" + it.id }) { card ->
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("archived_card_" + card.id)) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(vertical = MyFinHubSpacing.xs)
+                    .testTag("archived_card_" + card.id),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Text(card.nickname, style = MaterialTheme.typography.titleMedium)
                     Text(
@@ -640,6 +647,7 @@ private fun LazyListScope.walletCardsContent(
                     ) { Text("Επαναφορά") }
                 }
             }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         }
     }
 }
