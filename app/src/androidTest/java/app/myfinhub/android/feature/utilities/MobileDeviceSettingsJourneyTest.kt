@@ -26,7 +26,7 @@ class MobileDeviceSettingsJourneyTest {
                 )
             }
         }
-        compose.onNodeWithText("Εφαρμογή και συσκευή").assertIsDisplayed()
+        compose.onNodeWithText("Ρυθμίσεις").assertIsDisplayed()
         compose.onNodeWithText("Εμφάνιση ποσών").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Ειδοποιήσεις Android").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Αποσύνδεση από αυτή τη συσκευή")
@@ -86,12 +86,12 @@ class MobileDeviceSettingsJourneyTest {
                     MobileDeviceSettingsScreen(onBack = {}, onLogout = {})
                 }
             }
-            compose.onNodeWithContentDescription("Εμφάνιση ποσών")
+            compose.onNodeWithText("Εμφάνιση ποσών")
                 .performScrollTo().performClick()
             compose.runOnIdle {
                 assertEquals(true, AmountVisibilityPreference.read(context))
             }
-            compose.onNodeWithContentDescription("Εμφάνιση ποσών").performClick()
+            compose.onNodeWithText("Εμφάνιση ποσών").performClick()
             compose.runOnIdle {
                 assertEquals(false, AmountVisibilityPreference.read(context))
             }

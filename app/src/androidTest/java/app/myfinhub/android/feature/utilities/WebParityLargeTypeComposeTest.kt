@@ -53,6 +53,7 @@ class WebParityLargeTypeComposeTest {
         }
         rule.onNodeWithTag("recurring_manage_item_active").performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("recurring_manage_item_paused").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithTag("recurring_toggle_paused").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("recurring_more_actions_paused").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_toggle_paused").assertIsDisplayed()
     }
 }

@@ -223,7 +223,7 @@ class InlineCreditCardWorkspaceUiTest {
         }
         composeRule.onNodeWithText("Πληρωμή κάρτας").assertDoesNotExist()
         composeRule.onNodeWithText("Καταστάσεις πιστωτικής").assertDoesNotExist()
-        composeRule.onNodeWithText("Στοιχεία / διαχείριση κάρτας").assertExists()
+        composeRule.onNodeWithText("Στοιχεία και διαχείριση κάρτας").assertExists()
     }
     @Test fun inlineCreditNeverRendersAnotherCardsStatement() {
         val foreign = statement.copy(

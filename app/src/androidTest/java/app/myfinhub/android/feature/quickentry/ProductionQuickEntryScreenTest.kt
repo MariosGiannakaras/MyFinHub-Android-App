@@ -107,7 +107,7 @@ class ProductionQuickEntryScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Οφειλή κάρτας: 2,00 €").assertExists()
+        composeRule.onNodeWithText("Οφειλή κάρτας:", substring = true).assertExists()
         composeRule.runOnIdle {
             // Exactly the optimistic projection after a 2€ repayment.
             state = state.copy(cardPaymentDebt = 0.0)

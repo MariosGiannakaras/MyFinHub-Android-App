@@ -58,7 +58,7 @@ class ScheduledManagementComposeTest {
                 onClose={_,_->error("Unsupported close")})
         } }
         compose.onNodeWithTag("scheduled_complete_odd").assertIsNotEnabled()
-        compose.onNodeWithTag("scheduled_skip_odd").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_more_odd").assertIsNotEnabled()
         compose.onNodeWithText("Μη έγκυρο προγραμματισμένο ποσό").assertIsDisplayed()
         compose.onNodeWithText("Μη έγκυρη ημερομηνία προγραμματισμένης κίνησης")
             .assertIsDisplayed()
@@ -87,8 +87,7 @@ class ScheduledManagementComposeTest {
         } }
         for (id in listOf("bad-amount", "bad-date")) {
             compose.onNodeWithTag("scheduled_complete_" + id).assertIsNotEnabled()
-            compose.onNodeWithTag("scheduled_skip_" + id).assertIsNotEnabled()
-            compose.onNodeWithTag("scheduled_cancel_" + id).assertIsNotEnabled()
+            compose.onNodeWithTag("scheduled_more_" + id).assertIsNotEnabled()
         }
         compose.onNodeWithText("Μη έγκυρο προγραμματισμένο ποσό").assertIsDisplayed()
         compose.onNodeWithText("Μη έγκυρη ημερομηνία προγραμματισμένης κίνησης")
@@ -151,6 +150,7 @@ class ScheduledManagementComposeTest {
             CanonicalScheduledManagementScreen(data,onBack={},
                 onComplete={_->},onClose={id,status->calls+=id to status})
         } }
+        compose.onNodeWithTag("scheduled_more_bill").performClick()
         compose.onNodeWithTag("scheduled_skip_bill").performClick()
         compose.runOnIdle { assertEquals(0,calls.size) }
         compose.onNodeWithTag("scheduled_confirm_action").performClick()
@@ -289,8 +289,7 @@ class ScheduledManagementComposeTest {
                 onClose={_,_->error("Blocked")},mutationBlocked=true)
         } }
         compose.onNodeWithTag("scheduled_complete_bill").assertIsNotEnabled()
-        compose.onNodeWithTag("scheduled_skip_bill").assertIsNotEnabled()
-        compose.onNodeWithTag("scheduled_cancel_bill").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_more_bill").assertIsNotEnabled()
     }
     @Test fun duplicateScheduledRowsStayVisibleButAllAmbiguousActionsDisabled() {
         val rows=data.copy(scheduledManageItems=listOf(
@@ -307,8 +306,8 @@ class ScheduledManagementComposeTest {
         compose.onNodeWithTag("scheduled_item_duplicate_1").assertIsDisplayed()
         compose.onNodeWithTag("scheduled_complete_duplicate_0").assertIsNotEnabled()
         compose.onNodeWithTag("scheduled_complete_duplicate_1").assertIsNotEnabled()
-        compose.onNodeWithTag("scheduled_skip_duplicate_0").assertIsNotEnabled()
-        compose.onNodeWithTag("scheduled_cancel_duplicate_1").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_more_duplicate_0").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_more_duplicate_1").assertIsNotEnabled()
         compose.onNodeWithTag("scheduled_complete_unique").assertIsDisplayed()
     }
 

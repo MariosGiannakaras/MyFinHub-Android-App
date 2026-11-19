@@ -139,10 +139,13 @@ class RecurringManagementComposeTest {
             CanonicalRecurringManagementScreen(state, onBack={},
                 onStatusChanged={id,status -> calls += id to status})
         } }
-        rule.onNodeWithText("Παύση").performClick()
-        rule.onAllNodesWithText("Διακοπή")[0].performClick()
+        rule.onNodeWithTag("recurring_more_actions_active").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_toggle_active").performClick()
+        rule.onNodeWithTag("recurring_more_actions_active").performClick()
+        rule.onNodeWithTag("recurring_stop_active").performClick()
         rule.onNodeWithTag("recurring_stop_confirm").performClick()
-        rule.onAllNodesWithText("Επανενεργοποίηση")[0].performClick()
+        rule.onNodeWithTag("recurring_more_actions_paused").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_toggle_paused").performClick()
         rule.runOnIdle {
             assertEquals("active" to "paused",calls[0])
             assertEquals("active" to "stopped",calls[1])
@@ -218,7 +221,8 @@ class RecurringManagementComposeTest {
             CanonicalRecurringManagementScreen(state,onBack={},
                 onStatusChanged={_,_->error("Blocked operation")},mutationBlocked=true)
         } }
-        rule.onNodeWithText("Παύση").assertIsNotEnabled()
+        rule.onNodeWithTag("recurring_more_actions_active").assertIsNotEnabled()
+        rule.onNodeWithTag("recurring_more_actions_paused").assertIsNotEnabled()
     }
     @Test fun recurringCreateEditorIncludesSubcategoryInSaveRequest() {
         val calls = mutableListOf<RecurringCreateRequest>()
