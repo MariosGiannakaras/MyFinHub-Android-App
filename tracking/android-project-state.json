@@ -1547,6 +1547,16 @@
         "sha": "29e69ef44843a64e8db75af3997565c876c49a7a",
         "focus": "Credit statement history payoff/dates/purchases/payments readable at enlarged font and link paging touch target",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "53c0061b201a3e9c774064209f37032ec4aff0d6",
+        "focus": "Card Detail responsive credit amounts, scrolling identity-safe selector, and activity accessibility geometry",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "d3cce19a742aeff3c5baee85fe7c67b57de49574",
+        "focus": "Wallet active-card duplicate-ID fallback preserves all rows and blocks unsafe secret/action routing",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
