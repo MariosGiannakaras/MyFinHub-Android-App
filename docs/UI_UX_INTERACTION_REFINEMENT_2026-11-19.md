@@ -223,3 +223,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - On large Android font scales (130%+), separate each split-part label from the guarded Remove action instead of forcing both into one narrow row; ordinary font sizes retain the compact horizontal header.
 - Add thin dividers between consecutive split parts so amount, category, subcategory and note fields clearly belong to their own part. Preserve the minimum two-part invariant, original source part IDs, all inputs, validation and callback semantics.
 - No new financial mutation or defaults. Source-only, with no builds, tests, lint, static analysis, screenshot comparison or physical device validation.
+
+## Checkpoint 28 — responsive Insights periods and operating report
+
+- The live Insights period selector now wraps the exact existing periods and titles instead of squeezing all choices into one equal-width chip row. Each chip meets the minimum 48dp touch target and retains its historical-report/month selection logic and existing tags.
+- Monthly operating-report financial rows switch to readable, vertically arranged label/amount pairs at 130%+ Android font, preserving all source amounts and the existing device-local privacy masking. The expanded account-balance listing uses the same responsive layout.
+- Standard-font layout, canonical calculations and navigation callbacks remain unchanged. Source-only; no build, tests, lint, static analysis or physical-device acceptance.

@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -443,13 +445,25 @@ private fun OperationalReportCard(
                 }
                 if (detailsExpanded) {
                     report.accountBalances.forEachIndexed { index, account ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                                .testTag("insights_operational_account_" + index),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(account.label, modifier = Modifier.weight(1f))
-                            Text(amountVisibilityText(formatEuro(account.balance), amountsVisible))
+                        val amount = amountVisibilityText(formatEuro(account.balance), amountsVisible)
+                        if (LocalDensity.current.fontScale >= 1.3f) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("insights_operational_account_" + index),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                Text(account.label)
+                                Text(amount, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("insights_operational_account_" + index),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(account.label, modifier = Modifier.weight(1f))
+                                Text(amount)
+                            }
                         }
                     }
                 }
@@ -462,12 +476,27 @@ private fun OperationalReportCard(
 private fun OperationalReportAmountLine(
     title: String, value: Double, amountsVisible: Boolean,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(title, modifier = Modifier.weight(1f))
-        Text(amountVisibilityText(formatEuro(value), amountsVisible))
+    val amount = amountVisibilityText(formatEuro(value), amountsVisible)
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+        ) {
+            Text(title, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                amount,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(title, modifier = Modifier.weight(1f))
+            Text(amount)
+        }
     }
 }
 
@@ -478,10 +507,17 @@ private fun PeriodSelector(
     onPeriodSelected: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-        Text("Περίοδος", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(
+        Text(
+            "Περίοδος",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        // A wrapped period selector keeps all historical scope choices reachable
+        // without compressing Greek labels into three fixed-width chips.
+        FlowRow(
             modifier = Modifier.fillMaxWidth().testTag("insights_period_selector"),
             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
         ) {
             periods.forEach { period ->
                 FilterChip(
@@ -489,7 +525,9 @@ private fun PeriodSelector(
                         (period.id == INSIGHTS_PERIOD_MONTH && selectedPeriodId.startsWith("report:")),
                     onClick = { onPeriodSelected(period.id) },
                     label = { Text(period.label) },
-                    modifier = Modifier.weight(1f).testTag("insights_period_${period.id}"),
+                    modifier = Modifier
+                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                        .testTag("insights_period_${period.id}"),
                 )
             }
         }
