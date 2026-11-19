@@ -1422,6 +1422,11 @@
         "sha": "697415f053d88aef3828e5d4475f3b86b0c617e6",
         "focus": "Wallet section selection semantics and active card label at 130% font",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "6097848b7e7d34100445f82ec9a6186cd808624a",
+        "focus": "Disambiguate Compose Wallet section selected semantics; no behavior changes",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
