@@ -1399,9 +1399,14 @@
         "status": "source_committed_unvalidated"
       },
       {
+        "sha": "9879e5162c5ffc532196613b1f3efe20199f7712",
+        "focus": "Scrollable card provider and metadata picker, large-font selected state and reachability",
+        "status": "source_committed_unvalidated"
+      },
+      {
         "sha": null,
         "ref": "android/ui-ux-interaction-redesign-20261119",
-        "focus": "Scrollable card provider and metadata picker, large-font selected state and reachability",
+        "focus": "Decimal and integer keyboards for loan, installment and card payoff amount inputs",
         "status": "source_committed_unvalidated"
       }
     ],

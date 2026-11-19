@@ -169,3 +169,10 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Give each choice a 48dp minimum touch target, expose its selected semantics and stack the visual selected marker at enlarged font scales.
 - Remove an unused credit-workspace import from the preceding source-only checkpoint; no finance logic changes.
 - No builds, tests, lint, static analysis, screenshots or device verification were run.
+
+## Checkpoint 20 — financial numeric input ergonomics
+
+- Use Android's decimal keyboard for total/periodic loan amounts, self-loan repayment amount and hypothetical credit payoff input; use the integer numeric keyboard for loan installment counts.
+- Leave ISO dates on a keyboard capable of entering hyphens and keep all current parsing, validation, cent-precision checks, lender/borrower selection, confirmation and save callbacks exactly as before. Keyboard type is an input affordance, not a new restriction.
+- Preserve encrypted card data, Web canonical finance contracts, installment payment preview and read-only simulation semantics.
+- No builds, tests, static analysis, lint or device verification were executed.

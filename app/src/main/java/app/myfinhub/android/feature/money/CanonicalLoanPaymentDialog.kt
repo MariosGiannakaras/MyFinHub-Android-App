@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -23,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
 import app.myfinhub.android.core.data.moneyToCents
 import app.myfinhub.android.core.data.centsToMoney
 import app.myfinhub.android.feature.utilities.amountVisibilityText
@@ -161,6 +163,7 @@ fun CanonicalLoanPaymentDialog(
                         value = amount, onValueChange = { amount = it },
                         label = { Text("Ποσό επιστροφής") },
                         modifier = Modifier.fillMaxWidth().testTag("loan_payment_amount"),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         singleLine = true,
                     )
                 } else {
@@ -168,6 +171,7 @@ fun CanonicalLoanPaymentDialog(
                         value = count, onValueChange = { count = it },
                         label = { Text("Πλήθος δόσεων (έως ${loan.remainingInstallments})") },
                         modifier = Modifier.fillMaxWidth().testTag("loan_payment_count"),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                     )
                 }
