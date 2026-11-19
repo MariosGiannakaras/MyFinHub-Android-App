@@ -37,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -1295,7 +1297,9 @@ fun CanonicalBudget2026Screen(
                                     selectedMonthDraft = state.budgetSelectedMonthIso
                                     selectBudgetMonthOpen = true
                                 },
-                                modifier = Modifier.testTag("s7_budget_pick_month"),
+                                modifier = Modifier
+                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("s7_budget_pick_month"),
                             ) { Text("Επιλογή μήνα") }
                         }
                         val monthNavigationEnabled =
@@ -1305,7 +1309,9 @@ fun CanonicalBudget2026Screen(
                                 TextButton(
                                     enabled = monthNavigationEnabled,
                                     onClick = { onShiftBudgetMonth(shift) },
-                                    modifier = modifier.testTag(testTag),
+                                    modifier = modifier
+                                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+                                        .testTag(testTag),
                                 ) { Text(label) }
                             }
                         if (LocalDensity.current.fontScale >= 1.3f) {
@@ -1342,12 +1348,35 @@ fun CanonicalBudget2026Screen(
                                 icon = MyFinHubIcons.Savings,
                                 tone = FinanceTone.Savings,
                             )
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (progress.remaining >= 0.0) "Υπόλοιπο" else "Υπέρβαση")
+                            val remainingLabel = if (progress.remaining >= 0.0) "Υπόλοιπο" else "Υπέρβαση"
+                            val remainingAmount: @Composable () -> Unit = {
                                 MyFinHubAmountText(
-                                    amountVisibilityText(formatPlanS7Euro(abs(progress.remaining)), amountsVisible),
+                                    amountVisibilityText(
+                                        formatPlanS7Euro(abs(progress.remaining)),
+                                        amountsVisible,
+                                    ),
                                     if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
                                 )
+                            }
+                            if (LocalDensity.current.fontScale >= 1.3f) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                                ) {
+                                    Text(remainingLabel)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End,
+                                    ) { remainingAmount() }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(remainingLabel)
+                                    remainingAmount()
+                                }
                             }
                             if (progress.progress <= 0f) {
                                 HorizontalDivider(
@@ -1962,15 +1991,23 @@ private fun CanonicalCategoryBudgetEditor(
                         onClick = { categoryMenuOpen = true },
                         enabled = !mutationBlocked,
                         modifier = Modifier.fillMaxWidth()
+                            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                             .testTag("s7_category_editor_select"),
                     ) { Text(if (category.isBlank()) "Επίλεξε κατηγορία εξόδων" else "Αλλαγή: $category") }
                     DropdownMenu(
                         expanded = categoryMenuOpen,
                         onDismissRequest = { categoryMenuOpen = false },
                     ) {
-                        categories.forEach { item ->
+                        // Category names, not list positions, are the existing editor values.
+                        // Avoid duplicate visible choices while preserving exact category strings.
+                        categories.distinct().forEach { item ->
+                            val isCurrentCategory = item == category
                             DropdownMenuItem(
                                 text = { Text(item) },
+                                trailingIcon = if (isCurrentCategory) {
+                                    { Text("Επιλεγμένο", style = MaterialTheme.typography.labelSmall) }
+                                } else null,
+                                modifier = Modifier.semantics { selected = isCurrentCategory },
                                 onClick = { category = item; categoryMenuOpen = false },
                             )
                         }

@@ -337,3 +337,9 @@ Corrected the closing scopes of the two newly introduced action sections. This i
 - Lending history action filters likewise wrap as needed instead of occupying two fixed rows; the same four exact filter values, historical records and 30-entry pagination behavior remain unchanged.
 - Lending history entries place the transaction amount beneath long person names/date/status at 130%+ Android font. Normal font stays compact, and historical running outstanding, account context, source ordinal keys and amount privacy are preserved.
 - Source-only Android UI. No validation commands, finance calculations, network changes, PR/merge or device acceptance.
+
+## Checkpoint 46 — budget navigation and category selection ergonomics
+
+- Budget month picker and previous/next month actions now have explicit minimum-48dp targets while keeping their existing dirty-draft, save-in-flight and mutation-blocked navigation gates. At 130%+ font, the monthly budget's balance/overrun label and masked amount stack without competing for one horizontal row; normal-size layout stays unchanged.
+- The category-limit editor preserves exact category strings, but offers one visual menu row per name when the source list contains duplicates, and announces the selected category both visually and via accessibility semantics. The original selected name, validation, save/delete callbacks, existing test tags and budget calculations are unchanged.
+- Source-only and not device/CI validated. No build, tests, lint, static analysis, screenshots, merges or release.
