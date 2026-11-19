@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -162,12 +163,7 @@ fun CanonicalCardDetailScreen(
                         } else {
                             MyFinHubIconBadge(MyFinHubIcons.Card, FinanceTone.Transfer, null)
                         }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(card.nickname, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                            provider?.institutionLabel?.let {
-                                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
+                        Spacer(modifier = Modifier.weight(1f))
                         Text(canonicalCardMaskedLastFour(card.last4) ?: "••••", style = MaterialTheme.typography.labelLarge)
                     }
                     Text(

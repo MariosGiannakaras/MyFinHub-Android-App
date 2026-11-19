@@ -24,3 +24,26 @@ Additional screens and flows continue in subsequent source-only checkpoints on t
 - Diagnostics: move the safe summary to the same flat-section system and use compact secondary text actions; preserve support-copy output, confidentiality and expandable technical information.
 - Reviewed Activity, Quick Entry and authentication surface boundaries; their existing current handling of scope, draft preservation, blocked finance writes, privacy and secure navigation is kept intact rather than replaced by speculative refactoring.
 - Source-only checkpoint. No validation commands or physical UI review performed; no certification of behavior is implied.
+
+## Checkpoint 3 — form density, accessibility and route inventory
+
+- Activity: remove the redundant Κινήσεις/Ιστορικό κινήσεων subtitle; retain the explicit analytics date scope, filters, monthly summary, detail/edit/confirmation and server-sync recovery.
+- Quick Entry: make the three frequent transaction types at least 48dp tall and stack at 150% font. Retain the contextual credit-purchase shortcut as a less prominent action. Save gating, dirty Back, security states and canonical mutation callbacks are unchanged.
+- Card detail: remove the duplicate nickname/institution immediately below the persistent title bar, retaining logo, masked digits, card network and all secure/credit actions.
+- Wallet account rows: increase tappable vertical area. Home recent titles may wrap onto two lines.
+- Login: remove the redundant description above the labelled fields; preserve MFA, PIN, biometric and auth error flows.
+
+### Existing screen / route inventory considered
+
+| Area | Routes and surfaces | Refinement / unchanged functionality |
+| --- | --- | --- |
+| Home | Home, HomeAttention | Urgency order, recent rows and shared geometry; primary-account charts and drilldowns retained |
+| Activity | Activity, CategoryActivity, ActivityDetail, ActivityEdit | Compact header and common rows; search, filters, mutation/detail and confirmations retained |
+| Quick Entry | QuickEntry, split/date/type pickers | Accessible type choice, contextual credit action, existing sticky Save and dirty Back |
+| Wallet | Money, Accounts, AccountDetail, NetPosition, CardCreate, CardDetail, CardSecureDetails, Savings, Loans, Lending | Remove duplicate create, improve account rows and card header; preserve vault and financial identity |
+| Plan | Plan, PlanForecast, PlanRecurring, PlanRecurringManage, PlanScheduled, PlanBudgets | Compact navigation and shared spacing; forecasts, budgets and editors unchanged |
+| Analysis | Insights | Flat month controls, single net-position link and preserved chart calculations |
+| Local utilities | Settings, Diagnostics, NoticeHistory | Flat preferences, update states, safe support and lazily rendered notices |
+| Auth | Login, MFA, PIN enrollment/unlock, biometric, loading/error | Less redundant text and shared responsive components; security rules unchanged |
+
+This branch delivers source-only UI refinements; pixel-level, device, runtime, and regression acceptance is NOT established. No validation commands or physical UI review have been performed. Existing finance/release workstream progress and release state remain unchanged.

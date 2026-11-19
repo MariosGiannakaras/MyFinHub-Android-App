@@ -216,22 +216,33 @@ fun ProductionQuickEntryScreen(
             }
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             if (state.kind in FastKinds) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                ) {
-                    FastKinds.forEach { kind ->
-                        FilterChip(
-                            selected = state.kind == kind,
-                            onClick = { onAction(QuickEntryAction.SelectKind(kind)) },
-                            label = { Text(kind.label) },
-                        )
+                val quickKindChip: @Composable (QuickEntryKind, Modifier) -> Unit = { kind, modifier ->
+                    FilterChip(
+                        selected = state.kind == kind,
+                        onClick = { onAction(QuickEntryAction.SelectKind(kind)) },
+                        label = { Text(kind.label) },
+                        modifier = modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+                    )
+                }
+                if (LocalDensity.current.fontScale >= 1.3f) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                    ) {
+                        FastKinds.forEach { quickKindChip(it, Modifier.fillMaxWidth()) }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        FastKinds.forEach { quickKindChip(it, Modifier) }
                     }
                 }
                 if (showCreditPurchaseShortcut(state.kind, state.creditCards.isNotEmpty())) {
-                    OutlinedButton(
+                    TextButton(
                         onClick = { onAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                             .testTag("quick_entry_credit_purchase_shortcut"),
                     ) {
                         Text("Αγορά με πιστωτική")

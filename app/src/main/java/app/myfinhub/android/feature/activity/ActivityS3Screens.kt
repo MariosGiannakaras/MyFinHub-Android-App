@@ -190,9 +190,7 @@ fun ActivityLedgerScreen(
                 title = state.categoryFilter ?: "Κινήσεις",
                 subtitle = if (analyticsScope) {
                     "${formatActivityDate(state.dateFrom)} – ${formatActivityDate(state.dateTo)}"
-                } else {
-                    "Ιστορικό κινήσεων"
-                },
+                } else null,
                 navigation = onBack?.let { back -> { MyFinHubBackButton(back) } },
             )
         },

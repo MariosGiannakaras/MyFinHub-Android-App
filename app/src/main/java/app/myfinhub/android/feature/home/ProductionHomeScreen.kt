@@ -286,7 +286,7 @@ private fun HomeRecentSection(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(item.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
+                                Text(item.title, style = MaterialTheme.typography.bodyLarge, maxLines = 2)
                                 Text(
                                     item.dateLabel,
                                     style = MaterialTheme.typography.bodySmall,

@@ -104,10 +104,6 @@ private fun LoginScreen(
 
     AuthSurface {
         Text("Σύνδεση στο MyFinHub", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-        Text(
-            "Συνδέσου με το email και τον κωδικό του λογαριασμού σου.",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
         MyFinHubOutlinedField(
             value = email,
             onValueChange = { email = it },

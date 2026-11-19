@@ -179,7 +179,8 @@ fun CanonicalMoneyScreen(
                         } else {
                             state.accounts.forEachIndexed { index, account ->
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().clickable { onOpenAccount(account.id) },
+                                    modifier = Modifier.fillMaxWidth().clickable { onOpenAccount(account.id) }
+                                        .padding(vertical = MyFinHubSpacing.xs),
                                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
