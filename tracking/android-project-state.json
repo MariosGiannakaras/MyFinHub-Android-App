@@ -1527,6 +1527,26 @@
         "sha": "2c41bb0616ea8f38c966ed8701ccb116344e9fc0",
         "focus": "Preserve every Home account source row when IDs collide with primary accounts",
         "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "660d69679bff919f0d66eba49e81f98febbb2500",
+        "focus": "Loans sorting and Lending filters wrap naturally, readable lending history rows at large font",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "e754627f8ff6450516ff81e22d1e7c09c9fd1783",
+        "focus": "Budget month selection hit targets, responsive remaining amount, selected category menu semantics",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "4490d2cfef8d52fb51cd3139475945f06370f616",
+        "focus": "Quick Entry search uses native shared field and both calendar variants use 48dp actions",
+        "status": "source_committed_unvalidated"
+      },
+      {
+        "sha": "29e69ef44843a64e8db75af3997565c876c49a7a",
+        "focus": "Credit statement history payoff/dates/purchases/payments readable at enlarged font and link paging touch target",
+        "status": "source_committed_unvalidated"
       }
     ],
     "documentation": "docs/UI_UX_INTERACTION_REFINEMENT_2026-11-19.md",
