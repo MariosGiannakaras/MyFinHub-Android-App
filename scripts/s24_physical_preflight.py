@@ -15,7 +15,7 @@ import subprocess
 import sys
 
 PACKAGE = "app.myfinhub.android"
-# Public signed GitHub prerelease metadata, checked 2026-11-18.
+# Public signed GitHub prerelease metadata, checked 2026-11-19.
 # These code/name pairs are only a read-only consistency allowlist: neither the
 # release listing nor an ADB-reported version proves APK signer, Play Protect
 # clearance, safe in-place update, source trust, or physical owner acceptance.
@@ -28,9 +28,12 @@ PUBLISHED_RELEASE_VERSION_NAMES = {
     10014: "1.0.0-rc15",
     10015: "1.0.0-rc16",
     10016: "1.0.0-rc17",
+    10017: "1.0.0-rc18",
+    10018: "1.0.0-rc19",
 }
-LATEST_PUBLISHED_VERSION_CODE = 10016
+LATEST_PUBLISHED_VERSION_CODE = 10018
 LATEST_PUBLISHED_VERSION_NAME = PUBLISHED_RELEASE_VERSION_NAMES[LATEST_PUBLISHED_VERSION_CODE]
+LATEST_PUBLISHED_RELEASE_LABEL = LATEST_PUBLISHED_VERSION_NAME.rsplit("-", 1)[-1]
 LAST_KNOWN_SIGNED_VERSION_CODE = 10011  # rc12 lower bound; old candidates remain inspectable
 MODEL_PATTERN = re.compile(r"SM-S928[A-Z0-9]*\Z")
 VERSION_PATTERN = re.compile(r"[A-Za-z0-9._+-]{1,64}\Z")
@@ -144,9 +147,9 @@ def inspect(expected_version_code: int | None = None) -> dict[str, object]:
     if known_release_name is not None and version_name != known_release_name:
         freshness = "unrecognized_build_requires_source_and_signer_verification"
     elif version_code < LATEST_PUBLISHED_VERSION_CODE:
-        freshness = "older_than_published_rc17"
+        freshness = f"older_than_published_{LATEST_PUBLISHED_RELEASE_LABEL}"
     elif version_code == LATEST_PUBLISHED_VERSION_CODE:
-        freshness = "published_rc17_version_only_requires_signer_and_owner_verification"
+        freshness = f"published_{LATEST_PUBLISHED_RELEASE_LABEL}_version_only_requires_signer_and_owner_verification"
     else:
         freshness = "newer_build_requires_source_and_signer_verification"
     result: dict[str, object] = {
