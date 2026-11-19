@@ -11,20 +11,20 @@ import androidx.compose.ui.unit.dp
 object MyFinHubDesignMetrics {
     val minimumTouchTarget = 48.dp
 
-    val screenHorizontalPadding = 20.dp
-    val screenTopPadding = 16.dp
+    val screenHorizontalPadding = 16.dp
+    val screenTopPadding = 12.dp
     val screenBottomPadding = 8.dp
-    val sectionGap = 24.dp
+    val sectionGap = 20.dp
     val groupGap = 12.dp
     val labelValueGap = 4.dp
     val iconTextGap = 12.dp
 
-    val cardContentPadding = 16.dp
+    val cardContentPadding = 14.dp
     val cardBorderWidth = 1.dp
     val cardElevation = 0.dp
-    val rowHorizontalPadding = 16.dp
-    val rowVerticalPadding = 12.dp
-    val rowMinHeight = 64.dp
+    val rowHorizontalPadding = 14.dp
+    val rowVerticalPadding = 10.dp
+    val rowMinHeight = 56.dp
 
     val brandMarkDefaultSize = 36.dp
     val authBrandMarkSize = 40.dp

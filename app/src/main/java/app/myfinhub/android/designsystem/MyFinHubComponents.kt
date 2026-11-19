@@ -452,12 +452,12 @@ fun MyFinHubOutlinedAction(
         onClick = onClick,
         modifier = modifier
             .myFinHubPressScale(interactionSource)
-            .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
         enabled = enabled,
         interactionSource = interactionSource,
         contentPadding = PaddingValues(
-            horizontal = MyFinHubDesignMetrics.primaryActionHorizontalPadding,
-            vertical = MyFinHubDesignMetrics.primaryActionVerticalPadding,
+            horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+            vertical = MyFinHubDesignMetrics.rowVerticalPadding,
         ),
     ) {
         icon?.let {
