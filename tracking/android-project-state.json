@@ -1568,9 +1568,9 @@
   }
 ,
   "ux_journey_audit_2026_11_20": {
-    "stage": "01b_cards_wording_and_real_route_screenshot_inventory",
-    "source_branch": "android/ux-cards-wording-screen-inventory-20261120",
-    "status": "source_authored_pending_exact_head_CI_and_merge",
+    "stage": "01c_cards_route_identity_and_secure_details",
+    "source_branch": "android/ux-cards-route-identity-20261120",
+    "status": "source_authored_pending_exact_head_ci_and_merge",
     "next_stage": "01c_cards_secure_details_and_create_copy_with_verified_updated_pngs",
     "summary": "Uses existing official synthetic Compose PNG screenshots and CI artifacts; adds source-head-identified offline per-journey review HTML/JSON/checklist with image hashes and missing baseline variants. No standalone UX verdict or real-device acceptance.",
     "web_parity_changed": false,
@@ -1605,6 +1605,24 @@
       "pr": 494,
       "merged_commit": "df4c16bf7321ef97bbdf469ec4ffadf73d91bd40",
       "exact_head_checks": "6_of_6_success"
+    },
+    "preceding_card_wording": {
+      "pr": 495,
+      "merged_commit": "b36f3c0d19e271b5162449bd1fc608032851adc5",
+      "exact_head_checks": "6_of_6_success"
+    },
+    "completion_criteria": [
+      "Reject duplicate, blank, untrimmed and active/archived colliding card IDs in CardDetail and CardSecureDetails",
+      "Revoke revealed card secrets when a source card becomes ambiguous after route entry",
+      "Verify card purchase/payment/statement routes use same safe ID resolver",
+      "Exercise dynamic catalog mutation and missing-card revealed-state tests; preserve accepted goldens"
+    ],
+    "visual_ux_review": {
+      "source": "102 synthetic Compose screenshots in Android UI CI 44693806024 inspected",
+      "duplicate_heading": "Στοιχεία κάρτας title duplicates action; visual cleanup pending renderer-verified goldens",
+      "generic_new_transaction": "Cards tab opens default generic expense, no card prefilling; contextual decision pending",
+      "card_create_copy": "Retained test-only CardCreate copy says device only, conflicts with shared synced card vault; visual cleanup pending",
+      "physical_S24": "not established by screenshot and emulator tests"
     }
   }
 }

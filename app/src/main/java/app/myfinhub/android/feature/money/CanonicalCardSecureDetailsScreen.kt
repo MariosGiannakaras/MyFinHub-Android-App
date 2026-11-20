@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,7 +57,11 @@ fun CanonicalCardSecureDetailsScreen(
     onSaveCvv: (CharArray) -> Unit,
     onBack: () -> Unit,
 ) {
-    val relevantState = secretState.forCard(cardId)
+    // A missing/invalid source card cannot inherit a previously revealed vault.
+    val cardAvailable = card != null && cardId.isNotBlank() &&
+        cardId == cardId.trim() && card.id == cardId
+    val relevantState = if (cardAvailable) secretState.forCard(cardId)
+        else CardSecretUiState.Hidden(cardId)
     val context = LocalContext.current
     val vaultReadAuthorized = relevantState is CardSecretUiState.Revealed
     // Wallet can be visible during navigation; neither surface may release
@@ -105,8 +110,8 @@ fun CanonicalCardSecureDetailsScreen(
         }
     }
 
-    LaunchedEffect(cardId) {
-        onReveal()
+    LaunchedEffect(cardId, cardAvailable) {
+        if (cardAvailable) onReveal()
     }
 
     fun closeDetailsSurface() {
@@ -149,6 +154,26 @@ fun CanonicalCardSecureDetailsScreen(
                 .padding(MyFinHubDesignMetrics.screenHorizontalPadding),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
+            if (!cardAvailable) {
+                MyFinHubSectionCard(
+                    modifier = Modifier.fillMaxWidth().testTag("card_secure_identity_unavailable"),
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                        Text("Τα ασφαλή στοιχεία αυτής της κάρτας δεν είναι διαθέσιμα.")
+                        Text(
+                            "Η κάρτα αφαιρέθηκε ή η ταυτότητά της δεν είναι μοναδική. " +
+                                "Επίλεξέ την ξανά από τις Κάρτες μετά την αποκατάσταση των δεδομένων.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        OutlinedButton(
+                            onClick = ::closeDetailsSurface,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("Επιστροφή στην κάρτα") }
+                    }
+                }
+                return@Column
+            }
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text(

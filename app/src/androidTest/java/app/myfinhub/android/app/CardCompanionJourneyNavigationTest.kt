@@ -13,6 +13,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.home.syntheticHomeUiState
+import app.myfinhub.android.feature.money.CanonicalCardSecureDetailsScreen
+import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.MoneyCard
 import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.VaultState
@@ -27,6 +29,61 @@ import org.junit.Test
 /** Actual native navigation: selected card -> detail -> purchase draft -> guarded Back -> Cards. */
 class CardCompanionJourneyNavigationTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun anOpenCardDetailFailsClosedIfTheCatalogIntroducesADuplicateId() {
+        val card = MoneyCard(
+            id = "credit", nickname = "Πιστωτική ταξιδιών", last4 = "1881",
+            kind = "Πιστωτική", currentBalance = 120.0, limit = 1000.0,
+            vaultState = VaultState.LOCKED, canonicalKind = "credit",
+        )
+        var cards by mutableStateOf(listOf(card))
+        compose.setContent {
+            MyFinHubTheme {
+                MyFinHubAppContent(
+                    homeState = syntheticHomeUiState(),
+                    onHomeAction = {},
+                    moneyState = MoneyUiState(cards = cards),
+                )
+            }
+        }
+        compose.onNodeWithText("Κάρτες").performClick()
+        compose.onNodeWithTag("credit_card_credit").performClick()
+        compose.onNodeWithText("Τρέχουσα οφειλή").assertIsDisplayed()
+        // Remote data refresh introduces a second source row under the same ID.
+        compose.runOnIdle { cards = listOf(card, card.copy(nickname = "Άλλη κάρτα")) }
+        compose.onNodeWithText("Η κάρτα δεν είναι πλέον διαθέσιμη.").assertIsDisplayed()
+        compose.onNodeWithTag("card_secure_details").assertDoesNotExist()
+        compose.onNodeWithTag("card_detail_payment_action").assertDoesNotExist()
+        compose.onNodeWithText("Επιστροφή στις κάρτες").performClick()
+        compose.onNodeWithTag("credit_card_ambiguous_roster").assertIsDisplayed()
+    }
+
+    @Test fun aMissingCardCannotRenderPreviousRevealedPanOrCallVaultActions() {
+        var reveals = 0
+        var writes = 0
+        val pan = "4242424242421881"
+        compose.setContent {
+            MyFinHubTheme {
+                CanonicalCardSecureDetailsScreen(
+                    cardId = "credit",
+                    card = null,
+                    secretState = CardSecretUiState.Revealed("credit", pan, "06/31", "731"),
+                    onReveal = { reveals++ },
+                    onSaveServerSecrets = { _, _ -> writes++ },
+                    onSaveCvv = { writes++ },
+                    onBack = {},
+                )
+            }
+        }
+        compose.onNodeWithTag("card_secure_identity_unavailable").assertIsDisplayed()
+        compose.onNodeWithText(pan, substring = true).assertDoesNotExist()
+        compose.onNodeWithTag("card_secure_pan_editor").assertDoesNotExist()
+        compose.onNodeWithText("Συγχρονισμός CVV").assertDoesNotExist()
+        compose.runOnIdle {
+            assertEquals(0, reveals)
+            assertEquals(0, writes)
+        }
+    }
 
     @Test fun selectedCreditCardPurchasePreservesContextAndToolbarBackGuardsDraft() {
         val debit = MoneyCard(

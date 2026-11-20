@@ -75,3 +75,25 @@ Detail, **Στοιχεία κάρτας** is currently repeated as a heading and
 Secure card details display protected values behind the owner+AAL2/FLAG_SECURE
 boundary; screenshot fixtures do NOT prove physical Recents/screen capture
 privacy. Real S24 owner acceptance remains D7-pending.
+
+## Cards identity & vault safety — phase 01c
+
+The animated Cards stack rejected ambiguous IDs, but a routed CardDetail
+previously resolved `firstOrNull { id == route.cardId }`. After a finance
+refresh, that could display a different physical card under the same ID.
+Use one unique-active route resolver across normal and secure detail, the
+three card-originated credit Quick Entry actions, and all card-secret
+open/reveal/save handlers. The resolver compares the active and archived
+catalog and rejects blank, noncanonical and duplicate IDs.
+
+An already-open detail becomes unavailable if its card ID turns ambiguous;
+the user can return safely to Cards. Secure details do not inherit an old
+revealed card's PAN/expiry/CVV, and the previous reveal is released on source
+identity change; a new unsafe CharArray write is wiped instead of dispatched.
+The implementation is supported by pure identity tests and Compose
+navigation/privacy tests. Valid-card visual fixtures remain unchanged.
+
+Still requiring separately generated and visually inspected goldens: the
+repeated «Στοιχεία κάρτας» heading, obsolete CardCreate vault copy, and
+context-free «Νέα κίνηση» shortcut. None is justified by deleting canonical
+finance functionality or bypassing synthetic screenshot validation.
