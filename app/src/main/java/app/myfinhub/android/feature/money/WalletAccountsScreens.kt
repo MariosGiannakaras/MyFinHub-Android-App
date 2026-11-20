@@ -669,7 +669,7 @@ private fun LazyListScope.walletCardsContent(
                                     modifier = Modifier.fillMaxWidth()
                                         .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                         .testTag("card_companion_payment"),
-                                ) { Text("Εξόφληση πιστωτικής") }
+                                ) { Text("Πληρωμή κάρτας") }
                                 TextButton(
                                     onClick = { onAddCreditPurchase(active.id) },
                                     enabled = canRecordPurchase,

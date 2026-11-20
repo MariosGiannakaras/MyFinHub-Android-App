@@ -22,6 +22,7 @@ class ReviewPackTests(unittest.TestCase):
                 "app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailLight.png",
                 "app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletCardsDark.png",
                 "app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7PlanLight.png",
+                "app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateLight.png",
             ]
             for f in files:
                 p = src / f
@@ -29,12 +30,12 @@ class ReviewPackTests(unittest.TestCase):
                 p.write_bytes(FAKE_PNG)
             dest = root / "app/build/reports/screenshotTest/gallery/review.html"
             result = mod.render(src, dest, source_sha="a" * 40, run_id="123", validation="success")
-            self.assertEqual(result["screenshot_count"], 3)
+            self.assertEqual(result["screenshot_count"], 4)
             self.assertEqual(result["device_acceptance"], "not_established")
             by_id = {x["id"]: x for x in result["journeys"]}
             self.assertEqual(by_id["cards"]["count"], 1)
             self.assertEqual(by_id["card-detail"]["count"], 1)
-            self.assertEqual(by_id["legacy"]["count"], 1)
+            self.assertEqual(by_id["legacy"]["count"], 2)
             self.assertTrue(by_id["card-detail"]["requires_behavioral_tests"])
             self.assertIn("large-font", by_id["card-detail"]["missing_baseline_variants"])
             self.assertIn("Αλλαγή κάρτας", dest.read_text(encoding="utf-8"))
@@ -58,6 +59,9 @@ class ReviewPackTests(unittest.TestCase):
     def test_legacy_and_secondary_are_not_mobile_roots(self):
         self.assertEqual(mod.surface(Path("app/feature/insights/InsightsTest/InsightsLight.png")), "legacy")
         self.assertEqual(mod.surface(Path("app/feature/money/CanonicalMoneyTest/CanonicalMoneyLight.png")), "legacy")
+        self.assertEqual(mod.surface(Path("app/feature/money/CanonicalCorrectionScreensTest/CanonicalCardCreateLight.png")), "legacy")
+        self.assertEqual(mod.surface(Path("app/feature/money/InlineCreditCardWorkspaceTest/InlineCreditWorkspaceDark.png")), "legacy")
+        self.assertEqual(mod.surface(Path("app/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalCardDeleteDialogLight.png")), "legacy")
         self.assertEqual(mod.surface(Path("app/feature/money/WalletAccountsTest/WalletCardsDark.png")), "cards")
         self.assertEqual(mod.variant("CanonicalCardDetailLargeFontScreenshot.png"), "large-font")
 
