@@ -65,10 +65,10 @@ class CardCompanionJourneyNavigationTest {
         }
         compose.onNodeWithContentDescription("Πίσω").performClick()
         compose.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
-        compose.onNodeWithText("Συνέχεια").performClick()
+        compose.onNodeWithText("Παραμονή στην επεξεργασία").performClick()
         compose.runOnIdle { assertEquals("credit", draft.cardId) }
         compose.onNodeWithContentDescription("Πίσω").performClick()
-        compose.onNodeWithText("Απόρριψη").performClick()
+        compose.onNodeWithText("Απόρριψη αλλαγών").performClick()
 
         compose.onNodeWithText("Πιστωτική ταξιδιών").assertIsDisplayed()
         compose.onNodeWithContentDescription("Πίσω").performClick()
