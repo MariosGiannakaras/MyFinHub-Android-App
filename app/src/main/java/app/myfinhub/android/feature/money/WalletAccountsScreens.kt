@@ -684,12 +684,17 @@ private fun LazyListScope.walletCardsContent(
                                         .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
                                         .testTag("card_companion_purchase"),
                                 ) { Text("Αγορά με πιστωτική") }
-                                TextButton(
-                                    onClick = { onPayCreditCard(active.id) },
-                                    enabled = false,
-                                    modifier = Modifier.heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
-                                        .testTag("card_companion_payment"),
-                                ) { Text("Εξόφληση πιστωτικής") }
+                                if (safeCardIdentity) {
+                                    Text(
+                                        if (creditSnapshot?.outstanding == null)
+                                            "Η οφειλή δεν είναι διαθέσιμη."
+                                        else
+                                            "Δεν υπάρχει οφειλή προς εξόφληση.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.testTag("card_companion_payment_unavailable_reason"),
+                                    )
+                                }
                             }
                         } else {
                             Text(

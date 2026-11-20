@@ -654,15 +654,8 @@ internal fun MyFinHubAppContent(
                         companionMode = true,
                         cardId = route.cardId,
                         card = card,
-                        cards = moneyState.cards,
                         statements = moneyState.creditStatementsByCard[route.cardId].orEmpty(),
                         fullStatementIdCounts = fullStatementIdCounts,
-                        onSelectCard = { selectedCardId ->
-                            if (selectedCardId != route.cardId) {
-                                moneyBackStack.removeLastOrNull()
-                                moneyBackStack.pushIfNew(AppRoute.CardDetail(selectedCardId))
-                            }
-                        },
                         cleanupState = cardSecretCleanupState,
                         onRetryCleanup = onRetryCardSecretCleanup,
                         onOpenSecureDetails = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardSecureDetails(cardId)) },

@@ -13,13 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,8 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
@@ -74,14 +69,11 @@ internal fun formatGreekCreditDate(iso: String): String = runCatching {
     LocalDate.parse(iso).format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("el-GR")))
 }.getOrDefault(iso)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CanonicalCardDetailScreen(
     card: MoneyCard?,
     cardId: String = card?.id.orEmpty(),
-    cards: List<MoneyCard> = listOfNotNull(card),
     statements: List<CanonicalCreditStatementView> = emptyList(),
-    onSelectCard: (String) -> Unit = {},
     cleanupState: CardSecretCleanupUiState = CardSecretCleanupUiState.Idle,
     onRetryCleanup: (String) -> Unit = {},
     onOpenSecureDetails: (String) -> Unit = {},
@@ -103,7 +95,6 @@ fun CanonicalCardDetailScreen(
 ) {
     val storedAmountsVisible = rememberAmountVisibilityPreference()
     val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
-    var cardPickerOpen by remember(cardId) { mutableStateOf(false) }
     var showAllActivity by remember(cardId) { mutableStateOf(false) }
     var removeDialogOpen by remember(cardId) { mutableStateOf(false) }
     var editProfileOpen by remember(cardId) { mutableStateOf(false) }
@@ -173,12 +164,6 @@ fun CanonicalCardDetailScreen(
                         listOf(card.kind, card.network).filter { it.isNotBlank() }.joinToString(" · "),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (cards.size > 1) {
-                        OutlinedButton(
-                            onClick = { cardPickerOpen = true },
-                            modifier = Modifier.fillMaxWidth().testTag("card_switcher"),
-                        ) { Text("Αλλαγή κάρτας") }
-                    }
                     if (isCredit) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text("Τρέχουσα οφειλή", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -250,13 +235,6 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.fillMaxWidth().testTag("card_detail_purchase_primary"),
                                 icon = null,
                             )
-                            TextButton(
-                                onClick = onPayCard,
-                                enabled = false,
-                                modifier = Modifier
-                                    .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
-                                    .testTag("card_detail_payment_action"),
-                            ) { Text("Πληρωμή κάρτας") }
                             Text(
                                 if (creditFinancial?.outstanding == null)
                                     "Η οφειλή δεν είναι διαθέσιμη."
@@ -388,18 +366,6 @@ fun CanonicalCardDetailScreen(
                 }
             }
         }
-    }
-
-    if (cardPickerOpen) {
-        CardPickerSheet(
-            selectedCardId = card?.id,
-            cards = cards,
-            onDismiss = { cardPickerOpen = false },
-            onSelect = { selectedId ->
-                cardPickerOpen = false
-                if (selectedId != card?.id) onSelectCard(selectedId)
-            },
-        )
     }
 
     if (!companionMode && billingEditorOpen && card != null && onSaveCreditBillingSettings != null) {
@@ -608,98 +574,6 @@ private fun CardActivitySection(
                             .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
                     ) {
                         Text(if (showAll) "Λιγότερες κινήσεις" else "Δες όλες τις κινήσεις (${card.activity.size})")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CardPickerSheet(
-    selectedCardId: String?,
-    cards: List<MoneyCard>,
-    onDismiss: () -> Unit,
-    onSelect: (String) -> Unit,
-) {
-    // The picker is a separate composable, not lexically nested in the
-    // selected-card details scope; resolve its own session catalog and tone.
-    val ownerCatalog = LocalFinancialProviderCatalog.current
-    val surfaceTone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f)
-        "dark" else "light"
-    val cardIdCounts = cards.groupingBy { it.id }.eachCount()
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 540.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    start = MyFinHubSpacing.lg,
-                    end = MyFinHubSpacing.lg,
-                    bottom = MyFinHubSpacing.xl,
-                ),
-            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-        ) {
-            Text("Επίλεξε κάρτα", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            cards.forEach { option ->
-                val uniqueIdentity = option.id.isNotBlank() &&
-                    option.id == option.id.trim() && cardIdCounts[option.id] == 1
-                val isSelected = uniqueIdentity && option.id == selectedCardId
-                val optionProvider = financialProviderForCard(option.bankId, option.nickname)
-                val optionRecord = ownerCatalog.firstOrNull { it.id == option.bankId }
-                val optionCertified = optionRecord?.certifiedBrandAsset("logo", surfaceTone)
-                Surface(
-                    onClick = { if (uniqueIdentity) onSelect(option.id) },
-                    enabled = uniqueIdentity,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
-                        .semantics { selected = isSelected }
-                        .testTag("card_picker_${option.id}"),
-                    shape = MaterialTheme.shapes.small,
-                    color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
-                        else MaterialTheme.colorScheme.surface,
-                ) {
-                    Row(
-                        modifier = Modifier.padding(MyFinHubSpacing.md),
-                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (optionRecord != null && optionCertified != null) {
-                            MyFinHubCertifiedProviderMark(
-                                providerId=optionRecord.id,asset=optionCertified,
-                                fallbackLabel=optionRecord.shortName,
-                                modifier=Modifier.size(40.dp), contentDescription=null,
-                            )
-                        } else if (optionProvider != null) {
-                            MyFinHubProviderMark(optionProvider, modifier = Modifier.size(40.dp), contentDescription = null)
-                        } else {
-                            MyFinHubIconBadge(MyFinHubIcons.Card, FinanceTone.Neutral, null)
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(option.nickname, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                "${canonicalCardMaskedLastFour(option.last4) ?: "••••"} · ${option.kind}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (!uniqueIdentity) {
-                                Text(
-                                    "Μη μοναδική ή κενή ταυτότητα · δεν μπορεί να επιλεγεί.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                            }
-                        }
-                        if (isSelected) {
-                            Text(
-                                "Επιλεγμένο",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
                     }
                 }
             }

@@ -2,7 +2,6 @@ package app.myfinhub.android.feature.money
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -44,7 +43,7 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         } }
         rule.onAllNodesWithText("Μη έγκυρο ποσό", substring = true)[0].assertExists()
         rule.onNodeWithTag("card_detail_invalid_limit").assertExists()
-        rule.onNodeWithTag("card_detail_payment_action").assertIsNotEnabled()
+        rule.onNodeWithTag("card_detail_payment_action").assertDoesNotExist()
         rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
         rule.onNodeWithText("Infinity", substring = true).assertDoesNotExist()
         rule.onNodeWithText("∞", substring = true).assertDoesNotExist()
@@ -62,7 +61,7 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         rule.onNodeWithTag("card_detail_invalid_limit").assertDoesNotExist()
         rule.onNodeWithText("Μη έγκυρο ποσό", substring = true).assertDoesNotExist()
         rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
-        rule.onNodeWithTag("card_detail_payment_action").assertIsNotEnabled()
+        rule.onNodeWithTag("card_detail_payment_action").assertDoesNotExist()
     }
 
     @Test fun validDebtRepaymentAndCreditMetricsStayAccessible() {
@@ -92,7 +91,7 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
             )
         } }
         rule.onNodeWithTag("card_detail_purchase_primary").assertIsEnabled().performClick()
-        rule.onNodeWithTag("card_detail_payment_action").assertIsNotEnabled()
+        rule.onNodeWithTag("card_detail_payment_action").assertDoesNotExist()
         rule.onNodeWithTag("card_detail_payment_unavailable_reason").assertExists()
         rule.runOnIdle {
             assertEquals(1, purchases)
@@ -100,19 +99,16 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         }
     }
 
-    @Test fun malformedImportedCardLastFourNeverAppearsInDetailOrCardPicker() {
+    @Test fun malformedImportedCardLastFourNeverAppearsAndDetailCannotSwitchCards() {
         val imported = credit().copy(last4 = "4242424242424242")
-        val valid = imported.copy(id = "second-card", nickname = "Another", last4 = "1881")
         rule.setContent { MyFinHubTheme {
             CanonicalCardDetailScreen(
-                card = imported, cards = listOf(imported, valid),
-                onBack = {}, amountsVisibleOverride = true,
+                card = imported, onBack = {}, amountsVisibleOverride = true,
             )
         } }
         rule.onNodeWithText("4242424242424242", substring = true).assertDoesNotExist()
-        rule.onNodeWithTag("card_switcher").performScrollTo().performClick()
-        rule.onNodeWithText("4242424242424242", substring = true).assertDoesNotExist()
-        rule.onNodeWithText("•••• 1881", substring = true).assertExists()
+        rule.onNodeWithTag("card_switcher").assertDoesNotExist()
+        rule.onNodeWithText("Αλλαγή κάρτας").assertDoesNotExist()
     }
 
     @Test fun nativeCardDeleteDialogNeverExposesMalformedFullPanSuffix() {
@@ -141,6 +137,24 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         rule.onNodeWithTag("confirm_remove_card").performClick()
         rule.runOnIdle { assertEquals("credit-integrity", archivedId) }
     }
+    @Test fun noDebtRemovesPointlessDisabledPaymentActionFromCardsTab() {
+        var payments = 0
+        rule.setContent { MyFinHubTheme {
+            CanonicalWalletScreen(
+                state = MoneyUiState(cards = listOf(credit(debt = 0.0))),
+                cardsOnly = true, companionMode = true,
+                onOpenAccount = {}, onOpenNetPosition = {}, onOpenCard = {},
+                onAddCard = {}, onOpenLoans = {}, onOpenLending = {},
+                onPayCreditCard = { payments++ },
+                amountsVisibleOverride = true,
+            )
+        } }
+        rule.onNodeWithTag("card_companion_payment").assertDoesNotExist()
+        rule.onNodeWithTag("card_companion_payment_unavailable_reason").assertExists()
+        rule.onNodeWithTag("card_companion_purchase").assertExists()
+        rule.runOnIdle { assertEquals(0, payments) }
+    }
+
     @Test fun invalidStatementCannotOfferPaymentInDetailOrInlineWallet() {
         val bad = app.myfinhub.android.core.data.CanonicalCreditStatementView(
             id = "imported-corrupt", cardId = "credit-integrity",
