@@ -73,3 +73,12 @@ button usefulness/behavior, account updates, protected screenshots/Recents,
 Play Protect, or physical S24 D7 acceptance. Review the actual Kotlin route
 and instrumented test for every proposed keep/move/consolidate/remove decision.
 See \`docs/UX_USER_JOURNEY_REVIEW.md\` for the multi-chat audit contract.
+
+### Live versus retained Cards fixture inventory
+
+Only `WalletCards*`, `CreditCardStack*`, `CanonicalCardDetail*` and the
+protected secure-detail fixtures represent navigable native companion card
+screens. The separate CardCreate preview, legacy inline credit workspace and
+non-companion card-delete dialog are **internal/test-only** from the
+current three-tab route; their PNGs appear under legacy, not as live Cards
+screens. A historical screenshot does not establish a route in production.

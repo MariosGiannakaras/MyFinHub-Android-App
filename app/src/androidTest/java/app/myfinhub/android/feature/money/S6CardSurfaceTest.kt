@@ -127,6 +127,32 @@ class S6CardSurfaceTest {
     }
 
     @Test
+    fun companionCards_paymentLabelIsAccurateForPartialPayment_andTargetsChosenCreditId() {
+        var requestedPaymentFor: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalWalletScreen(
+                    state = MoneyUiState(cards = listOf(credit)),
+                    cardsOnly = true,
+                    companionMode = true,
+                    onOpenAccount = {},
+                    onOpenNetPosition = {},
+                    onOpenCard = {},
+                    onAddCard = {},
+                    onPayCreditCard = { requestedPaymentFor = it },
+                    onOpenLoans = {},
+                    onOpenLending = {},
+                    amountsVisibleOverride = true,
+                )
+            }
+        }
+        composeRule.onNodeWithTag("card_companion_payment")
+            .performScrollTo().assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("Εξόφληση πιστωτικής").assertDoesNotExist()
+        composeRule.runOnIdle { assertEquals("credit", requestedPaymentFor) }
+    }
+
+    @Test
     fun verticalCardSwipesRotateOneMixedDebitCreditStackWithoutNavigationArrows() {
         var activeCard: String? = null
         var detailOpened: String? = null

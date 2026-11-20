@@ -53,3 +53,25 @@ These images are **synthetic**. They prove visual fixtures, not that a
 click works, payments persist, private values are hidden in screen recording,
 or that the physical owner's Galaxy S24 Ultra passed D7. Protected D8 is
 a separate release decision.
+
+## Cards evidence audit — routing and wording
+
+The mobile Cards tab owns card switching. Card Detail must never host a second
+picker. For credit cards with debt the native Cards primary payment action is
+**Πληρωμή κάρτας**, not **Εξόφληση πιστωτικής**: canonical Quick Entry explicitly
+supports partial payments up to the outstanding balance. When debt is zero,
+do not show a disabled payment button; show a valid purchase entry instead.
+
+The `CardCreate` source route and its Compose previews are retained but have
+**no user-accessible navigation entry from the current companion Cards tab**;
+long-form card creation is Web-oriented under ADR-0002. The old inline credit
+workspace and non-companion card-delete dialog are likewise test/legacy
+fixtures, not current mobile Cards root. Do not count their PNGs as coverage
+of the live screen. Legacy previews still matter for regression and installed
+state compatibility; they are not production navigation evidence.
+
+Outstanding visual cleanup requires fresh renderer-verified goldens: in Card
+Detail, **Στοιχεία κάρτας** is currently repeated as a heading and button.
+Secure card details display protected values behind the owner+AAL2/FLAG_SECURE
+boundary; screenshot fixtures do NOT prove physical Recents/screen capture
+privacy. Real S24 owner acceptance remains D7-pending.

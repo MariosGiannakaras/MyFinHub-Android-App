@@ -22,7 +22,6 @@ JOURNEYS = (
     ("cards", "Κάρτες", "Tab Κάρτες → selected card", "Does card selection and purchase/payment entry work without duplicate actions?"),
     ("card-detail", "Λεπτομέρειες κάρτας", "Κάρτες → επιλεγμένη κάρτα → Back", "Is Αλλαγή κάρτας redundant here? Is return to original card preserved?"),
     ("card-secure", "Ασφαλή στοιχεία κάρτας", "Λεπτομέρειες κάρτας → Στοιχεία κάρτας", "Masking and security. PNGs DO NOT prove FLAG_SECURE."),
-    ("card-create", "Δημιουργία κάρτας", "Κάρτες → νέα κάρτα", "Avoid unnecessary setup and ensure safe cancel."),
     ("account-detail", "Στοιχεία λογαριασμού", "Αρχική → λογαριασμός", "Relevant account actions and consistent source identity."),
     ("settings", "Ρυθμίσεις Android", "Αρχική → Ρυθμίσεις", "Visibility, local security, updates, sign-out, no Web admin."),
     ("auth", "Είσοδος / PIN", "Launch or restore locked session", "Recovery and privacy before successful unlock."),
@@ -34,7 +33,13 @@ JOURNEYS = (
 def surface(path: Path) -> str:
     p, n = path.as_posix().lower(), path.name.lower()
     if any(x in p for x in ("/feature/plan/", "/feature/insights/")) or any(
-        x in n for x in ("s7plan", "s9utilities", "canonicalmoney", "canonical_money")
+        x in n for x in (
+            "s7plan", "s9utilities", "canonicalmoney", "canonical_money",
+            # Retained preview fixtures with no entry point from companion Cards.
+            "canonicalcardcreate", "canonical_card_create",
+            "inlinecreditworkspace", "inline_credit_workspace",
+            "carddeletedialog", "card_delete_dialog",
+        )
     ):
         return "legacy"
     if "/feature/auth/" in p:
@@ -42,7 +47,6 @@ def surface(path: Path) -> str:
     for text, tag in (
         ("cardsecure", "card-secure"), ("card_secure", "card-secure"),
         ("carddetail", "card-detail"), ("card_detail", "card-detail"),
-        ("cardcreate", "card-create"), ("card_create", "card-create"),
         ("accountdetail", "account-detail"), ("account_detail", "account-detail"),
     ):
         if text in n:
@@ -55,7 +59,7 @@ def surface(path: Path) -> str:
             return tag
     if "/feature/money/" in p and any(x in n for x in (
         "cardstack", "card_stack", "walletcards", "wallet_cards",
-        "creditworkspace", "credit_workspace", "carddeletedialog",
+        # CreditCardStack and WalletCards are live; the old inline workspace is not.
     )):
         return "cards"
     return "secondary"

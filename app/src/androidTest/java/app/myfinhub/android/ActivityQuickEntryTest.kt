@@ -39,23 +39,9 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
         composeRule.onNodeWithText("Περισσότεροι τύποι").assertIsDisplayed()
-        // The date label is a sibling of its clickable selector button.
-        // Interact with the accessible control rather than tapping the label.
-        composeRule.onNodeWithTag("quick_entry_date_picker")
-            .performScrollTo().performClick()
-        // The calendar opens only after the animated IME has fully dismissed.
-        // Preserve the visible-dialog assertion, with a bounded wait for layout.
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            runCatching {
-                composeRule.onNodeWithText("Επιλογή ημερομηνίας").assertIsDisplayed()
-            }.isSuccess
-        }
-        composeRule.onNodeWithText("Επιλογή ημερομηνίας").assertIsDisplayed()
-        composeRule.onNodeWithText("Ακύρωση").performClick()
-
-        // After scrolling to the date, the chip may be clipped. Scroll it
-        // back into the viewport before tapping, then assert kind changed;
-        // "Από λογαριασμό" also exists for ordinary expenses.
+        // Check the transfer journey independently of the calendar/IME animation.
+        // The shared date field is verified in DateEntryFieldTest and in its own
+        // integration test below.
         composeRule.onNodeWithText("Μεταφορά").performScrollTo().performClick()
         composeRule.onNodeWithText("Ποσό μεταφοράς").assertIsDisplayed()
         // Fields are in a scrollable form; the destination can start offscreen
@@ -65,6 +51,28 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText(
             "Η εσωτερική μεταφορά αλλάζει υπόλοιπα, όχι έσοδα ή έξοδα.",
         ).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun activityDatePicker_opensAndCancelsWithoutChangingQuickEntryKind() {
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
+        composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
+
+        // The screen automatically focuses Amount; dismiss its IME before
+        // opening the calendar so the click isn't swallowed by keyboard motion.
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("quick_entry_date_picker")
+            .performScrollTo().assertIsDisplayed().performClick()
+
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            runCatching {
+                composeRule.onNodeWithText("Επιλογή ημερομηνίας").assertIsDisplayed()
+            }.isSuccess
+        }
+        composeRule.onNodeWithText("Ακύρωση").performClick()
+        composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
     }
 
     @Test

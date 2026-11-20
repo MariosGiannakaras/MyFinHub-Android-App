@@ -1568,10 +1568,10 @@
   }
 ,
   "ux_journey_audit_2026_11_20": {
-    "stage": "01_cards_end_to_end_interaction_audit",
-    "source_branch": "android/ux-cards-workflow-20261120",
+    "stage": "01b_cards_wording_and_real_route_screenshot_inventory",
+    "source_branch": "android/ux-cards-wording-screen-inventory-20261120",
     "status": "source_authored_pending_exact_head_CI_and_merge",
-    "next_stage": "01_cards_control_usefulness_and_complete_navigation_workflow",
+    "next_stage": "01c_cards_secure_details_and_create_copy_with_verified_updated_pngs",
     "summary": "Uses existing official synthetic Compose PNG screenshots and CI artifacts; adds source-head-identified offline per-journey review HTML/JSON/checklist with image hashes and missing baseline variants. No standalone UX verdict or real-device acceptance.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
@@ -1582,10 +1582,12 @@
       "exact_head_checks": "6_of_6_success"
     },
     "completed_source_review": [
-      "Root Cards stack owns choice and primary selection; redundant detail card-switcher removed",
-      "Credit card purchase and payment callbacks retain the current card identity",
-      "No payable debt: hidden disabled payment action, retain explanatory text and purchase route",
-      "Quick Entry toolbar Back shares unsaved-draft discard guard with Android system Back"
+      "Root Cards card stack owns card selection; Card Detail no redundant nested switcher (PR #494)",
+      "Credit purchase/payment actions keep the actual chosen card identity (PR #494)",
+      "No payable debt: hide disabled payment action but show explanatory state (PR #494)",
+      "Quick Entry system and toolbar Back both protect dirty drafts using existing independent guards (verified without duplicating dialogs, PR #494)",
+      "Companion Cards payment wording must allow partial payment: Πληρωμή κάρτας",
+      "CardCreate, old inline workspace and non-companion CardDeleteDialog are retained/test-only previews, not native companion navigation"
     ],
     "retained_by_design": [
       "Cards tab retains generic New transaction shortcut and contextual credit purchase/payment",
@@ -1593,10 +1595,16 @@
       "Card creation and long-form credit management remain outside daily companion primary controls"
     ],
     "pending_follow_up": [
-      "Inspect duplicate safe-card-details section heading with validated updated visual references",
-      "Review Cards empty/ambiguous ID layout and test persisted selection on actual S24"
+      "Verify visually the duplicate secure-details section heading before changing golden images",
+      "Correct obsolete local-only card-vault description on non-companion create preview after verifying server write path and screenshots",
+      "Review Cards empty/ambiguous identity and persisted selection on real owner Galaxy S24 Ultra"
     ],
     "physical_device_acceptance": "pending",
-    "release_state": "Published rc20 predates this new UX source; new APK requires independently protected publisher"
+    "release_state": "rc20 published earlier, does not contain phase-01 source; D8 protected publication not triggered",
+    "preceding_card_workflow": {
+      "pr": 494,
+      "merged_commit": "df4c16bf7321ef97bbdf469ec4ffadf73d91bd40",
+      "exact_head_checks": "6_of_6_success"
+    }
   }
 }
