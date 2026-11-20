@@ -1568,8 +1568,8 @@
   }
 ,
   "ux_journey_audit_2026_11_20": {
-    "stage": "01d_card_secure_copy_accessibility",
-    "source_branch": "android/ux-secure-copy-a11y-20261121",
+    "stage": "02a_quick_entry_unified_back_and_discard",
+    "source_branch": "android/ux-quickentry-single-back-20261121",
     "status": "source_authored_pending_exact_head_ci_and_merge",
     "next_stage": "01c_cards_secure_details_and_create_copy_with_verified_updated_pngs",
     "summary": "Uses existing official synthetic Compose PNG screenshots and CI artifacts; adds source-head-identified offline per-journey review HTML/JSON/checklist with image hashes and missing baseline variants. No standalone UX verdict or real-device acceptance.",
@@ -1640,6 +1640,23 @@
       "Generic Cards New transaction opens non-card-prefilled expense; compare debit/account vs credit workflows before change",
       "Retained noncompanion CardCreate text says local-only vault, while shared encrypted server vault is implemented; requires golden update",
       "Physical S24 install, Recents security and finance GET historical failures remain owner D7"
+    ],
+    "prerequisite_card_accessibility": {
+      "pr": 497,
+      "merged_commit": "55fc5cc63d15160c3abcda652e42754ae19ded1c",
+      "exact_head_checks": "6_of_6_success"
+    },
+    "implementation_delta": [
+      "One discard state/AlertDialog owned by QuickEntryBackGuard for both Android system/predictive Back and toolbar Back",
+      "Production editor consumes one requestExit callback; no second competing discard dialog",
+      "Unsaved reducer dirty draft preserved on keep-editing; explicit discard resets draft exactly once before route exit",
+      "After connected persistence or encrypted offline enqueue, exit still bypasses discard confirmation as before",
+      "UI instrumentation compares system Back and toolbar Back and confirms Activity return"
+    ],
+    "quick_entry_visual_findings": [
+      "CARD_PAYMENT still displays Εξόφληση πιστωτικής and Ποσό εξόφλησης despite partial payments; renderer-updated golden needed for visible rewording",
+      "Eight official synthetic Quick Entry previews reviewed: compact light/dark/large-font, card payment, split light/dark/large-font, reconciliation large-font",
+      "No screenshot preview currently includes an opened discard modal; current patch should not modify existing official golden PNGs"
     ]
   }
 }

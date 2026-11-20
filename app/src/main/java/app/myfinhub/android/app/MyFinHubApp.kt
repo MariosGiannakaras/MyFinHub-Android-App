@@ -533,11 +533,11 @@ internal fun MyFinHubAppContent(
                         state = quickEntryState,
                         onAction = onQuickEntryAction,
                         onExit = { activeBackStack.removeLastOrNull() },
-                    ) {
+                    ) { requestExit ->
                         ProductionQuickEntryScreen(
                             state = quickEntryState,
                             onAction = onQuickEntryAction,
-                            onBack = { activeBackStack.removeLastOrNull() },
+                            onBack = requestExit,
                             mutationInFlight = quickEntryMutationInFlight,
                             mutationBlocked = quickEntryMutationBlocked,
                             categoryGlyphOverrides = planState.categoryGlyphOverrides,

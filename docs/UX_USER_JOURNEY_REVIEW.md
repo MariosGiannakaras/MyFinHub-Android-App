@@ -114,3 +114,25 @@ and loss of AAL2 authority. The change is semantics-only, not a visual
 reference replacement. The actual Galaxy S24 Ultra remains the only physical
 D7 authority.
 
+## Quick Entry: one Back/discard journey (phase 02a)
+
+The parent QuickEntryBackGuard already owned Android system/predictive Back,
+but the child ProductionQuickEntryScreen independently owned toolbar Back and
+rendered a second discard AlertDialog with a different dismissal vocabulary.
+One screen should have **one** authoritative discard decision.
+
+The route-level guard now supplies a shared `requestExit` to the editor.
+Toolbar Back and system/predictive Back both use the same dialog:
+`Απόρριψη νέας κίνησης;`, `Παραμονή στην επεξεργασία`, and
+`Απόρριψη αλλαγών`. Discard resets a dirty draft before navigating away;
+keep-editing retains state. Once the server acknowledges a save or the
+encrypted offline queue accepts the entry, auto-exit is not blocked by a
+discard prompt. This is verified by a real Activity → Quick Entry →
+system Back → keep editing → toolbar Back → discard → Activity test, on top
+of the existing Card → purchase → discard → Card Detail test.
+
+The normal editor/preview layout is unchanged; screenshot goldens should
+remain pixel-identical. Visible text corrections for partial credit payment
+(`Εξόφληση πιστωτικής` in subtitle, `Ποσό εξόφλησης` in amount label)
+remain a distinct renderer-verified visual checkpoint, not part of this fix.
+
