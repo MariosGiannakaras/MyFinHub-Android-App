@@ -57,6 +57,7 @@ import app.myfinhub.android.feature.money.canOpenCreditCardQuickEntry
 import app.myfinhub.android.feature.money.CanonicalSavingsScreen
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.MoneyUiState
+import app.myfinhub.android.feature.money.uniqueActiveCardForRoute
 import app.myfinhub.android.feature.money.ProtectSensitiveCardDuringNavigation
 import app.myfinhub.android.feature.money.MoneyViewModel
 import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
@@ -394,8 +395,10 @@ internal fun MyFinHubAppContent(
                         onOpenAccount = { id -> homeBackStack.pushIfNew(AppRoute.AccountDetail(id)) },
                         onOpenNetPosition = { homeBackStack.pushIfNew(AppRoute.NetPosition) },
                         onOpenCard = { id ->
-                            currentDestination = TopLevelDestination.MONEY
-                            moneyBackStack.pushIfNew(AppRoute.CardDetail(id))
+                            if (moneyState.uniqueActiveCardForRoute(id) != null) {
+                                currentDestination = TopLevelDestination.MONEY
+                                moneyBackStack.pushIfNew(AppRoute.CardDetail(id))
+                            }
                         },
                         onAddCard = {
                             currentDestination = TopLevelDestination.MONEY
@@ -553,10 +556,14 @@ internal fun MyFinHubAppContent(
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
                         onOpenNetPosition = { moneyBackStack.pushIfNew(AppRoute.NetPosition) },
-                        onOpenCard = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId)) },
+                        onOpenCard = { cardId ->
+                            if (moneyState.uniqueActiveCardForRoute(cardId) != null) {
+                                moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId))
+                            }
+                        },
                         onPayCreditCard = { cardId ->
                             if (canOpenCreditCardQuickEntry(
-                                    moneyState.cards.firstOrNull { it.id == cardId }, payment = true,
+                                    moneyState.uniqueActiveCardForRoute(cardId), payment = true,
                                 )
                             ) {
                                 onQuickEntryAction(QuickEntryAction.Reset)
@@ -567,7 +574,7 @@ internal fun MyFinHubAppContent(
                         },
                         onPayCreditStatement = { cardId, statementId, remaining ->
                             if (canOpenCreditCardQuickEntry(
-                                    moneyState.cards.firstOrNull { it.id == cardId }, payment = true,
+                                    moneyState.uniqueActiveCardForRoute(cardId), payment = true,
                                 ) && canOpenCreditStatementPayment(
                                     cardId, statementId, remaining,
                                     moneyState.creditStatementsByCard[cardId].orEmpty(),
@@ -584,7 +591,7 @@ internal fun MyFinHubAppContent(
                         },
                         onAddCreditPurchase = { cardId ->
                             if (canOpenCreditCardQuickEntry(
-                                    moneyState.cards.firstOrNull { it.id == cardId }, payment = false,
+                                    moneyState.uniqueActiveCardForRoute(cardId), payment = false,
                                 )
                             ) {
                                 onQuickEntryAction(QuickEntryAction.Reset)
@@ -649,7 +656,7 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.CardDetail> { route ->
-                    val card = moneyState.cards.firstOrNull { it.id == route.cardId }
+                    val card = moneyState.uniqueActiveCardForRoute(route.cardId)
                     CanonicalCardDetailScreen(
                         companionMode = true,
                         cardId = route.cardId,
@@ -658,7 +665,11 @@ internal fun MyFinHubAppContent(
                         fullStatementIdCounts = fullStatementIdCounts,
                         cleanupState = cardSecretCleanupState,
                         onRetryCleanup = onRetryCardSecretCleanup,
-                        onOpenSecureDetails = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardSecureDetails(cardId)) },
+                        onOpenSecureDetails = { cardId ->
+                            if (cardId == route.cardId &&
+                                moneyState.uniqueActiveCardForRoute(cardId) != null
+                            ) moneyBackStack.pushIfNew(AppRoute.CardSecureDetails(cardId))
+                        },
                         onRemoveCard = onDeleteCard,
                         onSaveCardProfile = onSaveCardProfile,
                         onSaveCreditBillingSettings = onSaveCreditBillingSettings,
@@ -669,7 +680,7 @@ internal fun MyFinHubAppContent(
                         },
                         onAddPurchase = {
                             if (canOpenCreditCardQuickEntry(
-                                    moneyState.cards.firstOrNull { it.id == route.cardId }, payment = false,
+                                    moneyState.uniqueActiveCardForRoute(route.cardId), payment = false,
                                 )
                             ) {
                                 onQuickEntryAction(QuickEntryAction.Reset)
@@ -680,7 +691,7 @@ internal fun MyFinHubAppContent(
                         },
                         onPayCard = {
                             if (canOpenCreditCardQuickEntry(
-                                    moneyState.cards.firstOrNull { it.id == route.cardId }, payment = true,
+                                    moneyState.uniqueActiveCardForRoute(route.cardId), payment = true,
                                 )
                             ) {
                                 onQuickEntryAction(QuickEntryAction.Reset)
@@ -691,7 +702,7 @@ internal fun MyFinHubAppContent(
                         },
                         onPayStatement = { statementId, remaining ->
                             if (canOpenCreditCardQuickEntry(
-                                    moneyState.cards.firstOrNull { it.id == route.cardId }, payment = true,
+                                    moneyState.uniqueActiveCardForRoute(route.cardId), payment = true,
                                 ) && canOpenCreditStatementPayment(
                                     route.cardId, statementId, remaining,
                                     moneyState.creditStatementsByCard[route.cardId].orEmpty(),
@@ -716,19 +727,39 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.CardSecureDetails> { route ->
-                    DisposableEffect(route.cardId) {
-                        onCardDetailOpened(route.cardId)
+                    val safeCard = moneyState.uniqueActiveCardForRoute(route.cardId)
+                    val hasUniqueCard = safeCard != null
+                    // Catalog refresh may invalidate a card while this route is open.
+                    // Revoke read authority and clear any old reveal before reusing ID.
+                    DisposableEffect(route.cardId, hasUniqueCard) {
+                        if (hasUniqueCard) onCardDetailOpened(route.cardId)
                         onDispose {
-                            onCardDetailClosed(route.cardId)
+                            if (hasUniqueCard) onCardDetailClosed(route.cardId)
                         }
                     }
                     CanonicalCardSecureDetailsScreen(
                         cardId = route.cardId,
-                        card = moneyState.cards.firstOrNull { it.id == route.cardId },
-                        secretState = cardSecretState,
-                        onReveal = onRevealCardSecrets,
-                        onSaveServerSecrets = onSaveServerCardSecrets,
-                        onSaveCvv = onSaveCvv,
+                        card = safeCard,
+                        secretState = if (hasUniqueCard) cardSecretState
+                            else CardSecretUiState.Hidden(route.cardId),
+                        onReveal = {
+                            if (moneyState.uniqueActiveCardForRoute(route.cardId) != null) {
+                                onRevealCardSecrets()
+                            }
+                        },
+                        onSaveServerSecrets = { pan, expiry ->
+                            if (moneyState.uniqueActiveCardForRoute(route.cardId) != null) {
+                                onSaveServerCardSecrets(pan, expiry)
+                            } else {
+                                pan.fill('\u0000')
+                                expiry.fill('\u0000')
+                            }
+                        },
+                        onSaveCvv = { cvv ->
+                            if (moneyState.uniqueActiveCardForRoute(route.cardId) != null) {
+                                onSaveCvv(cvv)
+                            } else cvv.fill('\u0000')
+                        },
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
