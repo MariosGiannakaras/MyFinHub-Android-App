@@ -6,6 +6,8 @@ on:
       - develop
     paths:
       - 'app/**'
+      - 'scripts/build_android_ux_review_pack.py'
+      - 'scripts/test_build_android_ux_review_pack.py'
       - 'scripts/install-android-sdk.sh'
       - 'scripts/run-connected-android-tests.sh'
       - 'scripts/s24_physical_preflight.py'
@@ -56,6 +58,7 @@ jobs:
         run: bash scripts/install-android-sdk.sh
 
       - name: Screenshot renderer / visual regression
+        id: screenshot-validation
         shell: bash
         run: |
           if find app/src/screenshotTestDebug/reference -type f -name '*.png' -print -quit 2>/dev/null | grep -q .; then
@@ -79,6 +82,16 @@ jobs:
           python3 -m unittest discover -s scripts -p 'test_render_android_screenshot_gallery.py'
           python3 scripts/render_android_screenshot_gallery.py
 
+      - name: Create human user-journey review pack from official screenshots
+        if: always()
+        shell: bash
+        env:
+          MYFINHUB_REVIEW_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          MYFINHUB_REVIEW_VALIDATION: ${{ steps.screenshot-validation.outcome }}
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_build_android_ux_review_pack.py'
+          python3 scripts/build_android_ux_review_pack.py
+
       - name: Publish rendered UI screenshots
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -88,6 +101,9 @@ jobs:
             app/src/screenshotTestDebug/reference/**/*.png
             app/build/reports/screenshotTest/**/*.png
             app/build/reports/screenshotTest/gallery/index.html
+            app/build/reports/screenshotTest/gallery/review.html
+            app/build/reports/screenshotTest/gallery/review-index.json
+            app/build/reports/screenshotTest/gallery/review-checklist.md
           if-no-files-found: warn
           retention-days: 14
 

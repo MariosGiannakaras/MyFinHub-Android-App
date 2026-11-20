@@ -1566,4 +1566,15 @@
     "release_created": false,
     "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
   }
+,
+  "ux_journey_audit_2026_11_20": {
+    "stage": "00_evidence_and_capture_infrastructure",
+    "source_branch": "android/ux-journey-review-pack-20261120",
+    "status": "source_authored_pending_exact_head_CI_and_merge",
+    "next_stage": "01_cards_control_usefulness_and_complete_navigation_workflow",
+    "summary": "Uses existing official synthetic Compose PNG screenshots and CI artifacts; adds source-head-identified offline per-journey review HTML/JSON/checklist with image hashes and missing baseline variants. No standalone UX verdict or real-device acceptance.",
+    "web_parity_changed": false,
+    "device_acceptance": "pending",
+    "rc20_release_independent": true
+  }
 }

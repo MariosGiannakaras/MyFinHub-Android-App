@@ -50,3 +50,26 @@ and must not be cited as proof that the current release matches that image.
 
 Hosted tests validate the committed code/rendering, but **D7 physical S24
 owner acceptance and D8 protected release remain independent gates**.
+
+
+## Per-element / journey UX review artifact (phase 00)
+
+The same official screenshot artifact now contains
+\`build/reports/screenshotTest/gallery/review.html\` (journey-grouped offline
+gallery), \`review-index.json\` (PNG SHA-256, intended entry context, exact
+CI source SHA/run, and missing light/dark/large-font baseline variants), and
+\`review-checklist.md\` (each visible control, user flow, Back, errors).
+The three actual mobile roots are distinguished from secondary and
+legacy/test-only previews according to
+\`docs/ADR-0002-mobile-top-level-navigation.md\`.
+
+The JSON's screenshot-validation field is \`success\` only when the official
+goldens were validated. On a screenshot validation failure, CI may regenerate
+candidate images for comparison; they are **not** automatically accepted
+goldens. Check the exact branch/source SHA and run before approving images.
+
+Screenshots are synthetic *visual* evidence and do **not** establish
+button usefulness/behavior, account updates, protected screenshots/Recents,
+Play Protect, or physical S24 D7 acceptance. Review the actual Kotlin route
+and instrumented test for every proposed keep/move/consolidate/remove decision.
+See \`docs/UX_USER_JOURNEY_REVIEW.md\` for the multi-chat audit contract.
