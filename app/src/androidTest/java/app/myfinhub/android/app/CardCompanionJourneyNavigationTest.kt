@@ -30,7 +30,7 @@ class CardCompanionJourneyNavigationTest {
     @Test fun selectedCreditCardPurchasePreservesContextAndToolbarBackGuardsDraft() {
         val debit = MoneyCard(
             id = "debit", nickname = "Χρεωστική καθημερινή", last4 = "4242",
-            kind = "Χρεωστική", currentBalance = 0.0, vaultState = VaultState.LOCKED,
+            kind = "Χρεωστική", currentBalance = 0.0, limit = null, vaultState = VaultState.LOCKED,
             canonicalKind = "debit",
         )
         val credit = MoneyCard(
