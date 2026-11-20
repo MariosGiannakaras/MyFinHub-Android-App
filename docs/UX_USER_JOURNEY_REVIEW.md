@@ -136,3 +136,22 @@ remain pixel-identical. Visible text corrections for partial credit payment
 (`Εξόφληση πιστωτικής` in subtitle, `Ποσό εξόφλησης` in amount label)
 remain a distinct renderer-verified visual checkpoint, not part of this fix.
 
+## Quick Entry: canonical unique transaction targets (phase 02b)
+
+The Compose account/card picker refuses to select a repeated source ID,
+but a previously selected value could become ambiguous after a finance refresh
+and the Save reducer previously checked only `any { id == selectedId }`.
+The sticky Save button uses that same reducer validation, so it could wrongly
+remain enabled for a duplicated card/account identity.
+
+The reducer now requires exactly one canonical (nonblank, trimmed) account
+or credit-card source row for the selected primary account, transaction source,
+transfer/savings/withdrawal destination and credit purchase/payment card.
+A stale ID disables Save and the same validation error is returned on Save,
+rather than selecting the first matching finance row. Related transfer-kind
+selection will no longer preserve an ambiguous previous source. Tests cover
+the existing choice turning ambiguous after selection, both transfer sides,
+both card transaction types and whitespace IDs. Normal unique-state Compose
+screens are unchanged, so current official screenshot references remain
+applicable. Real S24 finance data and privacy acceptance stay pending.
+

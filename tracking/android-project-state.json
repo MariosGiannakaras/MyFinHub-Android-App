@@ -1568,8 +1568,8 @@
   }
 ,
   "ux_journey_audit_2026_11_20": {
-    "stage": "02a_quick_entry_unified_back_and_discard",
-    "source_branch": "android/ux-quickentry-single-back-20261121",
+    "stage": "02b_quick_entry_source_identity_fails_closed",
+    "source_branch": "android/ux-quickentry-safe-source-identities-20261121",
     "status": "source_authored_pending_exact_head_ci_and_merge",
     "next_stage": "01c_cards_secure_details_and_create_copy_with_verified_updated_pngs",
     "summary": "Uses existing official synthetic Compose PNG screenshots and CI artifacts; adds source-head-identified offline per-journey review HTML/JSON/checklist with image hashes and missing baseline variants. No standalone UX verdict or real-device acceptance.",
@@ -1657,6 +1657,22 @@
       "CARD_PAYMENT still displays Εξόφληση πιστωτικής and Ποσό εξόφλησης despite partial payments; renderer-updated golden needed for visible rewording",
       "Eight official synthetic Quick Entry previews reviewed: compact light/dark/large-font, card payment, split light/dark/large-font, reconciliation large-font",
       "No screenshot preview currently includes an opened discard modal; current patch should not modify existing official golden PNGs"
+    ],
+    "previous_quick_entry_back": {
+      "pr": 498,
+      "merged_commit": "c0c28af035d5224da0d78ee7f81f0fb5710ff796",
+      "exact_head_checks": "6_of_6_success"
+    },
+    "current_delta": [
+      "Prevent Save for stale duplicate/blank/untrimmed account and credit-card identities, including copied Quick Entry drafts",
+      "Apply identical unique-ID rule to primary account, transfer/payment source, transfer destination and credit purchase/payment targets",
+      "Preserve current contextual navigation and existing on-screen picker; tests cover stale data after selection and kind switches",
+      "No changes to screenshot goldens, backend schema, account balances, or signed distribution"
+    ],
+    "future_visual_audit": [
+      "Correct misleading Quick Entry card partial-payment heading/amount labels after fresh renderer-verified golden updates",
+      "Review Card Detail duplicate section heading and generic Cards shortcut after visual verification",
+      "Follow up Activity/Home/Settings per staged journey audit"
     ]
   }
 }

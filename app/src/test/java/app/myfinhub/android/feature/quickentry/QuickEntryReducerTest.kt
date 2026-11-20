@@ -7,6 +7,69 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class QuickEntryReducerTest {
+
+    @Test
+    fun staleDuplicatePrimaryAccountCannotBeSubmittedOrReusedOnKindSwitch() {
+        val draft = QuickEntryUiState(amountText = "12,50")
+        val duplicate = draft.copy(
+            accounts = draft.accounts + draft.accounts.first().copy(label = "Άλλος λογαριασμός"),
+        )
+        assertFalse(duplicate.canSubmitDraft())
+        assertEquals(
+            "Διάλεξε διαθέσιμο λογαριασμό.",
+            reduceQuickEntry(duplicate, QuickEntryAction.Save).validationMessage,
+        )
+        val switched = reduceQuickEntry(duplicate, QuickEntryAction.SelectKind(QuickEntryKind.INCOME))
+        assertFalse(switched.canSubmitDraft())
+    }
+
+    @Test
+    fun transferRejectsDuplicatedSourceOrDestinationAfterCatalogRefresh() {
+        val base = QuickEntryUiState(
+            kind = QuickEntryKind.TRANSFER,
+            amountText = "5,00",
+            fromAccountId = "acc-main",
+            toAccountId = "acc-save",
+        )
+        assertTrue(base.canSubmitDraft())
+        val fromDuplicate = base.copy(accounts = base.accounts + base.accounts.first())
+        assertFalse(fromDuplicate.canSubmitDraft())
+        assertEquals(
+            "Διάλεξε λογαριασμό προέλευσης.",
+            reduceQuickEntry(fromDuplicate, QuickEntryAction.Save).validationMessage,
+        )
+        val toDuplicate = base.copy(accounts = base.accounts + base.accounts.first { it.id == "acc-save" })
+        assertFalse(toDuplicate.canSubmitDraft())
+        assertEquals(
+            "Διάλεξε λογαριασμό προορισμού.",
+            reduceQuickEntry(toDuplicate, QuickEntryAction.Save).validationMessage,
+        )
+    }
+
+    @Test
+    fun creditPurchaseAndRepaymentRejectStaleDuplicateOrNoncanonicalCardIds() {
+        val base = QuickEntryUiState(amountText = "7,00")
+        for (kind in listOf(QuickEntryKind.CARD_PURCHASE, QuickEntryKind.CARD_PAYMENT)) {
+            val draft = reduceQuickEntry(base, QuickEntryAction.SelectKind(kind))
+            assertTrue(draft.canSubmitDraft())
+            val duplicate = draft.copy(creditCards = draft.creditCards + draft.creditCards.first())
+            assertFalse(duplicate.canSubmitDraft())
+            assertEquals(
+                "Διάλεξε ενεργή πιστωτική κάρτα.",
+                reduceQuickEntry(duplicate, QuickEntryAction.Save).validationMessage,
+            )
+            assertFalse(draft.copy(cardId = "card-credit ").canSubmitDraft())
+            assertFalse(draft.copy(cardId = "").canSubmitDraft())
+        }
+    }
+
+    @Test
+    fun whitespaceAccountIdDoesNotCountAsASafeFinancialTarget() {
+        val draft = QuickEntryUiState(amountText = "10")
+        assertFalse(draft.copy(accountId = "acc-main ").canSubmitDraft())
+        assertFalse(draft.copy(accountId = " ").canSubmitDraft())
+    }
+
     @Test
     fun creditPurchaseShortcutOnlyAppearsWithinExpenseWithAnAvailableCard() {
         assertTrue(showCreditPurchaseShortcut(QuickEntryKind.EXPENSE, true))

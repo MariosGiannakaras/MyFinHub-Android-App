@@ -367,7 +367,21 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
     )
 }
 
-private fun idExists(state: QuickEntryUiState, id: String): Boolean = state.accounts.any { it.id == id }
+/**
+ * A selector can become stale after a finance refresh while the editor stays open.
+ * Accept a target only when exactly one canonical source row owns its identity.
+ * This must match the ambiguity protections of CompactChoice.
+ */
+private fun uniqueAccountId(state: QuickEntryUiState, id: String): Boolean =
+    id.isNotBlank() && id == id.trim() &&
+        state.accounts.count { it.id == id } == 1
+
+private fun uniqueCardId(state: QuickEntryUiState, id: String): Boolean =
+    id.isNotBlank() && id == id.trim() &&
+        state.creditCards.count { it.id == id } == 1
+
+private fun idExists(state: QuickEntryUiState, id: String): Boolean =
+    uniqueAccountId(state, id)
 
 private fun QuickEntryUiState.changed(
     amountText: String = this.amountText,
@@ -495,7 +509,7 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
         }
     }
 
-    if (state.kind.needsPrimaryAccount && state.accounts.none { it.id == state.accountId }) {
+    if (state.kind.needsPrimaryAccount && !uniqueAccountId(state, state.accountId)) {
         return state.invalid("Διάλεξε διαθέσιμο λογαριασμό.")
     }
 
@@ -506,13 +520,14 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
     }
 
     if (state.kind.needsTransferAccounts || state.kind == QuickEntryKind.CARD_PAYMENT) {
-        if (state.accounts.none { it.id == state.fromAccountId }) {
+        if (!uniqueAccountId(state, state.fromAccountId)) {
             return state.invalid("Διάλεξε λογαριασμό προέλευσης.")
         }
     }
 
     if (state.kind.needsTransferAccounts) {
-        val destination = state.accounts.firstOrNull { it.id == state.toAccountId }
+        val destination = state.accounts.singleOrNull { it.id == state.toAccountId }
+            ?.takeIf { uniqueAccountId(state, it.id) }
             ?: return state.invalid("Διάλεξε λογαριασμό προορισμού.")
         if (state.fromAccountId == state.toAccountId) {
             return state.invalid("Οι λογαριασμοί πρέπει να είναι διαφορετικοί.")
@@ -530,7 +545,7 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
         }
     }
 
-    if (state.kind.needsCard && state.creditCards.none { it.id == state.cardId }) {
+    if (state.kind.needsCard && !uniqueCardId(state, state.cardId)) {
         return state.invalid("Διάλεξε ενεργή πιστωτική κάρτα.")
     }
     if (state.kind == QuickEntryKind.CARD_PAYMENT) {
