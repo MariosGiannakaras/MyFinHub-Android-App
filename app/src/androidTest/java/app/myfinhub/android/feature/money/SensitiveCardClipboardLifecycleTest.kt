@@ -74,7 +74,7 @@ class SensitiveCardClipboardLifecycleTest {
             CompositionLocalProvider(LocalSensitiveClipboardController provides controller) {
                 if (visible.value) {
                     CanonicalCardSecureDetailsScreen(
-                        cardId = "card-1", card = null, secretState = revealed,
+                        cardId = "card-1", card = syntheticMoneyCards().first().copy(id = "card-1"), secretState = revealed,
                         onReveal = {}, onSaveServerSecrets = { _, _ -> },
                         onSaveCvv = {}, onBack = {},
                     )
@@ -101,7 +101,7 @@ class SensitiveCardClipboardLifecycleTest {
         rule.setContent { MyFinHubTheme {
             CompositionLocalProvider(LocalSensitiveClipboardController provides controller) {
                 CanonicalCardSecureDetailsScreen(
-                    cardId = "card-1", card = null, secretState = state.value,
+                    cardId = "card-1", card = syntheticMoneyCards().first().copy(id = "card-1"), secretState = state.value,
                     onReveal = {}, onSaveServerSecrets = { _, _ -> }, onSaveCvv = {},
                     onBack = {},
                 )
