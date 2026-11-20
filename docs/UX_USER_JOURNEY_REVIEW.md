@@ -97,3 +97,20 @@ Still requiring separately generated and visually inspected goldens: the
 repeated «Στοιχεία κάρτας» heading, obsolete CardCreate vault copy, and
 context-free «Νέα κίνηση» shortcut. None is justified by deleting canonical
 finance functionality or bypassing synthetic screenshot validation.
+
+## Card secure-value copy accessibility (phase 01d)
+
+The visual three-button `Αντιγραφή` pattern in secure card details
+previously provided no field-specific action name to screen-reader users.
+The compact on-screen labels remain unchanged, but merged Compose button
+semantics identify `Αντιγραφή αριθμού`, `Αντιγραφή λήξης`, and
+`Αντιγραφή CVV`. The spoken action does NOT include PAN, expiry or CVV.
+Retain existing `clearAndSetSemantics` on displayed secret values, clipboard
+ownership/expiry guarantees and secure screen capture flags.
+
+Instrumentation executes the real copy port and verifies correct value per
+distinct accessible button, while preserving clipboard clearance on disposal
+and loss of AAL2 authority. The change is semantics-only, not a visual
+reference replacement. The actual Galaxy S24 Ultra remains the only physical
+D7 authority.
+

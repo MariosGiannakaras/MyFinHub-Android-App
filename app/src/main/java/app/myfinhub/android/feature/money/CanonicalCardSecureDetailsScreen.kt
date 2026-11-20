@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -332,7 +333,21 @@ private fun SecureValueRow(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
-        if (value != null) TextButton(onClick = { onCopy(value) }) { Text("Αντιγραφή") }
+        if (value != null) {
+            // TalkBack must identify the copied field, never announce PAN/CVV.
+            // Keep the visible compact label; don't expose the sensitive value
+            // through the button's accessibility semantics.
+            val description = when (label) {
+                "Αριθμός" -> "Αντιγραφή αριθμού"
+                "Λήξη" -> "Αντιγραφή λήξης"
+                "CVV" -> "Αντιγραφή CVV"
+                else -> "Αντιγραφή στοιχείου"
+            }
+            TextButton(
+                onClick = { onCopy(value) },
+                modifier = Modifier.semantics { contentDescription = description },
+            ) { Text("Αντιγραφή") }
+        }
     }
 }
 
