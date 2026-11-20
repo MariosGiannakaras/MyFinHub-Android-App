@@ -530,11 +530,11 @@ internal fun MyFinHubAppContent(
                         state = quickEntryState,
                         onAction = onQuickEntryAction,
                         onExit = { activeBackStack.removeLastOrNull() },
-                    ) {
+                    ) { onRequestExit ->
                         ProductionQuickEntryScreen(
                             state = quickEntryState,
                             onAction = onQuickEntryAction,
-                            onBack = { activeBackStack.removeLastOrNull() },
+                            onBack = onRequestExit,
                             mutationInFlight = quickEntryMutationInFlight,
                             mutationBlocked = quickEntryMutationBlocked,
                             categoryGlyphOverrides = planState.categoryGlyphOverrides,
@@ -654,15 +654,8 @@ internal fun MyFinHubAppContent(
                         companionMode = true,
                         cardId = route.cardId,
                         card = card,
-                        cards = moneyState.cards,
                         statements = moneyState.creditStatementsByCard[route.cardId].orEmpty(),
                         fullStatementIdCounts = fullStatementIdCounts,
-                        onSelectCard = { selectedCardId ->
-                            if (selectedCardId != route.cardId) {
-                                moneyBackStack.removeLastOrNull()
-                                moneyBackStack.pushIfNew(AppRoute.CardDetail(selectedCardId))
-                            }
-                        },
                         cleanupState = cardSecretCleanupState,
                         onRetryCleanup = onRetryCardSecretCleanup,
                         onOpenSecureDetails = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardSecureDetails(cardId)) },

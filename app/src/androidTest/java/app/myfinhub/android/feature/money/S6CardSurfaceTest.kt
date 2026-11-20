@@ -241,27 +241,37 @@ class S6CardSurfaceTest {
     }
 
     @Test
-    fun creditDetail_exposesCreditSemantics_primaryPay_andStableSwitcher() {
-        var selected: String? = null
+    fun creditDetail_onlyShowsCurrentCard_andReturnsWithoutASecondSwitcher() {
+        var payments = 0
+        var purchases = 0
+        var backs = 0
         composeRule.setContent {
             MyFinHubTheme {
                 CanonicalCardDetailScreen(
                     card = credit,
-                    cards = listOf(credit, debit),
-                    onSelectCard = { selected = it },
-                    onBack = {},
+                    companionMode = true,
+                    onPayCard = { payments++ },
+                    onAddPurchase = { purchases++ },
+                    onBack = { backs++ },
                 )
             }
         }
 
+        composeRule.onNodeWithText("Πιστωτική ταξιδιών").assertIsDisplayed()
+        composeRule.onNodeWithText("Καθημερινή").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_switcher").assertDoesNotExist()
+        composeRule.onNodeWithText("Αλλαγή κάρτας").assertDoesNotExist()
         composeRule.onNodeWithText("Τρέχουσα οφειλή").assertIsDisplayed()
         composeRule.onNodeWithText("Πιστωτικό όριο").assertIsDisplayed()
         composeRule.onNodeWithText("Διαθέσιμη πίστωση").assertIsDisplayed()
-        composeRule.onNodeWithText("Πληρωμή κάρτας").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Καταχώριση αγοράς").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("card_switcher").performScrollTo().performClick()
-        composeRule.onNodeWithTag("card_picker_debit").assertIsDisplayed().performClick()
-        composeRule.runOnIdle { assertEquals("debit", selected) }
+        composeRule.onNodeWithText("Πληρωμή κάρτας").performScrollTo().performClick()
+        composeRule.onNodeWithText("Καταχώριση αγοράς").performScrollTo().performClick()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, payments)
+            assertEquals(1, purchases)
+            assertEquals(1, backs)
+        }
     }
 
     @Test

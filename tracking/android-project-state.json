@@ -1568,13 +1568,35 @@
   }
 ,
   "ux_journey_audit_2026_11_20": {
-    "stage": "00_evidence_and_capture_infrastructure",
-    "source_branch": "android/ux-journey-review-pack-20261120",
+    "stage": "01_cards_end_to_end_interaction_audit",
+    "source_branch": "android/ux-cards-workflow-20261120",
     "status": "source_authored_pending_exact_head_CI_and_merge",
     "next_stage": "01_cards_control_usefulness_and_complete_navigation_workflow",
     "summary": "Uses existing official synthetic Compose PNG screenshots and CI artifacts; adds source-head-identified offline per-journey review HTML/JSON/checklist with image hashes and missing baseline variants. No standalone UX verdict or real-device acceptance.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
-    "rc20_release_independent": true
+    "rc20_release_independent": true,
+    "prerequisite_00": {
+      "pr": 493,
+      "merged_commit": "4b80f969819603ab25440c609b94e3ab0e4859e7",
+      "exact_head_checks": "6_of_6_success"
+    },
+    "completed_source_review": [
+      "Root Cards stack owns choice and primary selection; redundant detail card-switcher removed",
+      "Credit card purchase and payment callbacks retain the current card identity",
+      "No payable debt: hidden disabled payment action, retain explanatory text and purchase route",
+      "Quick Entry toolbar Back shares unsaved-draft discard guard with Android system Back"
+    ],
+    "retained_by_design": [
+      "Cards tab retains generic New transaction shortcut and contextual credit purchase/payment",
+      "Sensitive card details remain on separate protected surface",
+      "Card creation and long-form credit management remain outside daily companion primary controls"
+    ],
+    "pending_follow_up": [
+      "Inspect duplicate safe-card-details section heading with validated updated visual references",
+      "Review Cards empty/ambiguous ID layout and test persisted selection on actual S24"
+    ],
+    "physical_device_acceptance": "pending",
+    "release_state": "Published rc20 predates this new UX source; new APK requires independently protected publisher"
   }
 }

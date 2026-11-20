@@ -19,15 +19,17 @@ fun QuickEntryBackGuard(
     state: QuickEntryUiState,
     onAction: (QuickEntryAction) -> Unit,
     onExit: () -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable (onRequestExit: () -> Unit) -> Unit,
 ) {
     var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
     val hasUnsavedDraft = state.dirty && !state.persisted && !state.pendingSync
 
-    BackHandler {
+    // Toolbar Back and system/predictive Back must share the same discard contract.
+    val requestExit: () -> Unit = {
         if (hasUnsavedDraft) discardDialogOpen = true else onExit()
     }
-    content()
+    BackHandler(onBack = requestExit)
+    content(requestExit)
 
     if (discardDialogOpen) {
         AlertDialog(
