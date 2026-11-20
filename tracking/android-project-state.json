@@ -1568,8 +1568,8 @@
   }
 ,
   "ux_journey_audit_2026_11_20": {
-    "stage": "01c_cards_route_identity_and_secure_details",
-    "source_branch": "android/ux-cards-route-identity-20261120",
+    "stage": "01d_card_secure_copy_accessibility",
+    "source_branch": "android/ux-secure-copy-a11y-20261121",
     "status": "source_authored_pending_exact_head_ci_and_merge",
     "next_stage": "01c_cards_secure_details_and_create_copy_with_verified_updated_pngs",
     "summary": "Uses existing official synthetic Compose PNG screenshots and CI artifacts; adds source-head-identified offline per-journey review HTML/JSON/checklist with image hashes and missing baseline variants. No standalone UX verdict or real-device acceptance.",
@@ -1623,6 +1623,23 @@
       "generic_new_transaction": "Cards tab opens default generic expense, no card prefilling; contextual decision pending",
       "card_create_copy": "Retained test-only CardCreate copy says device only, conflicts with shared synced card vault; visual cleanup pending",
       "physical_S24": "not established by screenshot and emulator tests"
-    }
+    },
+    "preceding_card_identity": {
+      "pr": 496,
+      "merged_commit": "a92ed6749987979fcbbe33a263c6a5b9d23c5ded",
+      "exact_head_checks": "6_of_6_success"
+    },
+    "completed_delta": [
+      "Distinct TalkBack labels for copy number, copy expiration and copy CVV",
+      "Accessible action descriptions contain no secret value; visible compact labels are unchanged",
+      "Real Compose clipboard tests invoke each label and preserve disposal/AAL2 revocation guarantees",
+      "Physical screenshot golden references intentionally unchanged because rendered text and layout were not modified"
+    ],
+    "remaining_cards_audit": [
+      "The Card Detail visual section heading duplicates its button text; requires validated rendered-golden updates",
+      "Generic Cards New transaction opens non-card-prefilled expense; compare debit/account vs credit workflows before change",
+      "Retained noncompanion CardCreate text says local-only vault, while shared encrypted server vault is implemented; requires golden update",
+      "Physical S24 install, Recents security and finance GET historical failures remain owner D7"
+    ]
   }
 }

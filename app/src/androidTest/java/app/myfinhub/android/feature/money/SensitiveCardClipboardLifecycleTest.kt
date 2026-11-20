@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
@@ -51,6 +51,34 @@ class SensitiveCardClipboardLifecycleTest {
         }
     }
 
+    @Test fun secureCardCopyActionsAreIndividuallyAccessibleWithoutAnnouncingSecrets() {
+        val store = InMemorySensitiveClipboard()
+        val controller = SensitiveCardClipboard(context, port = store)
+        val pan = "4242424242424242"
+        rule.setContent { MyFinHubTheme {
+            CompositionLocalProvider(LocalSensitiveClipboardController provides controller) {
+                CanonicalCardSecureDetailsScreen(
+                    cardId = "card-1",
+                    card = syntheticMoneyCards().first().copy(id = "card-1"),
+                    secretState = CardSecretUiState.Revealed("card-1", pan, "12/30", "321"),
+                    onReveal = {},
+                    onSaveServerSecrets = { _, _ -> },
+                    onSaveCvv = {},
+                    onBack = {},
+                )
+            }
+        } }
+        rule.onNodeWithContentDescription("Αντιγραφή αριθμού").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(pan, store.clip?.second) }
+        rule.onNodeWithContentDescription("Αντιγραφή λήξης").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals("12/30", store.clip?.second) }
+        rule.onNodeWithContentDescription("Αντιγραφή CVV").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals("321", store.clip?.second) }
+        // Values remain in the secure visual field only, not in button speech.
+        rule.onNodeWithContentDescription("Αντιγραφή $pan").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Αντιγραφή 321").assertDoesNotExist()
+    }
+
     @Test fun expiryRemainsScheduledWhenNoComposeCoroutineSurvives() {
         val store = InMemorySensitiveClipboard()
         val controller = SensitiveCardClipboard(context, expiryMillis = 120L, port = store)
@@ -81,7 +109,7 @@ class SensitiveCardClipboardLifecycleTest {
                 } else androidx.compose.material3.Text("Closed")
             }
         } }
-        rule.onAllNodesWithText("Αντιγραφή")[0].performScrollTo().performClick()
+        rule.onNodeWithContentDescription("Αντιγραφή αριθμού").performScrollTo().performClick()
         rule.runOnIdle {
             assertNotNull(store.clip)
             assertEquals("4242424242424242", store.clip!!.second)
@@ -107,7 +135,7 @@ class SensitiveCardClipboardLifecycleTest {
                 )
             }
         } }
-        rule.onAllNodesWithText("Αντιγραφή")[0].performScrollTo().performClick()
+        rule.onNodeWithContentDescription("Αντιγραφή αριθμού").performScrollTo().performClick()
         rule.runOnIdle { assertNotNull(store.clip) }
         rule.runOnIdle { state.value = CardSecretUiState.AuthRejected }
         rule.waitForIdle()
