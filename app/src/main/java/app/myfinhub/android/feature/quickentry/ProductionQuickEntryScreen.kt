@@ -28,7 +28,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
@@ -136,15 +135,11 @@ fun ProductionQuickEntryScreen(
     // A prefilled note starts open; an explicit user toggle must still be respected.
     var noteVisibilityChosen by rememberSaveable { mutableStateOf(false) }
     var advancedMenuOpen by remember { mutableStateOf(false) }
-    var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
     val amountsVisible = rememberAmountVisibilityPreference()
     val savedLocally = state.awaitingSync
     val canSubmit = remember(state, mutationBlocked) {
         !mutationBlocked && state.canSubmitDraft()
-    }
-    val requestBack = {
-        if (state.dirty && !state.persisted && !savedLocally) discardDialogOpen = true else onBack()
     }
 
     LaunchedEffect(state.kind) {
@@ -162,7 +157,7 @@ fun ProductionQuickEntryScreen(
             MyFinHubScreenHeader(
                 title = "Νέα κίνηση",
                 subtitle = state.kind.description,
-                navigation = { MyFinHubBackButton(requestBack) },
+                navigation = { MyFinHubBackButton(onBack) },
             )
         },
         bottomBar = {
@@ -604,25 +599,7 @@ fun ProductionQuickEntryScreen(
         )
     }
 
-    if (discardDialogOpen) {
-        AlertDialog(
-            onDismissRequest = { discardDialogOpen = false },
-            title = { Text("Απόρριψη νέας κίνησης;") },
-            text = { Text("Τα στοιχεία που συμπλήρωσες δεν έχουν αποθηκευτεί.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        discardDialogOpen = false
-                        onAction(QuickEntryAction.Reset)
-                        onBack()
-                    },
-                ) { Text("Απόρριψη αλλαγών") }
-            },
-            dismissButton = {
-                TextButton(onClick = { discardDialogOpen = false }) { Text("Παραμονή στην επεξεργασία") }
-            },
-        )
-    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -97,6 +97,23 @@ class ActivityQuickEntryTest {
     }
 
     @Test
+    fun systemAndToolbarBackUseIdenticalDiscardActionsForAnUnsavedDraft() {
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
+        composeRule.onNodeWithText("Έσοδο").performClick()
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        composeRule.waitForIdle()
+        androidx.test.espresso.Espresso.pressBack()
+        composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
+        composeRule.onNodeWithText("Παραμονή στην επεξεργασία").performClick()
+        composeRule.onNodeWithText("Ποσό εσόδου").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
+        composeRule.onNodeWithText("Απόρριψη αλλαγών").performClick()
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
     fun dirtyTransactionDraft_requiresExplicitDiscardOnBack() {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()

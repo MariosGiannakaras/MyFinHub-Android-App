@@ -19,15 +19,17 @@ fun QuickEntryBackGuard(
     state: QuickEntryUiState,
     onAction: (QuickEntryAction) -> Unit,
     onExit: () -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable (requestExit: () -> Unit) -> Unit,
 ) {
     var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
     val hasUnsavedDraft = state.dirty && !state.persisted && !state.pendingSync
 
-    BackHandler {
+    // Toolbar and Android system/predictive Back use one confirmation owner.
+    val requestExit: () -> Unit = {
         if (hasUnsavedDraft) discardDialogOpen = true else onExit()
     }
-    content()
+    BackHandler(onBack = requestExit)
+    content(requestExit)
 
     if (discardDialogOpen) {
         AlertDialog(
@@ -41,10 +43,10 @@ fun QuickEntryBackGuard(
                         onAction(QuickEntryAction.Reset)
                         onExit()
                     },
-                ) { Text("Απόρριψη") }
+                ) { Text("Απόρριψη αλλαγών") }
             },
             dismissButton = {
-                TextButton(onClick = { discardDialogOpen = false }) { Text("Συνέχεια") }
+                TextButton(onClick = { discardDialogOpen = false }) { Text("Παραμονή στην επεξεργασία") }
             },
         )
     }
