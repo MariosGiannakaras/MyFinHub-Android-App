@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -73,6 +74,8 @@ class CardCompanionJourneyNavigationTest {
         compose.onNodeWithText("Πιστωτική ταξιδιών").assertIsDisplayed()
         compose.onNodeWithContentDescription("Πίσω").performClick()
         compose.onNodeWithTag("card_companion_summary").assertExists()
-        compose.onNodeWithText("Πιστωτική ταξιδιών").performScrollTo().assertIsDisplayed()
+        // The chosen card name appears both on the card graphic and in its summary.
+        // Inspect one visible instance without assuming the whole screen has only one.
+        compose.onAllNodesWithText("Πιστωτική ταξιδιών")[0].assertIsDisplayed()
     }
 }
