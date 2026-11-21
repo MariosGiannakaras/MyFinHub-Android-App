@@ -258,7 +258,9 @@ PNG SHA-256 fingerprints are:
 - large font: `1ed04e6e721778700edbfdb2fad8739cbfd19099af0158b585a2cc96e39787bf`
 
 All three approved renderer outputs are committed as actual official goldens.
-Require all six **new exact-final-head CI gates** before integrating.
+PR #503 passed all six exact-head gates at `a4ad7b2` and squash merged into
+`develop` as `74d4b88`. The corrected action is integrated; screenshots
+remain synthetic and do not establish owner physical S24 approval.
 
 No other geometry defect was sufficiently confirmed by the *grouped,
 first-viewport* visual evidence to justify speculative production changes.
@@ -268,3 +270,36 @@ historical `CardCreate` fixture is not a live companion route; its
 device-only vault message still requires separate finance-contract scrutiny,
 not just a cosmetic replacement. Known unresolved owner acceptance remains
 physical S24 D7 plus independent protected D8 release.
+
+
+## Activity → Home → Settings behavioral review — checkpoint 03c
+
+The full-ledger source ID resolver already protected against blank and
+duplicate IDs across the unfiltered source, but accepted padded IDs such as
+`" event "`: their exact nonblank text was unique, so a row could navigate to
+a financial detail or enter edit/delete callbacks even though the source ID
+was not canonical. The historical payer picker had the same gap for unique
+account IDs. Source IDs now require `id == id.trim()`, nonblank content
+and uniqueness; rows with bad IDs **stay visible in the Activity ledger and
+financial totals**, but explicitly report `Μη έγκυρο αναγνωριστικό · η κίνηση
+δεν ανοίγει` and cannot be mutated. No ID is silently normalized or
+retargeted, and current valid route behavior is unchanged.
+
+Source-backed user-journey coverage:
+- Activity ledger: the malformed persisted row stays readable and disabled,
+  whereas a valid unique row can still open
+- Already-open Activity Detail: when a finance refresh replaces the original
+  with a padded source ID, detail becomes unavailable and no edit/delete
+  action survives; callbacks use the same live resolver
+- Legacy payer editing: a unique but padded account ID never appears in a
+  writable selection
+- Home → Settings → Home → Activity: switching visibility on Home, then hiding
+  amounts in Settings, preserves the same device-local preference and
+  re-masks Activity figures on return
+
+This checkpoint changes no valid production layout/text; existing official
+goldens should remain identical. The regression tests execute on hosted
+Android/S24 emulator shards before merge. An emulator result cannot certify
+Samsung-specific Recents/Play Protect behavior or complete the owner's
+physical D7 acceptance. Do not start protected D8/APK release from this
+checkpoint; the required integrated deep pre-build audit remains separate.
