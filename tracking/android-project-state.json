@@ -1681,7 +1681,8 @@
       "Recheck the current route identity immediately before IBAN writes and before launching account-prefilled Quick Entry",
       "Hide old account metadata and history on an invalidated route; preserve the existing unavailable-account screen and Back",
       "Pure and real Compose tests cover duplicate visible IDs, hidden cross-kind collisions, stale IDs, invalidated open detail and blocked actions",
-      "Prevent Home primary and secondary account actions for canonical source collisions, including hidden credit-kind account rows, with existing identity warnings"
+      "Prevent Home primary and secondary account actions for canonical source collisions, including hidden credit-kind account rows, with existing identity warnings",
+      "Revalidate Home account-specific Quick Entry and Activity route callbacks against the current unique canonical account before changing forms or filters"
     ]
   }
 }
