@@ -3,6 +3,7 @@ package app.myfinhub.android.app
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -28,6 +29,7 @@ import app.myfinhub.android.feature.quickentry.QuickEntryStatementOption
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.quickentry.reduceQuickEntry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
@@ -85,6 +87,41 @@ class NativeFinanceJourneysComposeTest {
             assertEquals("", entry.amountText)
         }
         rule.onNodeWithText("Πιστωτική κάρτα").assertExists()
+    }
+
+    @Test fun alreadyOpenedActivityDetailCannotMutateAfterSourceIdentityIsInvalidated() {
+        val original = ActivityItem(
+            id = "event-current", dateLabel = "30 Οκτ",
+            kind = ActivityKind.EXPENSE, title = "Ελεγχόμενη κίνηση",
+            subtitle = "", amount = -12.0, accountLabel = "Μετρητά",
+            category = "Τρόφιμα", rawDate = "2026-10-30",
+        )
+        var ledger by mutableStateOf(ActivityUiState(items = listOf(original)))
+        var dispatchedMutation = false
+        rule.setContent {
+            MyFinHubTheme {
+                MyFinHubAppContent(
+                    homeState = syntheticHomeUiState(),
+                    onHomeAction = {},
+                    activityState = ledger,
+                    onActivityAction = { dispatchedMutation = true },
+                )
+            }
+        }
+
+        rule.onNodeWithContentDescription("Κινήσεις", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Ελεγχόμενη κίνηση").performClick()
+        rule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
+
+        // A finance refresh replaces the canonical event with a padded imported ID.
+        // Do not retain the prior details or permit edit/delete on a stale route.
+        rule.runOnIdle {
+            ledger = ledger.copy(items = listOf(original.copy(id = " event-current ")))
+        }
+        rule.onNodeWithText("Η κίνηση δεν είναι πλέον διαθέσιμη.").assertIsDisplayed()
+        rule.onNodeWithText("Επεξεργασία").assertDoesNotExist()
+        rule.onNodeWithText("Διαγραφή κίνησης").assertDoesNotExist()
+        rule.runOnIdle { assertFalse(dispatchedMutation) }
     }
 
     @Test fun activityLedgerToEditorAndExplicitDeleteConfirmationUsesCurrentSourceId() {
