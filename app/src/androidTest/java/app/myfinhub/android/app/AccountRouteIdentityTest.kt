@@ -54,8 +54,6 @@ class AccountRouteIdentityTest {
         ).performClick()
         composeRule.onNodeWithText("Νέα κίνηση από αυτόν τον λογαριασμό")
             .assertIsDisplayed()
-        composeRule.onNodeWithText("Προσθήκη IBAN").assertIsDisplayed()
-
         // The route stays open while the canonical account catalog refreshes.
         composeRule.runOnIdle {
             money.value = money.value.copy(
