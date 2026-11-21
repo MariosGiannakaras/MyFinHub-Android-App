@@ -112,9 +112,11 @@ fun ProductionHomeScreen(
     val secondaryAccounts = state.accounts.filterIndexed { index, _ ->
         index !in primarySourceOrdinals
     }
-    val accountIdCounts = state.accounts.groupingBy(HomeAccount::id).eachCount()
+    val visibleIdCounts = state.accounts.groupingBy(HomeAccount::id).eachCount()
+    val sourceIdCounts = state.accountSourceIdCounts ?: visibleIdCounts
     val canAddressAccount: (String) -> Boolean = { id ->
-        id.isNotBlank() && id == id.trim() && accountIdCounts[id] == 1
+        id.isNotBlank() && id == id.trim() &&
+            visibleIdCounts[id] == 1 && sourceIdCounts[id] == 1
     }
 
     Scaffold(
