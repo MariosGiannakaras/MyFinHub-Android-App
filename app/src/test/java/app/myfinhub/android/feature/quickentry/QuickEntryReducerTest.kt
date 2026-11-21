@@ -55,6 +55,54 @@ class QuickEntryReducerTest {
     }
 
     @Test
+    fun stickySaveRefusesDuplicateAndUntrimmedAccountOrCardTargets() {
+        val draft = QuickEntryUiState(amountText = "12,50")
+        val firstCard = draft.creditCards.single()
+        val duplicateCard = draft.copy(kind = QuickEntryKind.CARD_PURCHASE,
+            creditCards = listOf(firstCard, firstCard.copy(label = "Άλλη κάρτα")))
+        assertFalse(duplicateCard.canSubmitDraft())
+        assertEquals("Διάλεξε ενεργή πιστωτική κάρτα.",
+            reduceQuickEntry(duplicateCard, QuickEntryAction.Save).validationMessage)
+        val duplicateAccount = draft.copy(accounts = draft.accounts + draft.accounts.first())
+        assertFalse(duplicateAccount.canSubmitDraft())
+        assertFalse(duplicateAccount.copy(kind = QuickEntryKind.TRANSFER).canSubmitDraft())
+        assertFalse(duplicateAccount.copy(kind = QuickEntryKind.CARD_PAYMENT, cardPaymentDebt = 20.0).canSubmitDraft())
+        assertFalse(draft.copy(accountId = " acc-main ").canSubmitDraft())
+        assertFalse(duplicateCard.copy(
+            creditCards = listOf(firstCard.copy(id = " card-credit ")),
+            cardId = " card-credit ",
+        ).canSubmitDraft())
+    }
+
+    @Test
+    fun changingTransactionKindNeverRetargetsAnAmbiguousChosenAccount() {
+        val draft = QuickEntryUiState(amountText = "12,50")
+        val ambiguous = draft.copy(accounts = draft.accounts + draft.accounts.first())
+        val switched = reduceQuickEntry(ambiguous,
+            QuickEntryAction.SelectKind(QuickEntryKind.INCOME))
+        assertEquals("acc-main", switched.accountId)
+        assertFalse(switched.canSubmitDraft())
+
+        val transfer = ambiguous.copy(kind = QuickEntryKind.TRANSFER, fromAccountId = "acc-main")
+        val newKind = reduceQuickEntry(transfer,
+            QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
+        assertEquals("acc-main", newKind.fromAccountId)
+        assertFalse(newKind.canSubmitDraft())
+    }
+
+    @Test
+    fun transferRejectsDuplicatedDestinationEvenIfTheIdIsAlreadySelected() {
+        val draft = QuickEntryUiState(kind = QuickEntryKind.TRANSFER,
+            amountText = "5,00", fromAccountId = "acc-main", toAccountId = "acc-save")
+        assertTrue(draft.canSubmitDraft())
+        val duplicated = draft.copy(
+            accounts = draft.accounts + draft.accounts.first { it.id == "acc-save" })
+        assertFalse(duplicated.canSubmitDraft())
+        assertEquals("Διάλεξε λογαριασμό προορισμού.",
+            reduceQuickEntry(duplicated, QuickEntryAction.Save).validationMessage)
+    }
+
+    @Test
     fun stickySaveGateRejectsInvalidDateAccountCardAndTransfer() {
         val ordinary = QuickEntryUiState(amountText = "12,50")
         assertTrue(ordinary.canSubmitDraft())

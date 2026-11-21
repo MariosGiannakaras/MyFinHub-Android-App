@@ -136,3 +136,24 @@ remain pixel-identical. Visible text corrections for partial credit payment
 (`Εξόφληση πιστωτικής` in subtitle, `Ποσό εξόφλησης` in amount label)
 remain a distinct renderer-verified visual checkpoint, not part of this fix.
 
+## Quick Entry selected source identity — phase 02b
+
+The selector UI refused some duplicate target IDs, but reducer Save previously
+accepted any matching credit card/account, and the final Android canonical
+mutation used associateBy, which silently selected a row on duplicate IDs.
+Selected source identity is therefore checked again at the Save button
+and authoritative local mutation boundary. Card/account IDs must be
+trim-stable, nonblank and unique across the original source rows, including
+active/archived card collisions.
+
+A finance refresh may remove or invalidate a source card or account while
+a transaction is being entered. The canonical Quick Entry projection now
+retains that invalid identity for a dirty draft, hides ambiguous picker rows,
+and disables Save instead of silently switching to another card/account.
+Credit debt, statements and repayment bank matches never resolve
+ambiguous card IDs. Unit, mutation and Compose tests enforce these cases.
+
+No normal visual text/layout or screenshot baseline is changed here.
+The partial credit-payment title/amount wording and remaining visual
+Cards issues are deferred to renderer-validated golden regeneration.
+

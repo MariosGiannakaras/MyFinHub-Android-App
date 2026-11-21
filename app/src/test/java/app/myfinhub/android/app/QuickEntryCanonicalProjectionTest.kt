@@ -19,6 +19,72 @@ import org.junit.Test
 
 class QuickEntryCanonicalProjectionTest {
     @Test
+    fun syncInvalidatedCreditAndExpenseTargetsAreNotSilentlyReplaced() {
+        val original = projectionFixture()
+        val date = LocalDate.parse("2026-09-02")
+        val creditDraft = projectQuickEntryState(original, date, QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PURCHASE, cardId = "credit-one",
+            amountText = "17,20", dirty = true,
+        ))
+        val cards = original.state.array("cards")
+        val archived = kotlinx.serialization.json.JsonObject(
+            (cards.first() as kotlinx.serialization.json.JsonObject) +
+                ("active" to kotlinx.serialization.json.JsonPrimitive(false)))
+        val collidedCards = original.copy(raw = kotlinx.serialization.json.JsonObject(
+            original.raw + ("state" to kotlinx.serialization.json.JsonObject(
+                original.state + ("cards" to kotlinx.serialization.json.JsonArray(cards + archived))
+            ))
+        ))
+        val refreshedCredit = projectQuickEntryState(collidedCards, date, creditDraft)
+        assertEquals("credit-one", refreshedCredit.cardId)
+        assertEquals("17,20", refreshedCredit.amountText)
+        assertFalse(refreshedCredit.canSubmitDraft())
+        assertTrue(refreshedCredit.creditStatements.isEmpty())
+        assertFalse(refreshedCredit.creditCards.any { it.id == "credit-one" })
+
+        val expenseDraft = projectQuickEntryState(original, date, QuickEntryUiState(
+            kind = QuickEntryKind.EXPENSE, amountText = "12,50",
+            accountId = "bank-main", dirty = true,
+        ))
+        val accounts = original.seed.array("accounts")
+        val collidedAccounts = original.copy(raw = kotlinx.serialization.json.JsonObject(
+            original.raw + ("seed" to kotlinx.serialization.json.JsonObject(
+                original.seed + ("accounts" to kotlinx.serialization.json.JsonArray(accounts + accounts.first()))
+            ))
+        ))
+        val refreshedExpense = projectQuickEntryState(collidedAccounts, date, expenseDraft)
+        assertEquals("bank-main", refreshedExpense.accountId)
+        assertFalse(refreshedExpense.canSubmitDraft())
+        assertFalse(refreshedExpense.accounts.any { it.id == "bank-main" })
+
+        // Savings must not silently switch a dirty source to another eligible bank.
+        val savingDraft = projectQuickEntryState(original, date, QuickEntryUiState(
+            kind = QuickEntryKind.SAVING, fromAccountId = "bank-main",
+            toAccountId = "save-main", amountText = "10,00", dirty = true,
+        ))
+        assertTrue(savingDraft.canSubmitDraft())
+        val alternativeBank = kotlinx.serialization.json.JsonObject(
+            mapOf(
+                "id" to kotlinx.serialization.json.JsonPrimitive("bank-alt"),
+                "kind" to kotlinx.serialization.json.JsonPrimitive("bank"),
+                "name" to kotlinx.serialization.json.JsonPrimitive("Εναλλακτικός"),
+            )
+        )
+        val changedAccounts = original.copy(raw = kotlinx.serialization.json.JsonObject(
+            original.raw + ("seed" to kotlinx.serialization.json.JsonObject(
+                original.seed + ("accounts" to kotlinx.serialization.json.JsonArray(
+                    accounts + accounts.first() + alternativeBank
+                ))
+            ))
+        ))
+        val refreshedSaving = projectQuickEntryState(changedAccounts, date, savingDraft)
+        assertTrue(refreshedSaving.accounts.any { it.id == "bank-alt" })
+        assertEquals("bank-main", refreshedSaving.fromAccountId)
+        assertEquals("save-main", refreshedSaving.toAccountId)
+        assertFalse(refreshedSaving.canSubmitDraft())
+    }
+
+    @Test
     fun projection_usesCanonicalAccountsCardsDefaultsAndCategoryTrees() {
         val projected = projectQuickEntryState(
             document = projectionFixture(),
@@ -172,11 +238,16 @@ class QuickEntryCanonicalProjectionTest {
         ))
 
         assertEquals(setOf("piraeus-account"), original.cardPaymentSourceAccountIds)
-        assertEquals("piraeus-account", original.fromAccountId)
-        assertTrue(original.canSubmitDraft())
+        // A dirty draft must never be silently reassigned to a different payment account.
+        assertEquals("alpha-account", original.fromAccountId)
+        assertFalse(original.canSubmitDraft())
+        val correctedSource = reduceQuickEntry(
+            original, QuickEntryAction.FromAccountChanged("piraeus-account"),
+        )
+        assertTrue(correctedSource.canSubmitDraft())
 
         val changedCard = reduceQuickEntryWithCanonicalStatements(
-            doc, original, QuickEntryAction.CardChanged("alpha-card"), today,
+            doc, correctedSource, QuickEntryAction.CardChanged("alpha-card"), today,
         )
         assertEquals(setOf("alpha-account"), changedCard.cardPaymentSourceAccountIds)
         assertEquals("alpha-account", changedCard.fromAccountId)
@@ -374,7 +445,7 @@ class QuickEntryCanonicalProjectionTest {
     }
 
     @Test
-    fun projection_preservesValidDraftButDropsStaleCanonicalSelections() {
+    fun projection_preservesDirtyDraftAndInvalidStaleCanonicalSelections() {
         val previous = QuickEntryUiState(
             kind = QuickEntryKind.CARD_PAYMENT,
             amountText = "40",
@@ -395,11 +466,13 @@ class QuickEntryCanonicalProjectionTest {
         assertEquals("40", projected.amountText)
         assertEquals("2026-09-01", projected.dateText)
         assertEquals("Εξόφληση", projected.note)
-        assertEquals("bank-main", projected.fromAccountId)
-        assertEquals("credit-one", projected.cardId)
+        assertEquals("missing-account", projected.fromAccountId)
+        assertEquals("missing-card", projected.cardId)
         assertEquals("", projected.statementId)
         assertTrue(projected.dirty)
+        assertFalse(projected.canSubmitDraft())
         assertFalse(projected.accounts.any { it.id == "missing-account" })
+        assertFalse(projected.creditCards.any { it.id == "missing-card" })
     }
     @Test
     fun paymentSelectorOrdersDueThenClosedThenOpenAndOmitsPaidAndOtherCards() {

@@ -31,7 +31,13 @@ internal fun projectQuickEntryState(
     today: LocalDate,
     previous: QuickEntryUiState?,
 ): QuickEntryUiState {
-    val canonicalAccounts = document.canonicalAccounts().filter { it.kind != "credit" }
+    val allAccounts = document.canonicalAccounts()
+    val accountIdCounts = allAccounts.groupingBy { it.id }.eachCount()
+    // Do not offer an imported duplicate or whitespace-ambiguous finance target.
+    val canonicalAccounts = allAccounts.filter {
+        it.kind != "credit" && it.id.isNotBlank() && it.id == it.id.trim() &&
+            accountIdCounts[it.id] == 1
+    }
     val accountOptions = canonicalAccounts.map { account ->
         QuickEntryAccountOption(
             id = account.id,
@@ -52,8 +58,12 @@ internal fun projectQuickEntryState(
         it.isSavingsDestination && it.id != defaultExpenseId
     }?.id ?: accountOptions.firstOrNull { it.id != defaultExpenseId }?.id.orEmpty()
 
-    val cards = document.canonicalCards()
-        .filter { it.active && it.kind == "credit" }
+    val allCards = document.canonicalCards()
+    val cardIdCounts = allCards.groupingBy { it.id }.eachCount()
+    val cards = allCards.filter {
+        it.active && it.kind == "credit" && it.id.isNotBlank() &&
+            it.id == it.id.trim() && cardIdCounts[it.id] == 1
+    }
         .map { card ->
             val baseLabel = card.nickname.ifBlank { card.network.ifBlank { "Πιστωτική" } }
             val label = card.last4?.takeIf(String::isNotBlank)?.let { "$baseLabel • $it" } ?: baseLabel
@@ -91,21 +101,36 @@ internal fun projectQuickEntryState(
     val subcategory = base.subcategory.takeIf { value ->
         value.isBlank() || activeCategories.firstOrNull { it.name == category }?.subcategories?.contains(value) == true
     }.orEmpty()
+    // A remote refresh must not silently move a dirty transaction to another
+    // source card or account. Keep the old ID invalid until the owner reselects.
+    val preserveDirty = previous?.dirty == true && !previous.persisted && !previous.pendingSync
     val selectedAccount = base.accountId.takeIf(accountIds::contains)
+        ?: base.accountId.takeIf { preserveDirty && base.kind.needsPrimaryAccount && it.isNotBlank() }
         ?: if (base.kind == QuickEntryKind.INCOME) defaultIncomeId else defaultExpenseId
-    val selectedCard = base.cardId.takeIf(cardIds::contains) ?: cards.firstOrNull()?.id.orEmpty()
+    val selectedCard = base.cardId.takeIf(cardIds::contains)
+        ?: base.cardId.takeIf { base.kind.needsCard && it.isNotBlank() &&
+            (preserveDirty || allCards.any { card -> card.id == it }) }
+        ?: cards.firstOrNull()?.id.orEmpty()
     val cardPaymentSources = projectCardPaymentSourceAccountIds(document, selectedCard)
-    val selectedFromCandidate = base.fromAccountId.takeIf(accountIds::contains) ?: defaultExpenseId
+    val selectedFromCandidate = base.fromAccountId.takeIf(accountIds::contains)
+        ?: base.fromAccountId.takeIf {
+            preserveDirty && (base.kind.needsTransferAccounts || base.kind == QuickEntryKind.CARD_PAYMENT) &&
+                it.isNotBlank()
+        } ?: defaultExpenseId
     val selectedFrom = when (base.kind) {
         QuickEntryKind.SAVING -> accountOptions.firstOrNull {
             it.id == selectedFromCandidate && it.isSavingContributionSource
-        }?.id ?: accountOptions.firstOrNull(QuickEntryAccountOption::isSavingContributionSource)?.id.orEmpty()
+        }?.id ?: selectedFromCandidate.takeIf {
+            preserveDirty && base.fromAccountId.isNotBlank() && it.isNotBlank()
+        } ?: accountOptions.firstOrNull(QuickEntryAccountOption::isSavingContributionSource)?.id.orEmpty()
         QuickEntryKind.CARD_PAYMENT -> selectedFromCandidate.takeIf { it in cardPaymentSources }
+            ?: selectedFromCandidate.takeIf { preserveDirty && it.isNotBlank() }
             ?: defaultExpenseId.takeIf { it in cardPaymentSources }
             ?: accountOptions.firstOrNull { it.id in cardPaymentSources }?.id.orEmpty()
         else -> selectedFromCandidate
     }
     val selectedTo = base.toAccountId.takeIf { it in accountIds && it != selectedFrom }
+        ?: base.toAccountId.takeIf { preserveDirty && base.kind.needsTransferAccounts && it.isNotBlank() }
         ?: accountOptions.firstOrNull { option -> option.isSavingsDestination && option.id != selectedFrom }?.id
         ?: defaultDestinationId
     val selectedAsOf = runCatching { LocalDate.parse(base.dateText) }.getOrDefault(today).toString()
@@ -219,11 +244,15 @@ private fun projectCardPaymentSourceAccountIds(
     document: CanonicalFinanceDocument,
     cardId: String,
 ): Set<String> {
-    val card = document.canonicalCards()
-        .singleOrNull { it.id == cardId && it.active && it.kind == "credit" }
+    val card = document.canonicalCards().singleOrNull { it.id == cardId }
+        ?.takeIf { it.active && it.kind == "credit" && it.id.isNotBlank() && it.id == it.id.trim() }
         ?: return emptySet()
-    return document.canonicalAccounts()
-        .filter { it.kind != "credit" && it.matchesFinancialProvider(card.bankId) }
+    val allAccounts = document.canonicalAccounts()
+    val counts = allAccounts.groupingBy { it.id }.eachCount()
+    return allAccounts.filter {
+        it.kind != "credit" && it.id.isNotBlank() && it.id == it.id.trim() &&
+            counts[it.id] == 1 && it.matchesFinancialProvider(card.bankId)
+    }
         .map { it.id }.toSet()
 }
 
@@ -236,7 +265,12 @@ private fun projectCardPaymentDebt(
     document: CanonicalFinanceDocument,
     cardId: String,
     asOf: String,
-): Double = document.creditDebtForCardAt(cardId, asOf)
+): Double? {
+    val card = document.canonicalCards().singleOrNull { it.id == cardId }
+        ?.takeIf { it.active && it.kind == "credit" && it.id.isNotBlank() && it.id == it.id.trim() }
+        ?: return null
+    return document.creditDebtForCardAt(card.id, asOf)
+}
 
 /** Server-sourced statement IDs must remain unique across every physical source row. */
 private fun projectPayableCreditStatements(
@@ -244,8 +278,11 @@ private fun projectPayableCreditStatements(
     cardId: String,
     asOf: String,
 ): List<QuickEntryStatementOption> {
+    val card = document.canonicalCards().singleOrNull { it.id == cardId }
+        ?.takeIf { it.active && it.kind == "credit" && it.id.isNotBlank() && it.id == it.id.trim() }
+        ?: return emptyList()
     val sourceStatementIdCounts = document.canonicalStatementSourceIdCounts()
-    return document.creditStatementViews(cardId, asOf)
+    return document.creditStatementViews(card.id, asOf)
         .filter {
             it.id.isNotBlank() && sourceStatementIdCounts[it.id] == 1 &&
                 it.remaining.isFinite() && it.remaining > 0.005
