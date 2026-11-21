@@ -59,10 +59,10 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
 
-        // The screen automatically focuses Amount; dismiss its IME before
-        // opening the calendar so the click isn't swallowed by keyboard motion.
-        androidx.test.espresso.Espresso.closeSoftKeyboard()
-        composeRule.waitForIdle()
+        // The amount field can leave the IME animating during a hosted emulator
+        // transition. Compose's semantic click targets the date action directly;
+        // Espresso.closeSoftKeyboard() instead waits for window focus and can
+        // time out before this flow even reaches the calendar.
         composeRule.onNodeWithTag("quick_entry_date_picker")
             .performScrollTo().assertIsDisplayed().performClick()
 
