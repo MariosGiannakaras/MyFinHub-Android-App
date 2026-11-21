@@ -80,8 +80,10 @@ class EncryptedFinanceLocalStore(
                         },
                     )
                 }
-                val pending = (generic + migratedLegacy)
-                    .distinctBy(PendingCanonicalMutationIntent::intentId)
+                // Never use distinctBy here: it silently loses user-approved work when
+                // two different stored intents happen to share an ID. Preserve only
+                // exact v1/generic migration duplicates; conflicting IDs fail closed.
+                val pending = mergeRestoredPendingMutations(generic, migratedLegacy)
 
                 check(pending.map(PendingCanonicalMutationIntent::intentId).all(String::isNotBlank)) {
                     "Encrypted finance cache contains a pending mutation without an id."
