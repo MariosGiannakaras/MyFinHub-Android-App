@@ -166,8 +166,6 @@ data class LendingHistoryItem(
  */
 data class MoneyUiState(
     val accounts: List<MoneyAccount> = emptyList(),
-    /** Production counts every original canonical account row, including credit-kind ID collisions. */
-    val accountSourceIdCounts: Map<String, Int>? = null,
     val cards: List<MoneyCard> = emptyList(),
     val archivedCards: List<MoneyCard> = emptyList(),
     val creditStatementsByCard: Map<String, List<CanonicalCreditStatementView>> = emptyMap(),
@@ -196,6 +194,8 @@ data class MoneyUiState(
     val aggregateCreditOutstanding: Double? = null,
     /** Date of the balance projection; null only for synthetic or legacy fixtures. */
     val asOfDate: String? = null,
+    /** Production counts every original canonical account row, including credit-kind ID collisions. */
+    val accountSourceIdCounts: Map<String, Int>? = null,
 )
 
 /**
