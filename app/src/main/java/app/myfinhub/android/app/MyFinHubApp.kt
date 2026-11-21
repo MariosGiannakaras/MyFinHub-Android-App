@@ -58,6 +58,7 @@ import app.myfinhub.android.feature.money.CanonicalSavingsScreen
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.uniqueActiveCardForRoute
+import app.myfinhub.android.feature.money.uniqueAccountForRoute
 import app.myfinhub.android.feature.money.ProtectSensitiveCardDuringNavigation
 import app.myfinhub.android.feature.money.MoneyViewModel
 import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
@@ -339,7 +340,11 @@ internal fun MyFinHubAppContent(
                             activityBackStack.popToRoot()
                             currentDestination = TopLevelDestination.ACTIVITY
                         },
-                        onOpenAccount = { accountId -> homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
+                        onOpenAccount = { accountId ->
+                            if (moneyProviderState.uniqueAccountForRoute(accountId) != null) {
+                                homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId))
+                            }
+                        },
                         onOpenAllAccounts = { homeBackStack.pushIfNew(AppRoute.Accounts) },
                         canOpenRecent = activityState::isUniqueMutationTarget,
                         onOpenRecent = { eventId ->
@@ -392,7 +397,11 @@ internal fun MyFinHubAppContent(
                         onBack = { homeBackStack.removeLastOrNull() },
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
-                        onOpenAccount = { id -> homeBackStack.pushIfNew(AppRoute.AccountDetail(id)) },
+                        onOpenAccount = { id ->
+                            if (moneyProviderState.uniqueAccountForRoute(id) != null) {
+                                homeBackStack.pushIfNew(AppRoute.AccountDetail(id))
+                            }
+                        },
                         onOpenNetPosition = { homeBackStack.pushIfNew(AppRoute.NetPosition) },
                         onOpenCard = { id ->
                             if (moneyState.uniqueActiveCardForRoute(id) != null) {
@@ -552,7 +561,11 @@ internal fun MyFinHubAppContent(
                         financeCacheMode = backupOffline,
                         pendingFinanceChanges = backupPendingChangeCount,
                         onOpenQuickEntry = { openFastExpense(moneyBackStack) },
-                        onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
+                        onOpenAccount = { accountId ->
+                            if (moneyProviderState.uniqueAccountForRoute(accountId) != null) {
+                                moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId))
+                            }
+                        },
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
                         onOpenNetPosition = { moneyBackStack.pushIfNew(AppRoute.NetPosition) },
@@ -616,14 +629,24 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.AccountDetail> { route ->
-                    val account = moneyProviderState.accounts.firstOrNull { it.id == route.accountId }
+                    val account = moneyProviderState.uniqueAccountForRoute(route.accountId)
                     CanonicalAccountDetailScreen(
                         account = account,
-                        ibanRecord = accountMetadata[route.accountId],
+                        ibanRecord = account?.let { accountMetadata[it.id] },
                         accountMetadataLoaded = accountMetadataLoaded,
-                        onSaveAccountIban = onSaveAccountIban,
+                        onSaveAccountIban = onSaveAccountIban?.let { save ->
+                            { id, iban ->
+                                // An open edit dialog must not save after a finance refresh
+                                // invalidates the routed account's source identity.
+                                if (id == route.accountId &&
+                                    moneyProviderState.uniqueAccountForRoute(id) != null &&
+                                    !accountMetadataSaving
+                                ) save(id, iban)
+                            }
+                        },
                         accountMetadataSaving = accountMetadataSaving,
-                        activityItems = accountActivityItems(route.accountId, activityState.items),
+                        activityItems = if (account == null) emptyList()
+                            else accountActivityItems(route.accountId, activityState.items),
                         fullActivityIdCounts = fullActivityIdCounts,
                         categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         onBack = { activeBackStack.removeLastOrNull() },
@@ -633,10 +656,12 @@ internal fun MyFinHubAppContent(
                             }
                         },
                         onNewTransaction = {
-                            onQuickEntryAction(QuickEntryAction.Reset)
-                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
-                            onQuickEntryAction(QuickEntryAction.AccountChanged(route.accountId))
-                            activeBackStack.pushIfNew(AppRoute.QuickEntry)
+                            if (moneyProviderState.uniqueAccountForRoute(route.accountId) != null) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
+                                onQuickEntryAction(QuickEntryAction.AccountChanged(route.accountId))
+                                activeBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
                         },
                     )
                 }
