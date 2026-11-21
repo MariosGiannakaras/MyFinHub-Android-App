@@ -3,6 +3,8 @@ package app.myfinhub.android.feature.home
 data class HomeUiState(
     val amountsVisible: Boolean = false,
     val accounts: List<HomeAccount>,
+    /** Full canonical source counts, including rows not shown as Home accounts. */
+    val accountSourceIdCounts: Map<String, Int>? = null,
     val recentItems: List<HomeRecentItem> = emptyList(),
     val attentionItems: List<HomeAttentionItem>,
     val upcomingItems: List<HomeUpcomingItem>,
