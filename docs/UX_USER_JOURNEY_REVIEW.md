@@ -197,11 +197,15 @@ source and pending-save messages must likewise say **πληρωμή**, not
 **εξόφληση**. Preserve the same canonical mutation kind, card/account
 selection, amount validation, statement allocation and finance behavior.
 
-The existing official `ProductionQuickEntryCardPaymentScreenshot` depicts
-the old text. Before integrating this visual change, regenerate that PNG
-using the official Compose screenshot renderer, inspect the actual output,
-commit the reviewed golden and require all six exact-final-head gates. Never
-approve altered images solely to make CI pass.
+The official `ProductionQuickEntryCardPaymentScreenshot` was regenerated
+by the Android UI Quality Compose renderer in run `44923462573`. The PNG
+was visually inspected against the previous golden: only subtitle rows
+122–154 and amount-label rows 454–486 changed, with no other layout drift.
+Its exact renderer bytes (SHA-256 `7472ff879a9520bf88ce14687e4c40a2b129319158e78b8fa719ec71c66ef179`)
+are committed in the source branch. The first CI run had one expected screenshot
+mismatch and one old-wording instrumentation assertion; the latter was
+corrected. All six required exact-final-head checks must pass before merge.
+Never approve altered images solely to make CI pass.
 
 The visually duplicated Card Detail **Στοιχεία κάρτας** heading remains a
 separate visual-golden task; do not bundle unreviewed screenshot changes

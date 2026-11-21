@@ -1569,9 +1569,9 @@
   "ux_journey_audit_2026_11_20": {
     "stage": "02c_credit_payment_partial_wording_visual",
     "source_branch": "android/ux-credit-payment-accurate-copy-20261121",
-    "status": "source_authored_pending_official_compose_visual_reference_and_exact_head_ci",
+    "status": "source_authored_official_golden_reviewed_pending_final_exact_head_ci_and_merge",
     "next_stage": "03b_activity_home_settings_journey_audit",
-    "summary": "Account Detail canonical source identity PR #501 is integrated after all six exact-head checks. The next mobile copy checkpoint makes credit-card payment description, amount label, unavailable-source warning and pending-save message accurate for partial as well as full payment. Source and unit regression authored; the existing production Compose card-payment screenshot must be freshly rendered, visually reviewed, committed and validated before merge. Owner S24 D7 and D8 release remain separate.",
+    "summary": "Account Detail canonical source identity PR #501 integrated after six exact-head checks. Credit payment source labels now support partial or full payment while retaining canonical card_payment behavior. First PR #502 CI found the expected screenshot delta and an older instrumentation string assertion; test assertion corrected, renderer-generated screenshot examined and committed with byte-exact Git blob. All six required exact-head checks on the corrected final PR, merge and physical S24 acceptance remain pending.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1695,8 +1695,18 @@
       "description": "Μερική ή πλήρης πληρωμή",
       "amount_label": "Ποσό πληρωμής",
       "pending_save_label": "Η πληρωμή καταχωρίζεται…",
-      "needs_official_golden_refresh": true,
-      "tests_authored_not_yet_executed": true
+      "needs_official_golden_refresh": false,
+      "tests_authored_not_yet_executed": false,
+      "corrected_instrumentation_assertion_awaits_new_ci": true,
+      "official_golden": {
+        "source_pr_head": "6563dd50046c33c78e2e7fa106c7b5d25feafaef",
+        "renderer_run": 44923462573,
+        "renderer_source": "GitHub Android UI Quality updateDebugScreenshotTest following expected screenshot-validation failure",
+        "sha256": "7472ff879a9520bf88ce14687e4c40a2b129319158e78b8fa719ec71c66ef179",
+        "git_blob_sha": "d882953509135a5776f99d86e4eeb5d9468d81c5",
+        "visual_review": "approved, only subtitle and amount field label rows changed (122-154, 454-486 of 1082x2402)",
+        "exact_head_validation": "pending"
+      }
     }
   }
 }
