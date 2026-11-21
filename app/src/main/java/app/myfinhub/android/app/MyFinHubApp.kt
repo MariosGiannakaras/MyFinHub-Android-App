@@ -317,7 +317,11 @@ internal fun MyFinHubAppContent(
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
                         onAction = onHomeAction,
-                        onOpenAttention = { id -> homeBackStack.pushIfNew(AppRoute.HomeAttention(id)) },
+                        onOpenAttention = { id ->
+                            if (homeState.uniqueAttention(id) != null) {
+                                homeBackStack.pushIfNew(AppRoute.HomeAttention(id))
+                            }
+                        },
                         onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
                         onOpenQuickEntry = { openFastExpense(homeBackStack) },
                         onAccountQuickEntry = { accountId, role ->
@@ -360,23 +364,25 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.HomeAttention> { route ->
                     HomeAttentionDetailScreen(
-                        item = homeState.attentionItems.firstOrNull { it.id == route.attentionId },
+                        item = homeState.uniqueAttention(route.attentionId),
                         onMarkReviewed = {
-                            onHomeAction(HomeAction.DismissAttention(route.attentionId))
-                            homeBackStack.removeLastOrNull()
+                            if (homeState.uniqueAttention(route.attentionId) != null) {
+                                onHomeAction(HomeAction.DismissAttention(route.attentionId))
+                                homeBackStack.removeLastOrNull()
+                            }
                         },
                         onBack = { homeBackStack.removeLastOrNull() },
                         onOpenAction = {
-                            homeBackStack.popToRoot()
-                            val action = homeState.attentionItems
-                                .firstOrNull { it.id == route.attentionId }
-                                ?.action
-                            if (action == HomeAttentionAction.ACTIVITY) {
-                                currentDestination = TopLevelDestination.ACTIVITY
-                                activityBackStack.popToRoot()
-                            } else {
-                                // A contextual scheduled-item action does not need a Plan tab.
-                                homeBackStack.pushIfNew(AppRoute.PlanScheduled)
+                            val current = homeState.uniqueAttention(route.attentionId)
+                            if (current != null) {
+                                homeBackStack.popToRoot()
+                                if (current.action == HomeAttentionAction.ACTIVITY) {
+                                    currentDestination = TopLevelDestination.ACTIVITY
+                                    activityBackStack.popToRoot()
+                                } else {
+                                    // A contextual scheduled-item action does not need a Plan tab.
+                                    homeBackStack.pushIfNew(AppRoute.PlanScheduled)
+                                }
                             }
                         },
                     )
