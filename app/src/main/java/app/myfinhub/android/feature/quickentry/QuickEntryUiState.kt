@@ -282,8 +282,10 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
         else -> state.defaultExpenseAccountId
     }.takeIf { id -> idExists(state, id) }
         ?: state.accounts.firstOrNull { idExists(state, it.id) }?.id.orEmpty()
+    // Changing kind must not silently move an existing user-selected account
+    // when a refresh made its ID ambiguous. Keep it invalid until reselected.
     val accountId = state.accountId.takeIf {
-        previousKind.needsPrimaryAccount && kind.needsPrimaryAccount && idExists(state, it)
+        previousKind.needsPrimaryAccount && kind.needsPrimaryAccount && it.isNotBlank()
     } ?: defaultPrimaryId
 
     val previousUsesSource = previousKind.needsTransferAccounts || previousKind == QuickEntryKind.CARD_PAYMENT
@@ -294,7 +296,7 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
         previousKind.needsPrimaryAccount && newUsesSource && idExists(state, it)
     }
     val candidateFromId = state.fromAccountId.takeIf {
-        previousUsesSource && newUsesSource && idExists(state, it)
+        previousUsesSource && newUsesSource && it.isNotBlank()
     } ?: contextualSourceId ?: defaultSourceId
     val fromId = if (kind == QuickEntryKind.SAVING) {
         state.accounts.firstOrNull { it.id == candidateFromId && it.isSavingContributionSource }?.id
