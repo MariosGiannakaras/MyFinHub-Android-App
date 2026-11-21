@@ -212,11 +212,16 @@ class QuickEntryCanonicalProjectionTest {
         ))
 
         assertEquals(setOf("piraeus-account"), original.cardPaymentSourceAccountIds)
-        assertEquals("piraeus-account", original.fromAccountId)
-        assertTrue(original.canSubmitDraft())
+        // A dirty draft must never be silently reassigned to a different payment account.
+        assertEquals("alpha-account", original.fromAccountId)
+        assertFalse(original.canSubmitDraft())
+        val correctedSource = reduceQuickEntry(
+            original, QuickEntryAction.FromAccountChanged("piraeus-account"),
+        )
+        assertTrue(correctedSource.canSubmitDraft())
 
         val changedCard = reduceQuickEntryWithCanonicalStatements(
-            doc, original, QuickEntryAction.CardChanged("alpha-card"), today,
+            doc, correctedSource, QuickEntryAction.CardChanged("alpha-card"), today,
         )
         assertEquals(setOf("alpha-account"), changedCard.cardPaymentSourceAccountIds)
         assertEquals("alpha-account", changedCard.fromAccountId)
@@ -414,7 +419,7 @@ class QuickEntryCanonicalProjectionTest {
     }
 
     @Test
-    fun projection_preservesValidDraftButDropsStaleCanonicalSelections() {
+    fun projection_preservesDirtyDraftAndInvalidStaleCanonicalSelections() {
         val previous = QuickEntryUiState(
             kind = QuickEntryKind.CARD_PAYMENT,
             amountText = "40",
@@ -435,11 +440,13 @@ class QuickEntryCanonicalProjectionTest {
         assertEquals("40", projected.amountText)
         assertEquals("2026-09-01", projected.dateText)
         assertEquals("Εξόφληση", projected.note)
-        assertEquals("bank-main", projected.fromAccountId)
-        assertEquals("credit-one", projected.cardId)
+        assertEquals("missing-account", projected.fromAccountId)
+        assertEquals("missing-card", projected.cardId)
         assertEquals("", projected.statementId)
         assertTrue(projected.dirty)
+        assertFalse(projected.canSubmitDraft())
         assertFalse(projected.accounts.any { it.id == "missing-account" })
+        assertFalse(projected.creditCards.any { it.id == "missing-card" })
     }
     @Test
     fun paymentSelectorOrdersDueThenClosedThenOpenAndOmitsPaidAndOtherCards() {
