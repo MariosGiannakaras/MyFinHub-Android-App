@@ -40,7 +40,7 @@ class ActivityLedgerIdentityTest {
     }
 
     @Test fun whitespacePaddedSourceIdsRemainVisibleButCannotBeOpenedOrMutated() {
-        for (id in listOf(" event ", "event ", " event", "\\tevent")) {
+        for (id in listOf(" event ", "event ", " event", "\tevent")) {
             val ledger = ActivityUiState(items = listOf(row(id, "Ιστορική κίνηση")))
             assertEquals(listOf(id), ledger.visibleItems.map { it.id })
             assertFalse(ledger.isUniqueMutationTarget(id))
