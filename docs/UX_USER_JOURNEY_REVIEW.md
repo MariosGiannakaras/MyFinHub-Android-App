@@ -317,3 +317,18 @@ only that Espresso-dependent preparatory step; it still uses the actual
 Quick Entry date action, waits for the calendar, cancels, and verifies the
 expense form. Require all six checks on a new immutable head; neither
 an emulator race nor a previously green unrelated test may be ignored.
+
+**Second hosted correction evidence:** head `0d2289c` again passed
+tracking, Android verify, screenshot regression and S24 shard 1. All
+203 tests on S24 shard 0 ran; the same old calendar test alone failed
+because the `quick_entry_date_picker` control was not displayed while
+the amount field's automatically opened IME still covered it. Removing
+`Espresso.closeSoftKeyboard()` had exposed the real visibility issue
+rather than fixed the test precondition. The latest test-only correction
+clears the Android activity window's input focus and asks
+`InputMethodManager` to hide the IME; then waits until the real date
+control is displayed, physically clicks it and retains the calendar
+open/cancel and unchanged entry-kind checks. It does not disable the
+auto-focus in production, suppress visibility assertions, bypass clicks
+or change a screenshot reference. All new final-head CI gates must still
+succeed before merge.
