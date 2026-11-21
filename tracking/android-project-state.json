@@ -1567,11 +1567,11 @@
     "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
   },
   "ux_journey_audit_2026_11_20": {
-    "stage": "03d_home_scheduled_attention_source_identity",
-    "source_branch": "android/ux-home-attention-source-identity-20261121",
-    "status": "source_and_regressions_authored_pending_hosted_exact_head_ci_merge",
-    "next_stage": "03e_integrated_deep_pre_apk_audit_and_s24_acceptance_evidence",
-    "summary": "PR #504 source-backed Activity and Home/Settings behavior passed all six exact-head checks at 277cfc1 and squash merged to develop cb3ac83, after fixing an unrelated hosted date-picker IME test race. During integrated 03d review, the active Home overdue scheduled attention surface and HomeAttention route still selected firstOrNull by ID and DismissAttention removed every row with that ID. When imported scheduled obligations collide (including one beyond Home's 2-row display cutoff), a user could inspect the wrong obligation or dismiss more than intended. Current source batch carries all canonical schedule ID counts to Home, enforces unique trim-stable live attention identity for row enablement and route/open/dismiss/action, and keeps ambiguous obligations visible but non-actionable with warning. Unit and real Compose navigation tests authored; exact-head hosted CI and merge pending. No production finance write, Web/backend edit, golden replacement or APK. Owner physical S24 D7 and protected release D8 pending.",
+    "stage": "03e_integrated_deep_pre_apk_audit",
+    "source_branch": "android/d7-integrated-preapk-audit-20261122",
+    "status": "integrated_source_audit_in_progress_offline_duplicate_restore_fix_authored_ci_pending_release_blocked",
+    "next_stage": "03f_resolve_P0_P1_integrated_device_acceptance",
+    "summary": "PR #505 Home scheduled source identity passed all 6 exact-head gates at e7e33faf and merged into develop as 9e23f4bf. Stage 03e begins an integrated pre-distributable-APK audit across 8 categories with 7 reviewed from source/existing evidence and 0 release-cleared; it is NOT a release or D7 acceptance. New helper/test rejects duplicate/ID-colliding restored encrypted offline pending intents instead of silently distinctBy-dropping a potentially user-approved mutation and conservatively carries NEEDS_REVIEW from legacy. Source and tests authored, exact-head CI pending; even after CI, invalid encrypted cache auto-clear policy remains P1 risk needing disposition. Owner physical S24 rc19 secure recording/Recents and GET /api/data HTTP400/missing credit purchases are unresolved P0. No new signed APK, Web/backend changes, production money edits or D7/D8 advancement.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1851,8 +1851,73 @@
         "NativeFinanceJourneysComposeTest opens a valid alert, simulates source collision and verifies detail/action revocation"
       ],
       "visual_golden_impact": "valid canonical Home fixtures unchanged; malformed or ambiguous source-only warning",
-      "status": "source_and_tests_authored_pending_ci",
-      "physical_s24_owner_acceptance": "pending"
+      "status": "integrated_into_develop_all_six_exact_head_gates_success",
+      "physical_s24_owner_acceptance": "pending",
+      "final_integration": {
+        "pr": 505,
+        "head": "e7e33faf006b308b2d882f1ecff8389b527be7bd",
+        "merged_commit": "9e23f4bf50407e38c08891361a9cd4d041973fc2",
+        "checks": [
+          "tracking-verify",
+          "android-verify",
+          "screenshot-regression",
+          "S24 emulator shard 0",
+          "S24 emulator shard 1",
+          "s24-ultra-target-instrumented"
+        ],
+        "physical_S24": "pending"
+      }
+    },
+    "pre_apk_deep_audit_03e": {
+      "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
+      "baseline_develop": "9e23f4bf50407e38c08891361a9cd4d041973fc2",
+      "status": "blocked_pre_release_source_fix_authored_ci_pending",
+      "reviewed_domains": 7,
+      "total_domains": 8,
+      "release_cleared_domains": 0,
+      "scope_domains": [
+        "native_navigation_user_journeys",
+        "compose_ui_ux_accessibility",
+        "canonical_finance_account_credit",
+        "encrypted_offline_queue_and_reconnect",
+        "auth_privacy_secret_capture",
+        "network_get_sync_authorization",
+        "installer_signing_permissions",
+        "real_s24_integrated_acceptance"
+      ],
+      "source_fix": {
+        "path": "app/src/main/java/app/myfinhub/android/core/data/OfflinePendingRestorePolicy.kt",
+        "consumer": "EncryptedFinanceLocalStore.load",
+        "tests": "app/src/test/java/app/myfinhub/android/core/data/OfflinePendingRestorePolicyTest.kt",
+        "status": "authored_unexecuted",
+        "behavior": "require distinct generic/legacy IDs separately, only exact cross-format migration overlap, monotonic NEEDS_REVIEW and deterministic replay ordering"
+      },
+      "blockers": [
+        {
+          "severity": "P0",
+          "kind": "owner_physical_security",
+          "detail": "rc19 S24 recording/Recents secure card/vault privacy not verified"
+        },
+        {
+          "severity": "P0",
+          "kind": "canonical_finance",
+          "detail": "historical GET /api/data HTTP400 INVALID_DATA and two reported 2026-11-12 missing card purchase linkages unresolved"
+        },
+        {
+          "severity": "P1",
+          "kind": "offline_restore",
+          "detail": "corrupt encrypted cache currently catches and clears local snapshot; after conflict detection risk of losing pending financial changes requires tested fail-closed retention strategy or explicit disposition"
+        },
+        {
+          "severity": "P1",
+          "kind": "source_version_gap",
+          "detail": "rc19 signed release pre-dates merged #502-505 and this source audit; no new signed APK permitted"
+        }
+      ],
+      "owner_acceptance": "pending",
+      "apk_release_allowed": false,
+      "ci_exact_head": "pending",
+      "next_action": "Run exact-head six gates for audit/queue branch; review corruption-recovery policy and D7 S24 external evidence without backend writes. Keep any signed release blocked until integrated deep audit and device owner gates explicitly pass."
     }
   }
 }
