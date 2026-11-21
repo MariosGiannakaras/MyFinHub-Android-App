@@ -1,13 +1,11 @@
 package app.myfinhub.android.app
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -40,6 +38,7 @@ class AccountRouteIdentityTest {
             MyFinHubTheme {
                 MyFinHubAppContent(
                     homeState = syntheticHomeUiState(),
+                    onHomeAction = {},
                     moneyState = money.value,
                     accountMetadataLoaded = true,
                     onSaveAccountIban = { _, _ -> error("Stale account must never write IBAN") },
@@ -82,6 +81,7 @@ class AccountRouteIdentityTest {
                         // credit-kind source row reuses this account ID.
                         accountSourceIdCounts = mapOf("revolut-main" to 2),
                     ),
+                    onHomeAction = {},
                     moneyState = money,
                 )
             }
