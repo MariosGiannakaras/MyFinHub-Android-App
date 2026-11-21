@@ -464,6 +464,8 @@ val activityItems = buildActivityItems(
         }
     }
     val money = MoneyUiState(
+        // Count all original rows, including credit-kind rows hidden from the account UI.
+        accountSourceIdCounts = accounts.groupingBy(CanonicalAccount::id).eachCount(),
         accounts = accounts.filter { it.kind != "credit" }.map { account ->
             val provider = financialProvider(account.providerId ?: account.id, account.provider ?: account.name, account.providerId)
             MoneyAccount(
