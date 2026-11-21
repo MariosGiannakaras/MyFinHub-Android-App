@@ -1571,7 +1571,7 @@
     "source_branch": "android/ux-account-route-identity-20261121",
     "status": "source_authored_pending_exact_head_ci_and_merge",
     "next_stage": "03b_activity_home_settings_journey_audit",
-    "summary": "After merged Quick Entry #500, the native Account Detail route is guarded against duplicate, stale and noncanonical IDs across the complete canonical account catalog (including hidden credit-kind collisions). A refresh invalidates the routed account without showing its details or enabling IBAN and Quick Entry writes. Pure and Compose regressions authored; exact-head CI, merge and physical S24 acceptance pending.",
+    "summary": "After merged Quick Entry #500, Home account actions and the native Account Detail route are guarded against duplicate, stale and noncanonical IDs across the complete canonical account catalog (including hidden credit-kind collisions). A refresh invalidates the routed account without showing its details or enabling IBAN and Quick Entry writes. Pure and Compose regressions authored; exact-head CI, merge and physical S24 acceptance pending.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1680,7 +1680,8 @@
       "Use one fail-closed unique account resolver for all three native account openings and for the routed account detail",
       "Recheck the current route identity immediately before IBAN writes and before launching account-prefilled Quick Entry",
       "Hide old account metadata and history on an invalidated route; preserve the existing unavailable-account screen and Back",
-      "Pure and real Compose tests cover duplicate visible IDs, hidden cross-kind collisions, stale IDs, invalidated open detail and blocked actions"
+      "Pure and real Compose tests cover duplicate visible IDs, hidden cross-kind collisions, stale IDs, invalidated open detail and blocked actions",
+      "Prevent Home primary and secondary account actions for canonical source collisions, including hidden credit-kind account rows, with existing identity warnings"
     ]
   }
 }
