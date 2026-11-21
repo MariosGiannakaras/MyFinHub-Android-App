@@ -157,3 +157,36 @@ No normal visual text/layout or screenshot baseline is changed here.
 The partial credit-payment title/amount wording and remaining visual
 Cards issues are deferred to renderer-validated golden regeneration.
 
+## Account Detail canonical route identity — phase 03a
+
+After verified, merged Quick Entry identity PR #500 (`develop`
+`7c52a4e0e8e6ae052cd9506be7c84ad2f983fac4`), the mobile Account
+Detail route still used `firstOrNull { id == route.accountId }`. The
+projection includes all non-credit canonical account rows, while the canonical
+source may contain duplicate IDs (even a collision with a hidden credit-kind
+account). This made account balance/history and the server IBAN edit/delete
+actions potentially bind to an arbitrary first row on finance refresh.
+
+The canonical Home and money projections now carry original source-wide
+account ID counts. On Home, ambiguous source IDs disable primary actions and
+secondary account entry with the existing identity warning rather than leaving
+a clickable row that silently does nothing. Every account opening from Home,
+All Accounts and Wallet, plus an
+already-open Account Detail, resolves one nonblank, trim-stable source identity
+only. On collision or stale ID, detail shows the existing account-unavailable
+state, not the first matching finance row; IBAN and activity history from an
+invalidated route are not exposed. IBAN save/remove and account-prefilled
+Quick Entry callbacks independently recheck the routed account at action time.
+
+Pure unit regressions cover unique, duplicate, missing, whitespace and
+cross-kind IDs, including a refresh that invalidates a previously valid
+account. Compose navigation tests cover rejection before opening and
+revocation while the detail is already open; those tests must pass in the
+required exact-head hosted S24 shards before merge. Valid account layouts
+and text are unchanged, so no official screenshot baseline is replaced.
+Owner physical S24 D7 approval and separately safeguarded D8 release remain
+pending; neither is established by these tests.
+
+Partial credit payment labels and visually duplicated Card Detail heading
+remain separate visual-golden work. Do not silently update official images
+without a fresh production Compose render and review.

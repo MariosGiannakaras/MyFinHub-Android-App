@@ -9,6 +9,8 @@ data class HomeUiState(
     val monthFlow: HomeMonthFlow,
     val quickEntryOpen: Boolean = false,
     val selectedQuickEntryType: HomeQuickEntryType? = null,
+    /** Full canonical source counts, including rows not shown as Home accounts. */
+    val accountSourceIdCounts: Map<String, Int>? = null,
 ) {
     /** Owner-defined Home headline, not the portfolio's available-money balance. */
     val liquidTotal: Double

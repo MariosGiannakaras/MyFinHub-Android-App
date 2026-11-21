@@ -194,7 +194,21 @@ data class MoneyUiState(
     val aggregateCreditOutstanding: Double? = null,
     /** Date of the balance projection; null only for synthetic or legacy fixtures. */
     val asOfDate: String? = null,
+    /** Production counts every original canonical account row, including credit-kind ID collisions. */
+    val accountSourceIdCounts: Map<String, Int>? = null,
 )
+
+/**
+ * Resolve an Account Detail destination only if its canonical source identity is
+ * unique across the entire finance catalog. Accounts shown in this UI exclude
+ * credit-kind rows, so list-only uniqueness cannot detect a cross-kind collision.
+ * A null source-count map is permitted only for isolated preview/test fixtures.
+ */
+internal fun MoneyUiState.uniqueAccountForRoute(id: String): MoneyAccount? {
+    if (id.isBlank() || id != id.trim()) return null
+    if (accountSourceIdCounts != null && accountSourceIdCounts[id] != 1) return null
+    return accounts.singleOrNull { it.id == id && it.canonicalKind != "credit" }
+}
 
 sealed interface MoneyAction {
     data class SavingsTargetChanged(val value: String) : MoneyAction

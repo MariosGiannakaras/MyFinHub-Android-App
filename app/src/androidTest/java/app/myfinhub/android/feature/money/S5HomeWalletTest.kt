@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -43,6 +44,36 @@ class S5HomeWalletTest {
         // Web dashboard uses account title and wallet fallback, not the same title twice.
         composeRule.onAllNodesWithText("Μετρητά", useUnmergedTree = true).assertCountEquals(1)
         composeRule.onNodeWithText("Πορτοφόλι").assertIsDisplayed()
+    }
+
+    @Test
+    fun canonicalHiddenAccountCollisionDisablesPrimaryHomeActions() {
+        val state = syntheticHomeUiState().copy(
+            accountSourceIdCounts = mapOf(
+                "cash" to 1,
+                "piraeus-payroll" to 2, // Includes a hidden credit-kind source row.
+                "piraeus-savings" to 1,
+                "revolut-main" to 1,
+            ),
+        )
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionHomeScreen(
+                    state = state,
+                    onAction = {},
+                    onOpenAttention = {},
+                    onOpenQuickEntry = {},
+                    onOpenSettings = {},
+                    amountsVisibleOverride = true,
+                )
+            }
+        }
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasTestTag("home_account_quick_entry_piraeus-payroll"))
+        composeRule.onNodeWithTag("home_account_quick_entry_piraeus-payroll")
+            .assertIsNotEnabled()
+        composeRule.onNodeWithTag("home_primary_account_identity_warning_PAYROLL")
+            .assertIsDisplayed()
     }
 
     @Test
