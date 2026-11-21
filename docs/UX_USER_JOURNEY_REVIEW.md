@@ -181,12 +181,28 @@ Quick Entry callbacks independently recheck the routed account at action time.
 Pure unit regressions cover unique, duplicate, missing, whitespace and
 cross-kind IDs, including a refresh that invalidates a previously valid
 account. Compose navigation tests cover rejection before opening and
-revocation while the detail is already open; those tests must pass in the
-required exact-head hosted S24 shards before merge. Valid account layouts
-and text are unchanged, so no official screenshot baseline is replaced.
-Owner physical S24 D7 approval and separately safeguarded D8 release remain
-pending; neither is established by these tests.
+revocation while the detail is already open. PR #501 passed all six
+exact-head checks at `0317d600` and was squash-merged to `develop` as
+`59ed42f`. Valid account layouts and text are unchanged, so no official
+screenshot baseline is replaced. Owner physical S24 D7 approval and
+separately safeguarded D8 release remain pending.
 
-Partial credit payment labels and visually duplicated Card Detail heading
-remain separate visual-golden work. Do not silently update official images
-without a fresh production Compose render and review.
+## Partial credit payment copy — visual checkpoint 02c
+
+The canonical `card_payment` operation permits both partial payments and
+complete payoff, so the Quick Entry subtitle and amount field must not
+promise an automatic full settlement. Use **Μερική ή πλήρης πληρωμή** as its
+subtitle and **Ποσό πληρωμής** as its amount label. Unavailable same-bank
+source and pending-save messages must likewise say **πληρωμή**, not
+**εξόφληση**. Preserve the same canonical mutation kind, card/account
+selection, amount validation, statement allocation and finance behavior.
+
+The existing official `ProductionQuickEntryCardPaymentScreenshot` depicts
+the old text. Before integrating this visual change, regenerate that PNG
+using the official Compose screenshot renderer, inspect the actual output,
+commit the reviewed golden and require all six exact-final-head gates. Never
+approve altered images solely to make CI pass.
+
+The visually duplicated Card Detail **Στοιχεία κάρτας** heading remains a
+separate visual-golden task; do not bundle unreviewed screenshot changes
+or replace the owner's physical S24 D7 acceptance with synthetic renders.
