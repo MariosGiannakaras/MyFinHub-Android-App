@@ -1567,11 +1567,11 @@
     "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
   },
   "ux_journey_audit_2026_11_20": {
-    "stage": "03b_bulk_102_screenshot_review_and_card_detail_action_copy",
-    "source_branch": "android/ux-bulk-card-detail-action-20261121",
-    "status": "bulk_visual_review_complete_three_official_card_detail_goldens_reviewed_pending_final_exact_head_ci_merge",
-    "next_stage": "03c_activity_home_settings_behavioral_journeys",
-    "summary": "After merged #502, 102 official Compose PNGs were group-reviewed by journey; confirmed companion Card Detail duplicated heading/button copy. PR #503 renames only the secure-details action to Προβολή στοιχείων while retaining the resolved card ID. First PR head 931728e passed tracking, Android CI, both emulator shards and aggregate; the screenshot gate correctly found exactly three expected golden mismatches. Real renderer output from run 44930334611 was visually compared to previous light/dark/large-font PNGs; all differences are confined to button text. Three byte-exact official goldens accepted in the source branch; all six final exact-head gates and merge remain pending. Owner physical S24 D7 and protected D8 remain pending.",
+    "stage": "03c_activity_home_settings_behavioral_source_safety",
+    "source_branch": "android/ux-activity-identity-settings-journeys-20261121",
+    "status": "pr_504_source_safety_and_keyboard_visibility_test_repaired_pending_final_exact_head_ci_merge",
+    "next_stage": "03d_review_remaining_user_journeys_and_integrated_audit",
+    "summary": "PR #503 integrated as 74d4b88 (all six checks). PR #504 source-safe Activity identity + Home/Settings privacy tests authored. At cc08675 after import and fixture corrections, 202/203 S24 shard0 passed; the old ActivityQuickEntry calendar test timed out in Espresso.closeSoftKeyboard. At 0d2289c the remaining five CI checks passed and 202/203 shard0 passed, but the date control was still obscured by the amount IME. The current test-only correction clears Android window focus, hides IME via InputMethodManager and waits for the real visible date button before tapping, without removing assertions. All six checks on the new exact final head remain required; no merge or APK until green and owner physical S24 acceptance + integrated deep audit.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1741,7 +1741,7 @@
         "CanonicalCardDetailDarkScreenshot",
         "CanonicalCardDetailLargeFontScreenshot"
       ],
-      "status": "source_compose_regression_and_3_renderer_goldens_reviewed_pending_exact_head_ci",
+      "status": "completed_reviewed_and_merged_as_pr_503",
       "physical_device_acceptance": "not_established",
       "renderer_candidate": {
         "workflow_run": 44930334611,
@@ -1774,8 +1774,60 @@
           "Dark": "d567244dbabb2822b0b2f9559741f37265eb0fca690fa527f310d9e42bb891de",
           "LargeFont": "1ed04e6e721778700edbfdb2fad8739cbfd19099af0158b585a2cc96e39787bf"
         },
-        "exact_head_validation": "pending",
+        "exact_head_validation": "6_of_6_success_on_a4ad7b2ce717f6a768836e317947d1e43f11454b",
         "physical_s24_owner_acceptance": "pending"
+      }
+    },
+    "card_detail_action_integration": {
+      "pr": 503,
+      "merged_commit": "74d4b88335e32b6b1d6df12307a3951d0dcff0f4",
+      "exact_head_sha": "a4ad7b2ce717f6a768836e317947d1e43f11454b",
+      "exact_head_checks": "6_of_6_success",
+      "official_golden_count": 3
+    },
+    "activity_home_settings_03c": {
+      "issue": "Nonblank whitespace-padded imported Activity source IDs passed previous uniqueness check and could enter the detail/edit/delete route; legacy payer picker also offered trim-unstable account IDs",
+      "fix": "Require nonblank, trim-stable, unique IDs for Activity route and legacy payer selection. Show invalid source warning, never remove malformed ledger rows or affect totals.",
+      "journey_tests": [
+        "ActivityLedgerIdentityTest covers padded and valid source IDs, preserved visible rows, Save/delete gate and legacy payer options",
+        "ActivityPendingSourceComposeTest verifies malformed row visible with warning and disabled detail open",
+        "NativeFinanceJourneysComposeTest revokes already-open details after finance source identity becomes padded",
+        "D6MobileSettingsNavigationAcceptanceTest verifies Home quick privacy toggle -> Settings -> Home -> Activity remain masked using same local device preference"
+      ],
+      "visual_golden_impact": "none for existing valid fixture sources; malformed imported-row warning only",
+      "status": "head_0d2289_all_other_checks_green_shard0_202_of_203_calendar_hidden_by_ime; activity_window_ime_test_fix_pending_exact_head_ci",
+      "real_device_acceptance": "pending",
+      "initial_ci": {
+        "head": "cc08675918ec10d2479aad8a463e8be6a1da06f0",
+        "passed": [
+          "tracking-verify",
+          "android-verify",
+          "screenshot-regression",
+          "S24 emulator shard 1"
+        ],
+        "failed": [
+          "S24 emulator shard 0",
+          "s24-ultra-target-instrumented"
+        ],
+        "emulator_result": "203 tests shard 0: 202 passed, 1 failure in pre-existing ActivityQuickEntryTest.activityDatePicker_opensAndCancelsWithoutChangingQuickEntryKind at Espresso.closeSoftKeyboard() root focus wait; 203 tests shard 1 succeeded",
+        "correction": "Removed an Espresso.closeSoftKeyboard() prerequisite from that pre-existing calendar navigation Compose test, retaining date picker click/cancel/kind assertions; Compose semantics click avoids the hosted IME root focus race",
+        "final_exact_head_check": "pending"
+      },
+      "second_ci": {
+        "head": "0d2289c405863dd8b6263fec9cf58f4b81d50446",
+        "success": [
+          "tracking-verify",
+          "android-verify",
+          "screenshot-regression",
+          "S24 emulator shard 1"
+        ],
+        "failure": [
+          "S24 emulator shard 0",
+          "s24-ultra-target-instrumented"
+        ],
+        "diagnosis": "shard 0 completed 203 tests; only preexisting ActivityQuickEntryTest calendar test failed because quick_entry_date_picker was not displayed under automatically focused amount IME after removal of brittle Espresso.closeSoftKeyboard",
+        "correction": "Test-only Android window focus clear plus InputMethodManager.hideSoftInputFromWindow on Compose rule UI thread; wait for displayed date control, then real performClick; retain DatePickerDialog open/cancel and expense-form assertions",
+        "final_exact_head": "pending"
       }
     }
   }

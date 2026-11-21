@@ -39,6 +39,30 @@ class ActivityLedgerIdentityTest {
         }
     }
 
+    @Test fun whitespacePaddedSourceIdsRemainVisibleButCannotBeOpenedOrMutated() {
+        for (id in listOf(" event ", "event ", " event", "\tevent")) {
+            val ledger = ActivityUiState(items = listOf(row(id, "Ιστορική κίνηση")))
+            assertEquals(listOf(id), ledger.visibleItems.map { it.id })
+            assertFalse(ledger.isUniqueMutationTarget(id))
+            assertEquals(null, ledger.uniqueItem(id))
+            assertFalse(ledger.canMutateCurrentActivity(id, mutationBlocked = false))
+            assertEquals("Μη έγκυρο αναγνωριστικό · η κίνηση δεν ανοίγει",
+                activityLedgerIdentityWarning(id, ledger.ambiguousIds))
+        }
+        val valid = ActivityUiState(items = listOf(row("event", "Επιτρεπτή κίνηση")))
+        assertTrue(valid.isUniqueMutationTarget("event"))
+        assertEquals("event", valid.uniqueItem("event")?.id)
+    }
+
+    @Test fun legacyPayerOptionsRejectWhitespacePaddedIdsEvenIfUnique() {
+        val options = listOf(
+            ActivityAccountOption(" bank ", "Μη έγκυρος"),
+            ActivityAccountOption("savings", "Αποταμίευση"),
+            ActivityAccountOption("cash", "Μετρητά"),
+        )
+        assertEquals(listOf("savings", "cash"), selectableLegacyActivityAccounts(options).map { it.id })
+    }
+
     @Test fun duplicateIdsRemainNonNavigableAcrossHiddenFilteredRows() {
         val ledger = ActivityUiState(items = listOf(
             row("same", "Πρώτη"), row("same", "Δεύτερη"), row("unique", "Τρίτη"),

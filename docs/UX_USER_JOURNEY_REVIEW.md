@@ -258,7 +258,9 @@ PNG SHA-256 fingerprints are:
 - large font: `1ed04e6e721778700edbfdb2fad8739cbfd19099af0158b585a2cc96e39787bf`
 
 All three approved renderer outputs are committed as actual official goldens.
-Require all six **new exact-final-head CI gates** before integrating.
+PR #503 passed all six exact-head gates at `a4ad7b2` and squash merged into
+`develop` as `74d4b88`. The corrected action is integrated; screenshots
+remain synthetic and do not establish owner physical S24 approval.
 
 No other geometry defect was sufficiently confirmed by the *grouped,
 first-viewport* visual evidence to justify speculative production changes.
@@ -268,3 +270,65 @@ historical `CardCreate` fixture is not a live companion route; its
 device-only vault message still requires separate finance-contract scrutiny,
 not just a cosmetic replacement. Known unresolved owner acceptance remains
 physical S24 D7 plus independent protected D8 release.
+
+
+## Activity → Home → Settings behavioral review — checkpoint 03c
+
+The full-ledger source ID resolver already protected against blank and
+duplicate IDs across the unfiltered source, but accepted padded IDs such as
+`" event "`: their exact nonblank text was unique, so a row could navigate to
+a financial detail or enter edit/delete callbacks even though the source ID
+was not canonical. The historical payer picker had the same gap for unique
+account IDs. Source IDs now require `id == id.trim()`, nonblank content
+and uniqueness; rows with bad IDs **stay visible in the Activity ledger and
+financial totals**, but explicitly report `Μη έγκυρο αναγνωριστικό · η κίνηση
+δεν ανοίγει` and cannot be mutated. No ID is silently normalized or
+retargeted, and current valid route behavior is unchanged.
+
+Source-backed user-journey coverage:
+- Activity ledger: the malformed persisted row stays readable and disabled,
+  whereas a valid unique row can still open
+- Already-open Activity Detail: when a finance refresh replaces the original
+  with a padded source ID, detail becomes unavailable and no edit/delete
+  action survives; callbacks use the same live resolver
+- Legacy payer editing: a unique but padded account ID never appears in a
+  writable selection
+- Home → Settings → Home → Activity: switching visibility on Home, then hiding
+  amounts in Settings, preserves the same device-local preference and
+  re-masks Activity figures on return
+
+This checkpoint changes no valid production layout/text; existing official
+goldens should remain identical. The regression tests execute on hosted
+Android/S24 emulator shards before merge. An emulator result cannot certify
+Samsung-specific Recents/Play Protect behavior or complete the owner's
+physical D7 acceptance. Do not start protected D8/APK release from this
+checkpoint; the required integrated deep pre-build audit remains separate.
+
+**First hosted correction evidence:** PR #504's original head `e1b62cb`
+found two incorrect test imports and one literal-tab fixture; those were
+fixed in the same PR. On head `cc08675`, tracking, Android build/unit,
+102 screenshots and S24 shard 1 passed. The S24 shard 0 instrumentation
+run completed 203 tests with a single failure in an older, independently
+existing `ActivityQuickEntryTest.activityDatePicker_opensAndCancelsWithoutChangingQuickEntryKind`.
+That test failed **before opening the calendar**, because
+`Espresso.closeSoftKeyboard()` waited for window focus during an IME
+transition, as the actual stack trace confirms. The correction removes
+only that Espresso-dependent preparatory step; it still uses the actual
+Quick Entry date action, waits for the calendar, cancels, and verifies the
+expense form. Require all six checks on a new immutable head; neither
+an emulator race nor a previously green unrelated test may be ignored.
+
+**Second hosted correction evidence:** head `0d2289c` again passed
+tracking, Android verify, screenshot regression and S24 shard 1. All
+203 tests on S24 shard 0 ran; the same old calendar test alone failed
+because the `quick_entry_date_picker` control was not displayed while
+the amount field's automatically opened IME still covered it. Removing
+`Espresso.closeSoftKeyboard()` had exposed the real visibility issue
+rather than fixed the test precondition. The latest test-only correction
+clears the Android activity window's input focus and asks
+`InputMethodManager` to hide the IME; then waits until the real date
+control is displayed, physically clicks it and retains the calendar
+open/cancel and unchanged entry-kind checks. It does not disable the
+auto-focus in production, suppress visibility assertions, bypass clicks
+or change a screenshot reference. All new final-head CI gates must still
+succeed before merge.

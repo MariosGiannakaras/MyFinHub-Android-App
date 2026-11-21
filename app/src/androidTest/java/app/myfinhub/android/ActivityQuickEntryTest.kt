@@ -59,12 +59,28 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
 
-        // The screen automatically focuses Amount; dismiss its IME before
-        // opening the calendar so the click isn't swallowed by keyboard motion.
-        androidx.test.espresso.Espresso.closeSoftKeyboard()
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("quick_entry_date_picker")
-            .performScrollTo().assertIsDisplayed().performClick()
+        // The amount editor auto-focuses, so the IME can obscure the date
+        // control on a compact emulator. Do not use Espresso.closeSoftKeyboard():
+        // its root-focus lookup can time out during the IME transition.
+        // Clear the Android focus and request IME dismissal on the UI thread
+        // without changing production auto-focus or skipping hit-target checks.
+        composeRule.runOnIdle {
+            val focusedView = composeRule.activity.currentFocus
+            focusedView?.clearFocus()
+            val token = focusedView?.windowToken
+                ?: composeRule.activity.window.decorView.windowToken
+            val inputManager = composeRule.activity.getSystemService(
+                android.content.Context.INPUT_METHOD_SERVICE,
+            ) as android.view.inputmethod.InputMethodManager
+            inputManager.hideSoftInputFromWindow(token, 0)
+        }
+        composeRule.onNodeWithTag("quick_entry_date_picker").performScrollTo()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            runCatching {
+                composeRule.onNodeWithTag("quick_entry_date_picker").assertIsDisplayed()
+            }.isSuccess
+        }
+        composeRule.onNodeWithTag("quick_entry_date_picker").performClick()
 
         composeRule.waitUntil(timeoutMillis = 10_000) {
             runCatching {
