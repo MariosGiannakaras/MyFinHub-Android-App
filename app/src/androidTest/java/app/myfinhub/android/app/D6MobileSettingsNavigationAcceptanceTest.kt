@@ -91,11 +91,9 @@ class D6MobileSettingsNavigationAcceptanceTest {
             compose.onNodeWithContentDescription("Πίσω").performClick()
             compose.onNodeWithContentDescription("Εμφάνιση ποσών").assertExists()
             compose.onNodeWithContentDescription("Κινήσεις", useUnmergedTree = true).performClick()
-            compose.runOnIdle {
-                assertTrue("Activity amounts must remain masked after Settings privacy change",
-                    compose.onAllNodesWithText("•••• €", substring = true)
-                        .fetchSemanticsNodes().isNotEmpty())
-            }
+            assertTrue("Activity amounts must remain masked after Settings privacy change",
+                compose.onAllNodesWithText("•••• €", substring = true)
+                    .fetchSemanticsNodes().isNotEmpty())
         } finally {
             AmountVisibilityPreference.write(context, original)
         }
