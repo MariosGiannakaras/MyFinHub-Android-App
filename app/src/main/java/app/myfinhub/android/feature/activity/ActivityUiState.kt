@@ -125,7 +125,7 @@ internal fun selectableLegacyActivityAccounts(
     options: List<ActivityAccountOption>,
 ): List<ActivityAccountOption> {
     val idCounts = options.groupingBy(ActivityAccountOption::id).eachCount()
-    return options.filter { it.id.isNotBlank() && idCounts[it.id] == 1 }
+    return options.filter { it.id.isNotBlank() && it.id == it.id.trim() && idCounts[it.id] == 1 }
 }
 
 /**
@@ -241,6 +241,7 @@ enum class ActivityFilterField {
 internal fun activityLedgerIdentityWarning(id: String, ambiguousIds: Set<String>): String? =
     when {
         id.isBlank() -> "Χωρίς αναγνωριστικό · η κίνηση δεν ανοίγει"
+        id != id.trim() -> "Μη έγκυρο αναγνωριστικό · η κίνηση δεν ανοίγει"
         id in ambiguousIds -> "Διπλό αναγνωριστικό · απαιτεί έλεγχο"
         else -> null
     }
@@ -312,7 +313,7 @@ data class ActivityUiState(
 
     /** The same exact target check is required at the navigation and durable mutation boundaries. */
     fun isUniqueMutationTarget(id: String): Boolean = id.isNotBlank() &&
-        id !in ambiguousIds && items.any { it.id == id }
+        id == id.trim() && id !in ambiguousIds && items.any { it.id == id }
 
     fun uniqueItem(id: String?): ActivityItem? = id?.takeIf(::isUniqueMutationTarget)
         ?.let { exact -> items.firstOrNull { it.id == exact } }
