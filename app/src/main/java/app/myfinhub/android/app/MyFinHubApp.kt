@@ -635,7 +635,7 @@ internal fun MyFinHubAppContent(
                         ibanRecord = account?.let { accountMetadata[it.id] },
                         accountMetadataLoaded = accountMetadataLoaded,
                         onSaveAccountIban = onSaveAccountIban?.let { save ->
-                            { id, iban ->
+                            { id: String, iban: String? ->
                                 // An open edit dialog must not save after a finance refresh
                                 // invalidates the routed account's source identity.
                                 if (id == route.accountId &&
