@@ -3,6 +3,7 @@ package app.myfinhub.android.app
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -76,7 +77,11 @@ class AccountRouteIdentityTest {
         composeRule.setContent {
             MyFinHubTheme {
                 MyFinHubAppContent(
-                    homeState = syntheticHomeUiState(),
+                    homeState = syntheticHomeUiState().copy(
+                        // One visible bank row but an additional hidden canonical
+                        // credit-kind source row reuses this account ID.
+                        accountSourceIdCounts = mapOf("revolut-main" to 2),
+                    ),
                     moneyState = money,
                 )
             }
@@ -85,8 +90,10 @@ class AccountRouteIdentityTest {
             hasContentDescription("Καθημερινός", substring = true),
         )
         composeRule.onNode(
-            hasContentDescription("Καθημερινός", substring = true) and hasClickAction(),
-        ).performClick()
+            hasContentDescription("Καθημερινός", substring = true),
+        ).assertIsNotEnabled()
+        composeRule.onNodeWithTag("home_secondary_account_identity_warning_0")
+            .assertIsDisplayed()
         composeRule.onNodeWithText("Κύριοι λογαριασμοί").assertIsDisplayed()
         composeRule.onNodeWithText("Νέα κίνηση από αυτόν τον λογαριασμό")
             .assertDoesNotExist()
