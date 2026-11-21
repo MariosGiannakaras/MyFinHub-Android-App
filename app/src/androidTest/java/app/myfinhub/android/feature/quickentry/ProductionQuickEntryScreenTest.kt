@@ -114,7 +114,7 @@ class ProductionQuickEntryScreenTest {
             saving = true
         }
         composeRule.onNodeWithText("Καταχώριση…").assertIsNotEnabled()
-        composeRule.onNodeWithText("Η εξόφληση καταχωρίζεται…").assertExists()
+        composeRule.onNodeWithText("Η πληρωμή καταχωρίζεται…").assertExists()
         composeRule.onNodeWithText(
             "Δεν υπάρχει καταγεγραμμένη οφειλή για την επιλεγμένη ημερομηνία.",
         ).assertDoesNotExist()
