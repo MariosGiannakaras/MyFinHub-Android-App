@@ -321,24 +321,28 @@ internal fun MyFinHubAppContent(
                         onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
                         onOpenQuickEntry = { openFastExpense(homeBackStack) },
                         onAccountQuickEntry = { accountId, role ->
-                            onQuickEntryAction(QuickEntryAction.Reset)
-                            if (role == app.myfinhub.android.feature.home.HomePrimaryRole.SAVINGS) {
-                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.SAVING))
-                                onQuickEntryAction(QuickEntryAction.ToAccountChanged(accountId))
-                            } else {
-                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
-                                onQuickEntryAction(QuickEntryAction.AccountChanged(accountId))
+                            if (moneyProviderState.uniqueAccountForRoute(accountId) != null) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                if (role == app.myfinhub.android.feature.home.HomePrimaryRole.SAVINGS) {
+                                    onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.SAVING))
+                                    onQuickEntryAction(QuickEntryAction.ToAccountChanged(accountId))
+                                } else {
+                                    onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
+                                    onQuickEntryAction(QuickEntryAction.AccountChanged(accountId))
+                                }
+                                homeBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
-                            homeBackStack.pushIfNew(AppRoute.QuickEntry)
                         },
                         onAccountTransactions = { accountId ->
-                            onActivityAction(ActivityAction.ApplyFilters(
-                                type = app.myfinhub.android.feature.activity.ActivityFilter.ALL,
-                                accountId = accountId, category = null,
-                                dateFrom = null, dateTo = null,
-                            ))
-                            activityBackStack.popToRoot()
-                            currentDestination = TopLevelDestination.ACTIVITY
+                            if (moneyProviderState.uniqueAccountForRoute(accountId) != null) {
+                                onActivityAction(ActivityAction.ApplyFilters(
+                                    type = app.myfinhub.android.feature.activity.ActivityFilter.ALL,
+                                    accountId = accountId, category = null,
+                                    dateFrom = null, dateTo = null,
+                                ))
+                                activityBackStack.popToRoot()
+                                currentDestination = TopLevelDestination.ACTIVITY
+                            }
                         },
                         onOpenAccount = { accountId ->
                             if (moneyProviderState.uniqueAccountForRoute(accountId) != null) {
