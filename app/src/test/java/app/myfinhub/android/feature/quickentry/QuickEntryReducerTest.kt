@@ -8,6 +8,13 @@ import org.junit.Test
 
 class QuickEntryReducerTest {
     @Test
+    fun cardPaymentCopyCoversPartialAsWellAsFullPayment() {
+        assertEquals("Μερική ή πλήρης πληρωμή", QuickEntryKind.CARD_PAYMENT.description)
+        assertEquals("Ποσό πληρωμής", QuickEntryKind.CARD_PAYMENT.amountHeading)
+        assertEquals("card_payment", QuickEntryKind.CARD_PAYMENT.canonicalKind)
+    }
+
+    @Test
     fun creditPurchaseShortcutOnlyAppearsWithinExpenseWithAnAvailableCard() {
         assertTrue(showCreditPurchaseShortcut(QuickEntryKind.EXPENSE, true))
         assertFalse(showCreditPurchaseShortcut(QuickEntryKind.EXPENSE, false))
