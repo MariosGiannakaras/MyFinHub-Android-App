@@ -101,9 +101,12 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Έσοδο").performClick()
-        androidx.test.espresso.Espresso.closeSoftKeyboard()
-        composeRule.waitForIdle()
-        androidx.test.espresso.Espresso.pressBack()
+        // Exercise the Activity's registered system Back callback directly.
+        // Espresso root-focus lookup can time out during IME transitions on
+        // hosted emulators (observed in PR #499), independently of BackHandler.
+        composeRule.runOnIdle {
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
         composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
         composeRule.onNodeWithText("Παραμονή στην επεξεργασία").performClick()
         composeRule.onNodeWithText("Ποσό εσόδου").assertIsDisplayed()
