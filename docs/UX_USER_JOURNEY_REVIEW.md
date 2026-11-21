@@ -303,3 +303,17 @@ Android/S24 emulator shards before merge. An emulator result cannot certify
 Samsung-specific Recents/Play Protect behavior or complete the owner's
 physical D7 acceptance. Do not start protected D8/APK release from this
 checkpoint; the required integrated deep pre-build audit remains separate.
+
+**First hosted correction evidence:** PR #504's original head `e1b62cb`
+found two incorrect test imports and one literal-tab fixture; those were
+fixed in the same PR. On head `cc08675`, tracking, Android build/unit,
+102 screenshots and S24 shard 1 passed. The S24 shard 0 instrumentation
+run completed 203 tests with a single failure in an older, independently
+existing `ActivityQuickEntryTest.activityDatePicker_opensAndCancelsWithoutChangingQuickEntryKind`.
+That test failed **before opening the calendar**, because
+`Espresso.closeSoftKeyboard()` waited for window focus during an IME
+transition, as the actual stack trace confirms. The correction removes
+only that Espresso-dependent preparatory step; it still uses the actual
+Quick Entry date action, waits for the calendar, cancels, and verifies the
+expense form. Require all six checks on a new immutable head; neither
+an emulator race nor a previously green unrelated test may be ignored.
