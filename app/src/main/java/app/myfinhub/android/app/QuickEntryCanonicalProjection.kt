@@ -120,7 +120,9 @@ internal fun projectQuickEntryState(
     val selectedFrom = when (base.kind) {
         QuickEntryKind.SAVING -> accountOptions.firstOrNull {
             it.id == selectedFromCandidate && it.isSavingContributionSource
-        }?.id ?: accountOptions.firstOrNull(QuickEntryAccountOption::isSavingContributionSource)?.id.orEmpty()
+        }?.id ?: selectedFromCandidate.takeIf {
+            preserveDirty && base.fromAccountId.isNotBlank() && it.isNotBlank()
+        } ?: accountOptions.firstOrNull(QuickEntryAccountOption::isSavingContributionSource)?.id.orEmpty()
         QuickEntryKind.CARD_PAYMENT -> selectedFromCandidate.takeIf { it in cardPaymentSources }
             ?: selectedFromCandidate.takeIf { preserveDirty && it.isNotBlank() }
             ?: defaultExpenseId.takeIf { it in cardPaymentSources }
