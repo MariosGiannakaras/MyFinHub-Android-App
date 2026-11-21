@@ -23,7 +23,7 @@ enum class QuickEntryKind(
     LENDING("Δανεικά", "Πλήρωσα για άλλον", "lending"),
     REPAYMENT("Επιστροφή δανεικών", "Μου επέστρεψαν δανεικά", "repayment"),
     CARD_PURCHASE("Αγορά με κάρτα", "Χρέωση πιστωτικής κάρτας", "card_purchase"),
-    CARD_PAYMENT("Πληρωμή κάρτας", "Εξόφληση πιστωτικής", "card_payment"),
+    CARD_PAYMENT("Πληρωμή κάρτας", "Μερική ή πλήρης πληρωμή", "card_payment"),
     RECONCILIATION("Διόρθωση υπολοίπου", "Συμφωνία με πραγματικό υπόλοιπο", "reconciliation"),
     SPLIT("Σύνθετη αγορά", "Μία πληρωμή, πολλές κατηγορίες", "split"),
     ;

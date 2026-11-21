@@ -181,12 +181,32 @@ Quick Entry callbacks independently recheck the routed account at action time.
 Pure unit regressions cover unique, duplicate, missing, whitespace and
 cross-kind IDs, including a refresh that invalidates a previously valid
 account. Compose navigation tests cover rejection before opening and
-revocation while the detail is already open; those tests must pass in the
-required exact-head hosted S24 shards before merge. Valid account layouts
-and text are unchanged, so no official screenshot baseline is replaced.
-Owner physical S24 D7 approval and separately safeguarded D8 release remain
-pending; neither is established by these tests.
+revocation while the detail is already open. PR #501 passed all six
+exact-head checks at `0317d600` and was squash-merged to `develop` as
+`59ed42f`. Valid account layouts and text are unchanged, so no official
+screenshot baseline is replaced. Owner physical S24 D7 approval and
+separately safeguarded D8 release remain pending.
 
-Partial credit payment labels and visually duplicated Card Detail heading
-remain separate visual-golden work. Do not silently update official images
-without a fresh production Compose render and review.
+## Partial credit payment copy — visual checkpoint 02c
+
+The canonical `card_payment` operation permits both partial payments and
+complete payoff, so the Quick Entry subtitle and amount field must not
+promise an automatic full settlement. Use **Μερική ή πλήρης πληρωμή** as its
+subtitle and **Ποσό πληρωμής** as its amount label. Unavailable same-bank
+source and pending-save messages must likewise say **πληρωμή**, not
+**εξόφληση**. Preserve the same canonical mutation kind, card/account
+selection, amount validation, statement allocation and finance behavior.
+
+The official `ProductionQuickEntryCardPaymentScreenshot` was regenerated
+by the Android UI Quality Compose renderer in run `44923462573`. The PNG
+was visually inspected against the previous golden: only subtitle rows
+122–154 and amount-label rows 454–486 changed, with no other layout drift.
+Its exact renderer bytes (SHA-256 `7472ff879a9520bf88ce14687e4c40a2b129319158e78b8fa719ec71c66ef179`)
+are committed in the source branch. The first CI run had one expected screenshot
+mismatch and one old-wording instrumentation assertion; the latter was
+corrected. All six required exact-final-head checks must pass before merge.
+Never approve altered images solely to make CI pass.
+
+The visually duplicated Card Detail **Στοιχεία κάρτας** heading remains a
+separate visual-golden task; do not bundle unreviewed screenshot changes
+or replace the owner's physical S24 D7 acceptance with synthetic renders.

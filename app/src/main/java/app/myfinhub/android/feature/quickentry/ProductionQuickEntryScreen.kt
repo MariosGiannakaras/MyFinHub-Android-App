@@ -113,7 +113,7 @@ internal val QuickEntryKind.amountHeading: String
         QuickEntryKind.LENDING -> "Ποσό που έδωσες"
         QuickEntryKind.REPAYMENT -> "Ποσό που επέστρεψαν"
         QuickEntryKind.CARD_PURCHASE -> "Ποσό αγοράς"
-        QuickEntryKind.CARD_PAYMENT -> "Ποσό εξόφλησης"
+        QuickEntryKind.CARD_PAYMENT -> "Ποσό πληρωμής"
         QuickEntryKind.RECONCILIATION -> "Πραγματικό υπόλοιπο"
         QuickEntryKind.SPLIT -> "Συνολικό ποσό"
     }
@@ -318,7 +318,7 @@ fun ProductionQuickEntryScreen(
                 val sources = productionSourceOptions(state)
                 if (state.kind == QuickEntryKind.CARD_PAYMENT && sources.isEmpty()) {
                     Text(
-                        "Δεν υπάρχει διαθέσιμος λογαριασμός της ίδιας τράπεζας για εξόφληση αυτής της κάρτας.",
+                        "Δεν υπάρχει διαθέσιμος λογαριασμός της ίδιας τράπεζας για πληρωμή αυτής της κάρτας.",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -372,7 +372,7 @@ fun ProductionQuickEntryScreen(
                 // not appear as a false red validation failure to the owner.
                 if (mutationInFlight) {
                     Text(
-                        "Η εξόφληση καταχωρίζεται…",
+                        "Η πληρωμή καταχωρίζεται…",
                         modifier = Modifier.testTag("quick_entry_card_debt"),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

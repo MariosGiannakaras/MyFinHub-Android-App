@@ -1567,11 +1567,11 @@
     "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
   },
   "ux_journey_audit_2026_11_20": {
-    "stage": "03a_account_detail_unique_source_identity",
-    "source_branch": "android/ux-account-route-identity-20261121",
-    "status": "source_authored_pending_exact_head_ci_and_merge",
+    "stage": "02c_credit_payment_partial_wording_visual",
+    "source_branch": "android/ux-credit-payment-accurate-copy-20261121",
+    "status": "source_authored_official_golden_reviewed_pending_final_exact_head_ci_and_merge",
     "next_stage": "03b_activity_home_settings_journey_audit",
-    "summary": "After merged Quick Entry #500, Home account actions and the native Account Detail route are guarded against duplicate, stale and noncanonical IDs across the complete canonical account catalog (including hidden credit-kind collisions). A refresh invalidates the routed account without showing its details or enabling IBAN and Quick Entry writes. Pure and Compose regressions authored; exact-head CI, merge and physical S24 acceptance pending.",
+    "summary": "Account Detail canonical source identity PR #501 integrated after six exact-head checks. Credit payment source labels now support partial or full payment while retaining canonical card_payment behavior. First PR #502 CI found the expected screenshot delta and an older instrumentation string assertion; test assertion corrected, renderer-generated screenshot examined and committed with byte-exact Git blob. All six required exact-head checks on the corrected final PR, merge and physical S24 acceptance remain pending.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1683,6 +1683,30 @@
       "Pure and real Compose tests cover duplicate visible IDs, hidden cross-kind collisions, stale IDs, invalidated open detail and blocked actions",
       "Prevent Home primary and secondary account actions for canonical source collisions, including hidden credit-kind account rows, with existing identity warnings",
       "Revalidate Home account-specific Quick Entry and Activity route callbacks against the current unique canonical account before changing forms or filters"
-    ]
+    ],
+    "account_detail_integration": {
+      "pr": 501,
+      "merged_commit": "59ed42f5506966ec51a1bda329369d51bd5b85a4",
+      "exact_head_sha": "0317d600c468b55f3e18b59dbb878161f866e291",
+      "exact_head_checks": "6_of_6_success",
+      "physical_s24_owner_acceptance": "pending"
+    },
+    "credit_payment_copy_delta": {
+      "description": "Μερική ή πλήρης πληρωμή",
+      "amount_label": "Ποσό πληρωμής",
+      "pending_save_label": "Η πληρωμή καταχωρίζεται…",
+      "needs_official_golden_refresh": false,
+      "tests_authored_not_yet_executed": false,
+      "corrected_instrumentation_assertion_awaits_new_ci": true,
+      "official_golden": {
+        "source_pr_head": "6563dd50046c33c78e2e7fa106c7b5d25feafaef",
+        "renderer_run": 44923462573,
+        "renderer_source": "GitHub Android UI Quality updateDebugScreenshotTest following expected screenshot-validation failure",
+        "sha256": "7472ff879a9520bf88ce14687e4c40a2b129319158e78b8fa719ec71c66ef179",
+        "git_blob_sha": "d882953509135a5776f99d86e4eeb5d9468d81c5",
+        "visual_review": "approved, only subtitle and amount field label rows changed (122-154, 454-486 of 1082x2402)",
+        "exact_head_validation": "pending"
+      }
+    }
   }
 }
