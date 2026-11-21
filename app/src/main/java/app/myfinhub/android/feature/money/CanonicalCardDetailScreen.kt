@@ -346,7 +346,7 @@ fun CanonicalCardDetailScreen(
                     OutlinedButton(
                         onClick = { onOpenSecureDetails(card.id) },
                         modifier = Modifier.fillMaxWidth().testTag("card_secure_details"),
-                    ) { Text("Στοιχεία κάρτας") }
+                    ) { Text(if (companionMode) "Προβολή στοιχείων" else "Στοιχεία κάρτας") }
                     Text(
                         "Ο αριθμός, η λήξη και το CVV εμφανίζονται πλήρως στην οθόνη στοιχείων κάρτας.",
                         style = MaterialTheme.typography.bodySmall,

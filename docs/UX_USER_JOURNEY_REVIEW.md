@@ -210,3 +210,61 @@ Never approve altered images solely to make CI pass.
 The visually duplicated Card Detail **Στοιχεία κάρτας** heading remains a
 separate visual-golden task; do not bundle unreviewed screenshot changes
 or replace the owner's physical S24 D7 acceptance with synthetic renders.
+
+
+## Bulk cross-screen Compose review — 102 screenshots (phase 03b)
+
+Source: Android UI Quality run `44927422834`, exact screenshot
+source commit `6ccee4ddb6201c2553b4d794177eb339a79a55cf` for
+PR #502, validation `success`. The official gallery/review-index contains
+102 **synthetic** Compose reference PNGs in 11 user-journey groups. The images
+were examined together as compact grouped contact sheets, with the earlier
+single-screen partial-card-payment before/after comparison retained as
+separate direct visual evidence. This is a **bulk visual triage**, not a
+completed per-element interaction, TalkBack, scroll, touch-target or physical
+Samsung S24 Ultra audit.
+
+| Journey group | PNGs | Bulk visual assessment |
+| --- | ---: | --- |
+| Home | 7 | Three detailed primary account cards/history charts preserved; light, dark and large-type references visible |
+| Activity | 15 | Search, filters, transaction edit/detail, pending and empty states represented; actual return/persistence requires behavioral testing |
+| Quick Entry | 8 | Credit payment correctly says partial/full payment and amount of payment; split and reconciliation layouts represented |
+| Cards root | 5 | Card stack and compact card selection remain visible; generic New transaction is an already-retained product decision |
+| Card Detail | 3 | **Confirmed:** heading and secure-details button both read `Στοιχεία κάρτας`; no second card switcher |
+| Secure Card Detail | 3 | Field labels and copy controls visible; fixtures are fake values and do not prove FLAG_SECURE or on-device privacy |
+| Account Detail | 3 | Single-account balance, transaction list and contextual new-entry action visible |
+| Android Settings and diagnostics | 17 | Light, dark, large-font, pending updates and diagnostics represented; no Web admin root inferred |
+| Authentication | 3 | Login, lock/PIN fallback and PIN enrollment rendered |
+| Secondary journeys | 15 | Grouped notifications, money/wallet and contextual screens; screenshots alone do not prove active navigation |
+| Legacy/test-only | 23 | Plan/Insights, card-create and retained administrative previews must **not** be treated as primary Android routes |
+| **Total** | **102** | No missing light/dark/large-type baseline variants reported by the official review index for its defined groups |
+
+**Actionable source-backed delta:** in the *companion* Card Detail only,
+keep the section title `Στοιχεία κάρτας`, but label its actual secure-details
+button `Προβολή στοιχείων`. The button still invokes
+`onOpenSecureDetails(card.id)` using the already-validated card identity.
+Non-companion/legacy copy remains unchanged. The real Compose test
+requires one section heading and invokes the button to assert it opens the
+selected card. In Android UI Quality run `44930334611`, the original PR
+head `931728e` passed tracking, Android CI and both emulator shards plus
+aggregate, while screenshot-regression detected exactly three expected
+differences. The official Compose renderer regenerated and uploaded all
+three Card Detail goldens. Direct before/after inspection confirmed the
+changed pixels lie **only within the button label**, with unchanged control
+bounds and no layout drift in light, dark or 150% font. The exact renderer
+PNG SHA-256 fingerprints are:
+- light: `9d9e7f56e8c5293643e545cb9fca7d4973996741bca172f13768c3bc7390db31`
+- dark: `d567244dbabb2822b0b2f9559741f37265eb0fca690fa527f310d9e42bb891de`
+- large font: `1ed04e6e721778700edbfdb2fad8739cbfd19099af0158b585a2cc96e39787bf`
+
+All three approved renderer outputs are committed as actual official goldens.
+Require all six **new exact-final-head CI gates** before integrating.
+
+No other geometry defect was sufficiently confirmed by the *grouped,
+first-viewport* visual evidence to justify speculative production changes.
+Large-font screenshots may depict scrollable content extending offscreen;
+this is not evidence of clipping without scrolling/semantics tests. The
+historical `CardCreate` fixture is not a live companion route; its
+device-only vault message still requires separate finance-contract scrutiny,
+not just a cosmetic replacement. Known unresolved owner acceptance remains
+physical S24 D7 plus independent protected D8 release.

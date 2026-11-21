@@ -1567,11 +1567,11 @@
     "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
   },
   "ux_journey_audit_2026_11_20": {
-    "stage": "02c_credit_payment_partial_wording_visual",
-    "source_branch": "android/ux-credit-payment-accurate-copy-20261121",
-    "status": "source_authored_official_golden_reviewed_pending_final_exact_head_ci_and_merge",
-    "next_stage": "03b_activity_home_settings_journey_audit",
-    "summary": "Account Detail canonical source identity PR #501 integrated after six exact-head checks. Credit payment source labels now support partial or full payment while retaining canonical card_payment behavior. First PR #502 CI found the expected screenshot delta and an older instrumentation string assertion; test assertion corrected, renderer-generated screenshot examined and committed with byte-exact Git blob. All six required exact-head checks on the corrected final PR, merge and physical S24 acceptance remain pending.",
+    "stage": "03b_bulk_102_screenshot_review_and_card_detail_action_copy",
+    "source_branch": "android/ux-bulk-card-detail-action-20261121",
+    "status": "bulk_visual_review_complete_three_official_card_detail_goldens_reviewed_pending_final_exact_head_ci_merge",
+    "next_stage": "03c_activity_home_settings_behavioral_journeys",
+    "summary": "After merged #502, 102 official Compose PNGs were group-reviewed by journey; confirmed companion Card Detail duplicated heading/button copy. PR #503 renames only the secure-details action to Προβολή στοιχείων while retaining the resolved card ID. First PR head 931728e passed tracking, Android CI, both emulator shards and aggregate; the screenshot gate correctly found exactly three expected golden mismatches. Real renderer output from run 44930334611 was visually compared to previous light/dark/large-font PNGs; all differences are confined to button text. Three byte-exact official goldens accepted in the source branch; all six final exact-head gates and merge remain pending. Owner physical S24 D7 and protected D8 remain pending.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1697,7 +1697,7 @@
       "pending_save_label": "Η πληρωμή καταχωρίζεται…",
       "needs_official_golden_refresh": false,
       "tests_authored_not_yet_executed": false,
-      "corrected_instrumentation_assertion_awaits_new_ci": true,
+      "corrected_instrumentation_assertion_awaits_new_ci": false,
       "official_golden": {
         "source_pr_head": "6563dd50046c33c78e2e7fa106c7b5d25feafaef",
         "renderer_run": 44923462573,
@@ -1705,7 +1705,77 @@
         "sha256": "7472ff879a9520bf88ce14687e4c40a2b129319158e78b8fa719ec71c66ef179",
         "git_blob_sha": "d882953509135a5776f99d86e4eeb5d9468d81c5",
         "visual_review": "approved, only subtitle and amount field label rows changed (122-154, 454-486 of 1082x2402)",
-        "exact_head_validation": "pending"
+        "exact_head_validation": "6_of_6_success_on_6ccee4ddb6201c2553b4d794177eb339a79a55cf"
+      }
+    },
+    "credit_payment_copy_integration": {
+      "pr": 502,
+      "merged_commit": "c1593a3223ff1d903fb872877700e04f6a70b969",
+      "final_source_head": "6ccee4ddb6201c2553b4d794177eb339a79a55cf",
+      "exact_head_checks": "6_of_6_success"
+    },
+    "bulk_screenshot_review": {
+      "source_run": 44927422834,
+      "source_sha": "6ccee4ddb6201c2553b4d794177eb339a79a55cf",
+      "validation": "success",
+      "total_official_synthetic_pngs": 102,
+      "journey_group_count": 11,
+      "review_method": "grouped first-viewport visual triage; official review-index plus production source/tests",
+      "journey_counts": {
+        "home": 7,
+        "activity": 15,
+        "quick_entry": 8,
+        "cards": 5,
+        "card_detail": 3,
+        "secure_card_detail": 3,
+        "account_detail": 3,
+        "settings_diagnostics": 17,
+        "auth": 3,
+        "secondary": 15,
+        "legacy": 23
+      },
+      "confirmed_live_issue": "Companion Card Detail section heading and secure-details action both labeled Στοιχεία κάρτας",
+      "change": "Keep section heading; rename secure-details action Προβολή στοιχείων, keep card identity and click",
+      "affected_goldens": [
+        "CanonicalCardDetailLightScreenshot",
+        "CanonicalCardDetailDarkScreenshot",
+        "CanonicalCardDetailLargeFontScreenshot"
+      ],
+      "status": "source_compose_regression_and_3_renderer_goldens_reviewed_pending_exact_head_ci",
+      "physical_device_acceptance": "not_established",
+      "renderer_candidate": {
+        "workflow_run": 44930334611,
+        "source_sha": "931728e662e00a380c3eb29ef65181be332f1588",
+        "first_run_checks": "5_of_6_success; screenshot-regression failed on exactly 3 expected Card Detail previews",
+        "type": "actual Compose screenshot reference bytes after updateDebugScreenshotTest on failure",
+        "visual_result": "Reviewed against previously accepted light/dark/large PNGs. Changed pixels only inside secure-details action label; no geometry shifts.",
+        "changed_pixel_bounding_boxes": {
+          "Light": [
+            366,
+            1585,
+            719,
+            1625
+          ],
+          "Dark": [
+            366,
+            1585,
+            719,
+            1625
+          ],
+          "LargeFont": [
+            277,
+            2130,
+            809,
+            2190
+          ]
+        },
+        "png_sha256": {
+          "Light": "9d9e7f56e8c5293643e545cb9fca7d4973996741bca172f13768c3bc7390db31",
+          "Dark": "d567244dbabb2822b0b2f9559741f37265eb0fca690fa527f310d9e42bb891de",
+          "LargeFont": "1ed04e6e721778700edbfdb2fad8739cbfd19099af0158b585a2cc96e39787bf"
+        },
+        "exact_head_validation": "pending",
+        "physical_s24_owner_acceptance": "pending"
       }
     }
   }

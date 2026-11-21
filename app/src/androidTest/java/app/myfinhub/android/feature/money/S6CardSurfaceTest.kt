@@ -65,6 +65,7 @@ class S6CardSurfaceTest {
 
     @Test
     fun companionCreditDetail_keepsPaymentsAndSecureCardAccessWithoutWebManagement() {
+        var openedSecureCardId: String? = null
         composeRule.setContent {
             MyFinHubTheme {
                 CanonicalCardDetailScreen(
@@ -75,6 +76,7 @@ class S6CardSurfaceTest {
                     onSaveCreditBillingSettings = {},
                     onAddCreditRateVersion = {},
                     onRemoveCard = {},
+                    onOpenSecureDetails = { openedSecureCardId = it },
                 )
             }
         }
@@ -86,7 +88,11 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithTag("card_edit_profile").assertDoesNotExist()
         composeRule.onNodeWithText("Αφαίρεση από το MyFinHub").assertDoesNotExist()
         composeRule.onNodeWithText("Διαχείριση κάρτας").assertDoesNotExist()
-        composeRule.onNodeWithTag("card_secure_details").performScrollTo().assertIsDisplayed()
+        // The section title describes the protected data; the button is an action,
+        // not an accidental second identical heading.
+        assertEquals(1, composeRule.onAllNodesWithText("Στοιχεία κάρτας").fetchSemanticsNodes().size)
+        composeRule.onNodeWithText("Προβολή στοιχείων").performScrollTo().assertIsDisplayed().performClick()
+        composeRule.runOnIdle { assertEquals(credit.id, openedSecureCardId) }
     }
 
     @Test
