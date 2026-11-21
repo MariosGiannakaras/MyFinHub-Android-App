@@ -322,6 +322,7 @@ val activityItems = buildActivityItems(
         amountsVisible = oldHome?.amountsVisible ?: false,
         accounts = homeAccounts,
         accountSourceIdCounts = accounts.groupingBy(CanonicalAccount::id).eachCount(),
+        attentionSourceIdCounts = scheduled.groupingBy { it.id }.eachCount(),
         recentItems = homeRecentItems,
         attentionItems = pendingScheduled
             .filter { it.kind == "expense" && it.dueDate.isNotBlank() && it.dueDate <= asOf }
