@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-19",
+  "updated_at": "2026-11-21",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -1565,14 +1565,13 @@
     "pull_request": 490,
     "release_created": false,
     "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
-  }
-,
+  },
   "ux_journey_audit_2026_11_20": {
-    "stage": "02b_quick_entry_unique_finance_targets",
-    "source_branch": "android/ux-quickentry-unique-finance-targets-20261121",
+    "stage": "03a_account_detail_unique_source_identity",
+    "source_branch": "android/ux-account-route-identity-20261121",
     "status": "source_authored_pending_exact_head_ci_and_merge",
-    "next_stage": "01c_cards_secure_details_and_create_copy_with_verified_updated_pngs",
-    "summary": "Uses existing official synthetic Compose PNG screenshots and CI artifacts; adds source-head-identified offline per-journey review HTML/JSON/checklist with image hashes and missing baseline variants. No standalone UX verdict or real-device acceptance.",
+    "next_stage": "03b_activity_home_settings_journey_audit",
+    "summary": "After merged Quick Entry #500, the native Account Detail route is guarded against duplicate, stale and noncanonical IDs across the complete canonical account catalog (including hidden credit-kind collisions). A refresh invalidates the routed account without showing its details or enabling IBAN and Quick Entry writes. Pure and Compose regressions authored; exact-head CI, merge and physical S24 acceptance pending.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1668,6 +1667,20 @@
       "Card payment uses misleading full-settlement subtitle/amount wording although partial payments are supported; renderer-verified PNGs required",
       "Card Detail duplicate secure-details label and Cards generic transaction CTA need separate visual/user-flow checkpoint",
       "Noncompanion CardCreate describes local-only secret vault; renderer-verified correction pending"
+    ],
+    "prerequisite_quickentry_unique_targets": {
+      "pr": 500,
+      "merged_commit": "7c52a4e0e8e6ae052cd9506be7c84ad2f983fac4",
+      "exact_head": "4a43f7fd2a044968d0878111434152dfeb4b888e",
+      "exact_head_checks": "6_of_6_success",
+      "overlapping_pr_499": "closed_unmerged_superseded"
+    },
+    "account_detail_delta": [
+      "Carry original canonical account source ID counts into MoneyUiState without dropping credit-kind collisions",
+      "Use one fail-closed unique account resolver for all three native account openings and for the routed account detail",
+      "Recheck the current route identity immediately before IBAN writes and before launching account-prefilled Quick Entry",
+      "Hide old account metadata and history on an invalidated route; preserve the existing unavailable-account screen and Back",
+      "Pure and real Compose tests cover duplicate visible IDs, hidden cross-kind collisions, stale IDs, invalidated open detail and blocked actions"
     ]
   }
 }
