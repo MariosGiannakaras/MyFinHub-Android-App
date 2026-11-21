@@ -1,8 +1,8 @@
 package app.myfinhub.android.app
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -91,7 +91,11 @@ class D6MobileSettingsNavigationAcceptanceTest {
             compose.onNodeWithContentDescription("Πίσω").performClick()
             compose.onNodeWithContentDescription("Εμφάνιση ποσών").assertExists()
             compose.onNodeWithContentDescription("Κινήσεις", useUnmergedTree = true).performClick()
-            compose.onNodeWithText("•••• €", substring = true).assertExists()
+            compose.runOnIdle {
+                assertTrue("Activity amounts must remain masked after Settings privacy change",
+                    compose.onAllNodesWithText("•••• €", substring = true)
+                        .fetchSemanticsNodes().isNotEmpty())
+            }
         } finally {
             AmountVisibilityPreference.write(context, original)
         }
