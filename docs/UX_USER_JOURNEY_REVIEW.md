@@ -167,8 +167,11 @@ source may contain duplicate IDs (even a collision with a hidden credit-kind
 account). This made account balance/history and the server IBAN edit/delete
 actions potentially bind to an arbitrary first row on finance refresh.
 
-The canonical money projection now carries original source-wide account ID
-counts. Every account opening from Home, All Accounts and Wallet, plus an
+The canonical Home and money projections now carry original source-wide
+account ID counts. On Home, ambiguous source IDs disable primary actions and
+secondary account entry with the existing identity warning rather than leaving
+a clickable row that silently does nothing. Every account opening from Home,
+All Accounts and Wallet, plus an
 already-open Account Detail, resolves one nonblank, trim-stable source identity
 only. On collision or stale ID, detail shows the existing account-unavailable
 state, not the first matching finance row; IBAN and activity history from an
