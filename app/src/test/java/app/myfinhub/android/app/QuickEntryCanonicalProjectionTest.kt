@@ -56,6 +56,32 @@ class QuickEntryCanonicalProjectionTest {
         assertEquals("bank-main", refreshedExpense.accountId)
         assertFalse(refreshedExpense.canSubmitDraft())
         assertFalse(refreshedExpense.accounts.any { it.id == "bank-main" })
+
+        // Savings must not silently switch a dirty source to another eligible bank.
+        val savingDraft = projectQuickEntryState(original, date, QuickEntryUiState(
+            kind = QuickEntryKind.SAVING, fromAccountId = "bank-main",
+            toAccountId = "save-main", amountText = "10,00", dirty = true,
+        ))
+        assertTrue(savingDraft.canSubmitDraft())
+        val alternativeBank = kotlinx.serialization.json.JsonObject(
+            mapOf(
+                "id" to kotlinx.serialization.json.JsonPrimitive("bank-alt"),
+                "kind" to kotlinx.serialization.json.JsonPrimitive("bank"),
+                "name" to kotlinx.serialization.json.JsonPrimitive("Εναλλακτικός"),
+            )
+        )
+        val changedAccounts = original.copy(raw = kotlinx.serialization.json.JsonObject(
+            original.raw + ("seed" to kotlinx.serialization.json.JsonObject(
+                original.seed + ("accounts" to kotlinx.serialization.json.JsonArray(
+                    accounts + accounts.first() + alternativeBank
+                ))
+            ))
+        ))
+        val refreshedSaving = projectQuickEntryState(changedAccounts, date, savingDraft)
+        assertTrue(refreshedSaving.accounts.any { it.id == "bank-alt" })
+        assertEquals("bank-main", refreshedSaving.fromAccountId)
+        assertEquals("save-main", refreshedSaving.toAccountId)
+        assertFalse(refreshedSaving.canSubmitDraft())
     }
 
     @Test
