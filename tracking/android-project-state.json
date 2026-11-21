@@ -1569,9 +1569,9 @@
   "ux_journey_audit_2026_11_20": {
     "stage": "03c_activity_home_settings_behavioral_source_safety",
     "source_branch": "android/ux-activity-identity-settings-journeys-20261121",
-    "status": "pr_504_repaired_only_remaining_legacy_ime_focus_test_pending_new_exact_head_ci_and_merge",
+    "status": "pr_504_source_safety_and_keyboard_visibility_test_repaired_pending_final_exact_head_ci_merge",
     "next_stage": "03d_review_remaining_user_journeys_and_integrated_audit",
-    "summary": "PR #503 merged after all 6 checks at 74d4b88. PR #504 enforces unique trim-stable Activity and legacy account IDs, with real Activity/Home/Settings tests. After fixing two wrong Kotlin extension imports and literal tab fixture, exact CI head cc08675 passed tracking, Android verify, all 102 screenshot goldens and S24 shard 1 (203 tests). Shard 0 finished 203 tests with a single pre-existing ActivityQuickEntryTest date-picker test failing on Espresso.closeSoftKeyboard() root focus while IME animates; changed only test automation to use direct Compose date-picker semantic click, retaining all assertions. A fresh exact-head full CI is required; don't merge with any failure. Owner physical S24 D7, protected D8 and deep pre-APK audit remain pending.",
+    "summary": "PR #503 integrated as 74d4b88 (all six checks). PR #504 source-safe Activity identity + Home/Settings privacy tests authored. At cc08675 after import and fixture corrections, 202/203 S24 shard0 passed; the old ActivityQuickEntry calendar test timed out in Espresso.closeSoftKeyboard. At 0d2289c the remaining five CI checks passed and 202/203 shard0 passed, but the date control was still obscured by the amount IME. The current test-only correction clears Android window focus, hides IME via InputMethodManager and waits for the real visible date button before tapping, without removing assertions. All six checks on the new exact final head remain required; no merge or APK until green and owner physical S24 acceptance + integrated deep audit.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1795,7 +1795,7 @@
         "D6MobileSettingsNavigationAcceptanceTest verifies Home quick privacy toggle -> Settings -> Home -> Activity remain masked using same local device preference"
       ],
       "visual_golden_impact": "none for existing valid fixture sources; malformed imported-row warning only",
-      "status": "5_of_6_tests_success_initial_head_then_one_hosted_root_focus_race_fixed_pending_exact_head_ci",
+      "status": "head_0d2289_all_other_checks_green_shard0_202_of_203_calendar_hidden_by_ime; activity_window_ime_test_fix_pending_exact_head_ci",
       "real_device_acceptance": "pending",
       "initial_ci": {
         "head": "cc08675918ec10d2479aad8a463e8be6a1da06f0",
@@ -1812,6 +1812,22 @@
         "emulator_result": "203 tests shard 0: 202 passed, 1 failure in pre-existing ActivityQuickEntryTest.activityDatePicker_opensAndCancelsWithoutChangingQuickEntryKind at Espresso.closeSoftKeyboard() root focus wait; 203 tests shard 1 succeeded",
         "correction": "Removed an Espresso.closeSoftKeyboard() prerequisite from that pre-existing calendar navigation Compose test, retaining date picker click/cancel/kind assertions; Compose semantics click avoids the hosted IME root focus race",
         "final_exact_head_check": "pending"
+      },
+      "second_ci": {
+        "head": "0d2289c405863dd8b6263fec9cf58f4b81d50446",
+        "success": [
+          "tracking-verify",
+          "android-verify",
+          "screenshot-regression",
+          "S24 emulator shard 1"
+        ],
+        "failure": [
+          "S24 emulator shard 0",
+          "s24-ultra-target-instrumented"
+        ],
+        "diagnosis": "shard 0 completed 203 tests; only preexisting ActivityQuickEntryTest calendar test failed because quick_entry_date_picker was not displayed under automatically focused amount IME after removal of brittle Espresso.closeSoftKeyboard",
+        "correction": "Test-only Android window focus clear plus InputMethodManager.hideSoftInputFromWindow on Compose rule UI thread; wait for displayed date control, then real performClick; retain DatePickerDialog open/cancel and expense-form assertions",
+        "final_exact_head": "pending"
       }
     }
   }
