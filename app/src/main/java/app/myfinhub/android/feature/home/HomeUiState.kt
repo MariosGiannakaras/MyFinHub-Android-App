@@ -11,7 +11,18 @@ data class HomeUiState(
     val selectedQuickEntryType: HomeQuickEntryType? = null,
     /** Full canonical source counts, including rows not shown as Home accounts. */
     val accountSourceIdCounts: Map<String, Int>? = null,
+    /** All canonical scheduled IDs, including obligations hidden by Home's top-three cutoff. */
+    val attentionSourceIdCounts: Map<String, Int>? = null,
 ) {
+    /** Resolve exactly one current Home alert, never the first matching source row. */
+    fun uniqueAttention(id: String): HomeAttentionItem? {
+        if (id.isBlank() || id != id.trim()) return null
+        val counts = attentionSourceIdCounts
+            ?: attentionItems.groupingBy(HomeAttentionItem::id).eachCount()
+        if (counts[id] != 1) return null
+        return attentionItems.singleOrNull { it.id == id }
+    }
+
     /** Owner-defined Home headline, not the portfolio's available-money balance. */
     val liquidTotal: Double
         get() = accounts.filter {
@@ -118,9 +129,8 @@ fun reduceHomeState(state: HomeUiState, action: HomeAction): HomeUiState = when 
     HomeAction.OpenQuickEntry -> state.copy(quickEntryOpen = true, selectedQuickEntryType = null)
     HomeAction.CloseQuickEntry -> state.copy(quickEntryOpen = false, selectedQuickEntryType = null)
     is HomeAction.SelectQuickEntry -> state.copy(selectedQuickEntryType = action.type)
-    is HomeAction.DismissAttention -> state.copy(
-        attentionItems = state.attentionItems.filterNot { it.id == action.id },
-    )
+    is HomeAction.DismissAttention -> if (state.uniqueAttention(action.id) == null) state
+        else state.copy(attentionItems = state.attentionItems.filterNot { it.id == action.id })
 }
 
 /** Explicit preview/test fixture. Production state is always projected from the canonical document. */
