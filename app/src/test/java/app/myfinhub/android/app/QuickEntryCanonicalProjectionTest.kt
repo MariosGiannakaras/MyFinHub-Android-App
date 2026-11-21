@@ -19,6 +19,46 @@ import org.junit.Test
 
 class QuickEntryCanonicalProjectionTest {
     @Test
+    fun syncInvalidatedCreditAndExpenseTargetsAreNotSilentlyReplaced() {
+        val original = projectionFixture()
+        val date = LocalDate.parse("2026-09-02")
+        val creditDraft = projectQuickEntryState(original, date, QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PURCHASE, cardId = "credit-one",
+            amountText = "17,20", dirty = true,
+        ))
+        val cards = original.state.array("cards")
+        val archived = kotlinx.serialization.json.JsonObject(
+            (cards.first() as kotlinx.serialization.json.JsonObject) +
+                ("active" to kotlinx.serialization.json.JsonPrimitive(false)))
+        val collidedCards = original.copy(raw = kotlinx.serialization.json.JsonObject(
+            original.raw + ("state" to kotlinx.serialization.json.JsonObject(
+                original.state + ("cards" to kotlinx.serialization.json.JsonArray(cards + archived))
+            ))
+        ))
+        val refreshedCredit = projectQuickEntryState(collidedCards, date, creditDraft)
+        assertEquals("credit-one", refreshedCredit.cardId)
+        assertEquals("17,20", refreshedCredit.amountText)
+        assertFalse(refreshedCredit.canSubmitDraft())
+        assertTrue(refreshedCredit.creditStatements.isEmpty())
+        assertFalse(refreshedCredit.creditCards.any { it.id == "credit-one" })
+
+        val expenseDraft = projectQuickEntryState(original, date, QuickEntryUiState(
+            kind = QuickEntryKind.EXPENSE, amountText = "12,50",
+            accountId = "bank-main", dirty = true,
+        ))
+        val accounts = original.seed.array("accounts")
+        val collidedAccounts = original.copy(raw = kotlinx.serialization.json.JsonObject(
+            original.raw + ("seed" to kotlinx.serialization.json.JsonObject(
+                original.seed + ("accounts" to kotlinx.serialization.json.JsonArray(accounts + accounts.first()))
+            ))
+        ))
+        val refreshedExpense = projectQuickEntryState(collidedAccounts, date, expenseDraft)
+        assertEquals("bank-main", refreshedExpense.accountId)
+        assertFalse(refreshedExpense.canSubmitDraft())
+        assertFalse(refreshedExpense.accounts.any { it.id == "bank-main" })
+    }
+
+    @Test
     fun projection_usesCanonicalAccountsCardsDefaultsAndCategoryTrees() {
         val projected = projectQuickEntryState(
             document = projectionFixture(),

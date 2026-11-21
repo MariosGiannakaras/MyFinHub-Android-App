@@ -232,6 +232,25 @@ class ProductionQuickEntryScreenTest {
     }
 
     @Test
+    fun duplicateCardOrAccountDisablesTheStickyTransactionSaveAction() {
+        var state by mutableStateOf(validState(QuickEntryKind.CARD_PURCHASE))
+        composeRule.setContent { MyFinHubTheme {
+            ProductionQuickEntryScreen(state = state, onAction = {}, onBack = {})
+        } }
+        composeRule.onNodeWithText("Καταχώριση").assertIsEnabled()
+        composeRule.runOnIdle {
+            val card = state.creditCards.single()
+            state = state.copy(creditCards = listOf(card, card.copy(label = "Διπλή κάρτα")))
+        }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+        composeRule.runOnIdle {
+            val source = validState(QuickEntryKind.EXPENSE)
+            state = source.copy(accounts = source.accounts + source.accounts.first())
+        }
+        composeRule.onNodeWithText("Καταχώριση").assertIsNotEnabled()
+    }
+
+    @Test
     fun fullDraftValidationGatesDateCardAndTransferSelections() {
         var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
         composeRule.setContent {

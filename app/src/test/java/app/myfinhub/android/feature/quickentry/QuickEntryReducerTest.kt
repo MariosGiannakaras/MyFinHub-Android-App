@@ -55,6 +55,26 @@ class QuickEntryReducerTest {
     }
 
     @Test
+    fun stickySaveRefusesDuplicateAndUntrimmedAccountOrCardTargets() {
+        val draft = QuickEntryUiState(amountText = "12,50")
+        val firstCard = draft.creditCards.single()
+        val duplicateCard = draft.copy(kind = QuickEntryKind.CARD_PURCHASE,
+            creditCards = listOf(firstCard, firstCard.copy(label = "Άλλη κάρτα")))
+        assertFalse(duplicateCard.canSubmitDraft())
+        assertEquals("Διάλεξε ενεργή πιστωτική κάρτα.",
+            reduceQuickEntry(duplicateCard, QuickEntryAction.Save).validationMessage)
+        val duplicateAccount = draft.copy(accounts = draft.accounts + draft.accounts.first())
+        assertFalse(duplicateAccount.canSubmitDraft())
+        assertFalse(duplicateAccount.copy(kind = QuickEntryKind.TRANSFER).canSubmitDraft())
+        assertFalse(duplicateAccount.copy(kind = QuickEntryKind.CARD_PAYMENT, cardPaymentDebt = 20.0).canSubmitDraft())
+        assertFalse(draft.copy(accountId = " acc-main ").canSubmitDraft())
+        assertFalse(duplicateCard.copy(
+            creditCards = listOf(firstCard.copy(id = " card-credit ")),
+            cardId = " card-credit ",
+        ).canSubmitDraft())
+    }
+
+    @Test
     fun stickySaveGateRejectsInvalidDateAccountCardAndTransfer() {
         val ordinary = QuickEntryUiState(amountText = "12,50")
         assertTrue(ordinary.canSubmitDraft())

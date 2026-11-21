@@ -1568,8 +1568,8 @@
   }
 ,
   "ux_journey_audit_2026_11_20": {
-    "stage": "02a_quick_entry_unified_back_and_discard",
-    "source_branch": "android/ux-quickentry-single-back-20261121",
+    "stage": "02b_quick_entry_unique_finance_targets",
+    "source_branch": "android/ux-quickentry-unique-finance-targets-20261121",
     "status": "source_authored_pending_exact_head_ci_and_merge",
     "next_stage": "01c_cards_secure_details_and_create_copy_with_verified_updated_pngs",
     "summary": "Uses existing official synthetic Compose PNG screenshots and CI artifacts; adds source-head-identified offline per-journey review HTML/JSON/checklist with image hashes and missing baseline variants. No standalone UX verdict or real-device acceptance.",
@@ -1647,16 +1647,27 @@
       "exact_head_checks": "6_of_6_success"
     },
     "implementation_delta": [
-      "One discard state/AlertDialog owned by QuickEntryBackGuard for both Android system/predictive Back and toolbar Back",
-      "Production editor consumes one requestExit callback; no second competing discard dialog",
-      "Unsaved reducer dirty draft preserved on keep-editing; explicit discard resets draft exactly once before route exit",
-      "After connected persistence or encrypted offline enqueue, exit still bypasses discard confirmation as before",
-      "UI instrumentation compares system Back and toolbar Back and confirms Activity return"
+      "Quick Entry disables Save on duplicate or noncanonical selected account/card IDs",
+      "Canonical projection hides ambiguous sources and preserves an invalidated dirty draft target instead of silently selecting a different card/account",
+      "Card-payment statement/debt and bank-source context never binds to duplicate active/archived card identities",
+      "Android canonical transaction mutation refuses ambiguous card/account IDs at final write boundary",
+      "Pure domain, reducer and Compose tests cover duplicate sources and credit/account ID collisions"
     ],
     "quick_entry_visual_findings": [
       "CARD_PAYMENT still displays Εξόφληση πιστωτικής and Ποσό εξόφλησης despite partial payments; renderer-updated golden needed for visible rewording",
       "Eight official synthetic Quick Entry previews reviewed: compact light/dark/large-font, card payment, split light/dark/large-font, reconciliation large-font",
       "No screenshot preview currently includes an opened discard modal; current patch should not modify existing official golden PNGs"
+    ],
+    "prerequisite_quickentry_back": {
+      "pr": 498,
+      "merged_commit": "c0c28af035d5224da0d78ee7f81f0fb5710ff796",
+      "checks": "6_of_6_success",
+      "post_merge_ci": "success"
+    },
+    "remaining_visual_work": [
+      "Card payment uses misleading full-settlement subtitle/amount wording although partial payments are supported; renderer-verified PNGs required",
+      "Card Detail duplicate secure-details label and Cards generic transaction CTA need separate visual/user-flow checkpoint",
+      "Noncompanion CardCreate describes local-only secret vault; renderer-verified correction pending"
     ]
   }
 }

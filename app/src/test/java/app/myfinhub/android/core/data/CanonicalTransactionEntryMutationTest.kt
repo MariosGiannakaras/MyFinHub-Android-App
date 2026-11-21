@@ -1,6 +1,9 @@
 package app.myfinhub.android.core.data
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -116,6 +119,40 @@ class CanonicalTransactionEntryMutationTest {
         assertEquals(30.0, repayment.legs.single().amount, 0.001)
         assertEquals(-30.0, repayment.receivableDelta, 0.001)
         assertEquals(50.0, result.lendingOutstandingForPerson("Άννα"), 0.001)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cardPurchaseCannotResolveDuplicateActiveCardAtWriteBoundary() {
+        val rows = document.state.array("cards")
+        val source = document.copy(raw = JsonObject(document.raw + ("state" to JsonObject(
+            document.state + ("cards" to JsonArray(rows + rows.first()))
+        ))))
+        createCanonicalTransactionEntryMutation(source, CanonicalTransactionEntryDraft(
+            kind = "card_purchase", date = "2026-09-02", amount = 5.0, cardId = "card-credit",
+        ), "unsafe-duplicate-card", now)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cardPurchaseCannotResolveArchivedIdCollisionAtWriteBoundary() {
+        val rows = document.state.array("cards")
+        val archived = JsonObject((rows.first() as JsonObject) + ("active" to JsonPrimitive(false)))
+        val source = document.copy(raw = JsonObject(document.raw + ("state" to JsonObject(
+            document.state + ("cards" to JsonArray(rows + archived))
+        ))))
+        createCanonicalTransactionEntryMutation(source, CanonicalTransactionEntryDraft(
+            kind = "card_purchase", date = "2026-09-02", amount = 5.0, cardId = "card-credit",
+        ), "unsafe-archived-card", now)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun expenseCannotResolveDuplicatePaymentAccountAtWriteBoundary() {
+        val rows = document.seed.array("accounts")
+        val source = document.copy(raw = JsonObject(document.raw + ("seed" to JsonObject(
+            document.seed + ("accounts" to JsonArray(rows + rows.first()))
+        ))))
+        createCanonicalTransactionEntryMutation(source, CanonicalTransactionEntryDraft(
+            kind = "expense", date = "2026-09-02", amount = 5.0, accountId = "acc-main",
+        ), "unsafe-duplicate-account", now)
     }
 
     @Test

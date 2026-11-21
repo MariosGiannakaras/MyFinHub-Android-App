@@ -65,12 +65,12 @@ fun createCanonicalTransactionEntryMutation(
             draft.savingSource in setOf("pay_and_save", "manual_transfer", "cash_offset"))
     ) { "Η πηγή αποταμίευσης δεν είναι έγκυρη για αυτή την κίνηση." }
 
-    val eligibleAccounts = document.canonicalAccounts()
-        .filter { it.kind != "credit" }
-        .associateBy { it.id }
-    val activeCreditCards = document.canonicalCards()
-        .filter { it.active && it.kind == "credit" }
-        .associateBy { it.id }
+    val sourceAccounts = document.canonicalAccounts()
+    val accountSourceCounts = sourceAccounts.groupingBy { it.id }.eachCount()
+    val eligibleAccounts = sourceAccounts.filter { it.kind != "credit" }.associateBy { it.id }
+    val sourceCards = document.canonicalCards()
+    val cardSourceCounts = sourceCards.groupingBy { it.id }.eachCount()
+    val activeCreditCards = sourceCards.filter { it.active && it.kind == "credit" }.associateBy { it.id }
 
     val loan = draft.loanId?.let { id ->
         require(id.isNotBlank() && id == id.trim()) { "Διάλεξε υπαρκτό δάνειο." }
@@ -137,13 +137,17 @@ fun createCanonicalTransactionEntryMutation(
 
     fun requireAccount(id: String?, message: String): String {
         val normalized = id?.trim().orEmpty()
-        require(normalized.isNotBlank() && normalized in eligibleAccounts) { message }
+        require(normalized.isNotBlank() && id == normalized &&
+            accountSourceCounts[normalized] == 1 && normalized in eligibleAccounts) { message }
         return normalized
     }
 
     fun requireCard(id: String?): String {
         val normalized = id?.trim().orEmpty()
-        require(normalized.isNotBlank() && normalized in activeCreditCards) { "Διάλεξε ενεργή πιστωτική κάρτα." }
+        require(normalized.isNotBlank() && id == normalized &&
+            cardSourceCounts[normalized] == 1 && normalized in activeCreditCards) {
+            "Διάλεξε ενεργή πιστωτική κάρτα."
+        }
         return normalized
     }
 

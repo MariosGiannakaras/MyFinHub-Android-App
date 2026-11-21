@@ -280,15 +280,16 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
     val defaultPrimaryId = when (kind) {
         QuickEntryKind.INCOME -> state.defaultIncomeAccountId
         else -> state.defaultExpenseAccountId
-    }.takeIf { id -> state.accounts.any { it.id == id } } ?: state.accounts.firstOrNull()?.id.orEmpty()
+    }.takeIf { id -> idExists(state, id) }
+        ?: state.accounts.firstOrNull { idExists(state, it.id) }?.id.orEmpty()
     val accountId = state.accountId.takeIf {
         previousKind.needsPrimaryAccount && kind.needsPrimaryAccount && idExists(state, it)
     } ?: defaultPrimaryId
 
     val previousUsesSource = previousKind.needsTransferAccounts || previousKind == QuickEntryKind.CARD_PAYMENT
     val newUsesSource = kind.needsTransferAccounts || kind == QuickEntryKind.CARD_PAYMENT
-    val defaultSourceId = state.defaultExpenseAccountId.takeIf { id -> state.accounts.any { it.id == id } }
-        ?: state.accounts.firstOrNull()?.id.orEmpty()
+    val defaultSourceId = state.defaultExpenseAccountId.takeIf { idExists(state, it) }
+        ?: state.accounts.firstOrNull { idExists(state, it.id) }?.id.orEmpty()
     val contextualSourceId = state.accountId.takeIf {
         previousKind.needsPrimaryAccount && newUsesSource && idExists(state, it)
     }
@@ -343,8 +344,8 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
             ) != null
         }.orEmpty(),
         cardId = state.cardId.takeIf {
-            previousKind.needsCard && kind.needsCard && state.creditCards.any { card -> card.id == it }
-        } ?: state.creditCards.firstOrNull()?.id.orEmpty(),
+            previousKind.needsCard && kind.needsCard && uniqueCreditCardExists(state, it)
+        } ?: state.creditCards.firstOrNull { uniqueCreditCardExists(state, it.id) }?.id.orEmpty(),
         person = state.person.takeIf { previousUsesPerson && newUsesPerson }.orEmpty(),
         expectedReturnDateText = state.expectedReturnDateText.takeIf {
             previousKind == QuickEntryKind.LENDING && kind == QuickEntryKind.LENDING
@@ -367,7 +368,11 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
     )
 }
 
-private fun idExists(state: QuickEntryUiState, id: String): Boolean = state.accounts.any { it.id == id }
+private fun idExists(state: QuickEntryUiState, id: String): Boolean =
+    id.isNotBlank() && id == id.trim() && state.accounts.count { it.id == id } == 1
+
+private fun uniqueCreditCardExists(state: QuickEntryUiState, id: String): Boolean =
+    id.isNotBlank() && id == id.trim() && state.creditCards.count { it.id == id } == 1
 
 private fun QuickEntryUiState.changed(
     amountText: String = this.amountText,
@@ -495,7 +500,7 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
         }
     }
 
-    if (state.kind.needsPrimaryAccount && state.accounts.none { it.id == state.accountId }) {
+    if (state.kind.needsPrimaryAccount && !idExists(state, state.accountId)) {
         return state.invalid("Διάλεξε διαθέσιμο λογαριασμό.")
     }
 
@@ -506,13 +511,13 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
     }
 
     if (state.kind.needsTransferAccounts || state.kind == QuickEntryKind.CARD_PAYMENT) {
-        if (state.accounts.none { it.id == state.fromAccountId }) {
+        if (!idExists(state, state.fromAccountId)) {
             return state.invalid("Διάλεξε λογαριασμό προέλευσης.")
         }
     }
 
     if (state.kind.needsTransferAccounts) {
-        val destination = state.accounts.firstOrNull { it.id == state.toAccountId }
+        val destination = state.accounts.firstOrNull { it.id == state.toAccountId && idExists(state, it.id) }
             ?: return state.invalid("Διάλεξε λογαριασμό προορισμού.")
         if (state.fromAccountId == state.toAccountId) {
             return state.invalid("Οι λογαριασμοί πρέπει να είναι διαφορετικοί.")
@@ -530,7 +535,7 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
         }
     }
 
-    if (state.kind.needsCard && state.creditCards.none { it.id == state.cardId }) {
+    if (state.kind.needsCard && !uniqueCreditCardExists(state, state.cardId)) {
         return state.invalid("Διάλεξε ενεργή πιστωτική κάρτα.")
     }
     if (state.kind == QuickEntryKind.CARD_PAYMENT) {
