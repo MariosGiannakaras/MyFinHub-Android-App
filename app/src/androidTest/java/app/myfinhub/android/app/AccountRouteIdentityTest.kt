@@ -94,7 +94,11 @@ class AccountRouteIdentityTest {
         ).assertIsNotEnabled()
         composeRule.onNodeWithTag("home_secondary_account_identity_warning_0")
             .assertIsDisplayed()
-        composeRule.onNodeWithText("Κύριοι λογαριασμοί").assertIsDisplayed()
+        // The LazyColumn scrolled to the secondary row above. The primary section
+        // is legitimately offscreen and not necessarily composed at this point.
+        // Check the current destination without depending on an offscreen header.
+        composeRule.onNodeWithText("Ο λογαριασμός δεν είναι πλέον διαθέσιμος.")
+            .assertDoesNotExist()
         composeRule.onNodeWithText("Νέα κίνηση από αυτόν τον λογαριασμό")
             .assertDoesNotExist()
     }
