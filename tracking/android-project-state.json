@@ -1569,9 +1569,9 @@
   "ux_journey_audit_2026_11_20": {
     "stage": "03b_bulk_102_screenshot_review_and_card_detail_action_copy",
     "source_branch": "android/ux-bulk-card-detail-action-20261121",
-    "status": "bulk_visual_review_complete_card_detail_copy_source_authored_pending_renderer_golden_exact_head_ci_merge",
+    "status": "bulk_visual_review_complete_three_official_card_detail_goldens_reviewed_pending_final_exact_head_ci_merge",
     "next_stage": "03c_activity_home_settings_behavioral_journeys",
-    "summary": "PR #502 merged into develop as c1593a3 after all six exact-head Android/visual/S24 checks. Official UI run 44927422834 validates 102 synthetic Compose screenshots at 6ccee4d. Grouped 11-journey visual triage confirms live Card Detail duplicates Στοιχεία κάρτας as section and button; changing only companion-mode secure-details button to the action label Προβολή στοιχείων and adding Compose route assertion. Three new renderer goldens light/dark/large and all exact-head checks still required. Physical S24 D7, release D8 and Web parity remain unchanged.",
+    "summary": "After merged #502, 102 official Compose PNGs were group-reviewed by journey; confirmed companion Card Detail duplicated heading/button copy. PR #503 renames only the secure-details action to Προβολή στοιχείων while retaining the resolved card ID. First PR head 931728e passed tracking, Android CI, both emulator shards and aggregate; the screenshot gate correctly found exactly three expected golden mismatches. Real renderer output from run 44930334611 was visually compared to previous light/dark/large-font PNGs; all differences are confined to button text. Three byte-exact official goldens accepted in the source branch; all six final exact-head gates and merge remain pending. Owner physical S24 D7 and protected D8 remain pending.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1741,8 +1741,42 @@
         "CanonicalCardDetailDarkScreenshot",
         "CanonicalCardDetailLargeFontScreenshot"
       ],
-      "status": "source_and_compose_regression_authored_renderer_goldens_pending",
-      "physical_device_acceptance": "not_established"
+      "status": "source_compose_regression_and_3_renderer_goldens_reviewed_pending_exact_head_ci",
+      "physical_device_acceptance": "not_established",
+      "renderer_candidate": {
+        "workflow_run": 44930334611,
+        "source_sha": "931728e662e00a380c3eb29ef65181be332f1588",
+        "first_run_checks": "5_of_6_success; screenshot-regression failed on exactly 3 expected Card Detail previews",
+        "type": "actual Compose screenshot reference bytes after updateDebugScreenshotTest on failure",
+        "visual_result": "Reviewed against previously accepted light/dark/large PNGs. Changed pixels only inside secure-details action label; no geometry shifts.",
+        "changed_pixel_bounding_boxes": {
+          "Light": [
+            366,
+            1585,
+            719,
+            1625
+          ],
+          "Dark": [
+            366,
+            1585,
+            719,
+            1625
+          ],
+          "LargeFont": [
+            277,
+            2130,
+            809,
+            2190
+          ]
+        },
+        "png_sha256": {
+          "Light": "9d9e7f56e8c5293643e545cb9fca7d4973996741bca172f13768c3bc7390db31",
+          "Dark": "d567244dbabb2822b0b2f9559741f37265eb0fca690fa527f310d9e42bb891de",
+          "LargeFont": "1ed04e6e721778700edbfdb2fad8739cbfd19099af0158b585a2cc96e39787bf"
+        },
+        "exact_head_validation": "pending",
+        "physical_s24_owner_acceptance": "pending"
+      }
     }
   }
 }

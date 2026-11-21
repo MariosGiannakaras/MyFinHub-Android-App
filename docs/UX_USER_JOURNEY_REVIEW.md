@@ -243,11 +243,22 @@ Samsung S24 Ultra audit.
 keep the section title `Στοιχεία κάρτας`, but label its actual secure-details
 button `Προβολή στοιχείων`. The button still invokes
 `onOpenSecureDetails(card.id)` using the already-validated card identity.
-Non-companion/legacy copy remains unchanged. Add a real Compose test that
+Non-companion/legacy copy remains unchanged. The real Compose test
 requires one section heading and invokes the button to assert it opens the
-selected card. Re-render and visually inspect all three affected official
-Card Detail goldens (light, dark, large font); do **not** accept the source
-change before the renderer references and all exact-head checks succeed.
+selected card. In Android UI Quality run `44930334611`, the original PR
+head `931728e` passed tracking, Android CI and both emulator shards plus
+aggregate, while screenshot-regression detected exactly three expected
+differences. The official Compose renderer regenerated and uploaded all
+three Card Detail goldens. Direct before/after inspection confirmed the
+changed pixels lie **only within the button label**, with unchanged control
+bounds and no layout drift in light, dark or 150% font. The exact renderer
+PNG SHA-256 fingerprints are:
+- light: `9d9e7f56e8c5293643e545cb9fca7d4973996741bca172f13768c3bc7390db31`
+- dark: `d567244dbabb2822b0b2f9559741f37265eb0fca690fa527f310d9e42bb891de`
+- large font: `1ed04e6e721778700edbfdb2fad8739cbfd19099af0158b585a2cc96e39787bf`
+
+All three approved renderer outputs are committed as actual official goldens.
+Require all six **new exact-final-head CI gates** before integrating.
 
 No other geometry defect was sufficiently confirmed by the *grouped,
 first-viewport* visual evidence to justify speculative production changes.
