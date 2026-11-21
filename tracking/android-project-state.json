@@ -1567,11 +1567,11 @@
     "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
   },
   "ux_journey_audit_2026_11_20": {
-    "stage": "03c_activity_home_settings_behavioral_source_safety",
-    "source_branch": "android/ux-activity-identity-settings-journeys-20261121",
-    "status": "pr_504_source_safety_and_keyboard_visibility_test_repaired_pending_final_exact_head_ci_merge",
-    "next_stage": "03d_review_remaining_user_journeys_and_integrated_audit",
-    "summary": "PR #503 integrated as 74d4b88 (all six checks). PR #504 source-safe Activity identity + Home/Settings privacy tests authored. At cc08675 after import and fixture corrections, 202/203 S24 shard0 passed; the old ActivityQuickEntry calendar test timed out in Espresso.closeSoftKeyboard. At 0d2289c the remaining five CI checks passed and 202/203 shard0 passed, but the date control was still obscured by the amount IME. The current test-only correction clears Android window focus, hides IME via InputMethodManager and waits for the real visible date button before tapping, without removing assertions. All six checks on the new exact final head remain required; no merge or APK until green and owner physical S24 acceptance + integrated deep audit.",
+    "stage": "03d_home_scheduled_attention_source_identity",
+    "source_branch": "android/ux-home-attention-source-identity-20261121",
+    "status": "source_and_regressions_authored_pending_hosted_exact_head_ci_merge",
+    "next_stage": "03e_integrated_deep_pre_apk_audit_and_s24_acceptance_evidence",
+    "summary": "PR #504 source-backed Activity and Home/Settings behavior passed all six exact-head checks at 277cfc1 and squash merged to develop cb3ac83, after fixing an unrelated hosted date-picker IME test race. During integrated 03d review, the active Home overdue scheduled attention surface and HomeAttention route still selected firstOrNull by ID and DismissAttention removed every row with that ID. When imported scheduled obligations collide (including one beyond Home's 2-row display cutoff), a user could inspect the wrong obligation or dismiss more than intended. Current source batch carries all canonical schedule ID counts to Home, enforces unique trim-stable live attention identity for row enablement and route/open/dismiss/action, and keeps ambiguous obligations visible but non-actionable with warning. Unit and real Compose navigation tests authored; exact-head hosted CI and merge pending. No production finance write, Web/backend edit, golden replacement or APK. Owner physical S24 D7 and protected release D8 pending.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1795,7 +1795,7 @@
         "D6MobileSettingsNavigationAcceptanceTest verifies Home quick privacy toggle -> Settings -> Home -> Activity remain masked using same local device preference"
       ],
       "visual_golden_impact": "none for existing valid fixture sources; malformed imported-row warning only",
-      "status": "head_0d2289_all_other_checks_green_shard0_202_of_203_calendar_hidden_by_ime; activity_window_ime_test_fix_pending_exact_head_ci",
+      "status": "merged_into_develop_all_6_exact_head_checks_success",
       "real_device_acceptance": "pending",
       "initial_ci": {
         "head": "cc08675918ec10d2479aad8a463e8be6a1da06f0",
@@ -1828,7 +1828,31 @@
         "diagnosis": "shard 0 completed 203 tests; only preexisting ActivityQuickEntryTest calendar test failed because quick_entry_date_picker was not displayed under automatically focused amount IME after removal of brittle Espresso.closeSoftKeyboard",
         "correction": "Test-only Android window focus clear plus InputMethodManager.hideSoftInputFromWindow on Compose rule UI thread; wait for displayed date control, then real performClick; retain DatePickerDialog open/cancel and expense-form assertions",
         "final_exact_head": "pending"
+      },
+      "final_integration": {
+        "pr": 504,
+        "head": "277cfc1e95f073f223a094ee9f1719ea40a66000",
+        "merged_commit": "cb3ac83a55d992046732b6f9b5ea54cb89b39677",
+        "exact_head_checks": "6_of_6_success",
+        "screenshot_regression": "102_of_102_success",
+        "shard0": "success",
+        "shard1": "success",
+        "physical_s24_owner_acceptance": "pending"
       }
+    },
+    "home_attention_03d": {
+      "issue": "Home overdue scheduled alerts used firstOrNull route resolution and DismissAttention filtered every matching ID, even when canonical scheduled source duplicated an ID or a collision was hidden outside Home's visible top-two rows.",
+      "resolution": "Project all scheduled source ID counts. Only unique, nonblank trim-stable IDs can open a Home alert, dismiss or follow its context action. Already-open route degrades to unavailable on collision; malformed rows stay visible and show identity warning instead of selecting a first source.",
+      "source_guard": "HomeUiState.uniqueAttention with attentionSourceIdCounts from canonical scheduled records, not only the Home display cutoff",
+      "journey_regressions": [
+        "HomeUiStateTest rejects padded, visible duplicate and hidden source-wide collision while preserving unique valid source",
+        "HomeAttentionReducerTest forbids hiding multiple obligations through a shared ID",
+        "S5HomeWalletTest checks disabled and warned real Home alert row when hidden canonical duplicate exists",
+        "NativeFinanceJourneysComposeTest opens a valid alert, simulates source collision and verifies detail/action revocation"
+      ],
+      "visual_golden_impact": "valid canonical Home fixtures unchanged; malformed or ambiguous source-only warning",
+      "status": "source_and_tests_authored_pending_ci",
+      "physical_s24_owner_acceptance": "pending"
     }
   }
 }

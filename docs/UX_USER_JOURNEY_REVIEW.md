@@ -332,3 +332,42 @@ open/cancel and unchanged entry-kind checks. It does not disable the
 auto-focus in production, suppress visibility assertions, bypass clicks
 or change a screenshot reference. All new final-head CI gates must still
 succeed before merge.
+
+
+## Integrated behavior audit: scheduled Home attention source identity — checkpoint 03d
+
+PR #504's final head `277cfc1` passed all six exact-head required
+tracking/Android/screenshot/S24 shard-and-aggregate checks and squash merged
+to `develop` as `cb3ac83`. Its source-ID and local privacy-preference
+journey fixes are integrated; neither CI nor 102 synthetic screenshots
+constitute owner physical S24 acceptance.
+
+**Confirmed current native issue.** Canonical pending scheduled obligations
+are projected to Home as at most three attention items, of which only two
+are displayed. `HomeAttentionDetail` previously used
+`firstOrNull { it.id == route.attentionId }`, while
+`HomeAction.DismissAttention` removed *every* visible row with that ID.
+If canonical scheduled source IDs collide, the row could open an arbitrary
+first obligation or dismiss more than the selected obligation. Duplicates
+outside the visible two/three-row cutoff were not checked.
+
+**Correction.** Carry the ID counts across the *whole* canonical scheduled
+source in `HomeUiState.attentionSourceIdCounts`, not just visible alerts.
+`uniqueAttention` resolves only an exactly one-of-one, nonblank, trim-stable
+source ID. Home retains and visibly warns about an ambiguous/invalid alert,
+but disables its click. Real Home navigation rechecks before opening,
+already-open detail becomes unavailable on a source collision, and both
+"Απόκρυψη για τώρα" and the contextual activity/plan action recheck
+identity at invocation. `DismissAttention` also refuses an ambiguous ID
+at its reducer boundary. No source ID is silently trimmed, no finance
+mutation is issued, and normal Home content/layout remains unchanged.
+
+**Verification authored, not yet passed:** pure unit checks cover valid,
+padded, visible-duplicate and hidden-source-duplicate alert IDs plus
+fail-closed dismiss. Compose tests cover the disabled, warned Home row and
+the full Home → alert detail → finance-source collision → unavailable
+journey. The existing Home screenshots use valid synthetic fixture IDs,
+so no official golden should change. Require fresh six-of-six hosted
+checks on the final PR head before merge. Physical Galaxy S24 Ultra D7,
+finance GET and historical credit purchases, integrated deep pre-APK audit
+and protected D8 remain independent open gates.

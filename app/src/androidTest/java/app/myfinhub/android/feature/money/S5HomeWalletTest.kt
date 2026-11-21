@@ -47,6 +47,32 @@ class S5HomeWalletTest {
     }
 
     @Test
+    fun hiddenCanonicalScheduledIdCollisionDisablesItsHomeAttentionAction() {
+        val original = syntheticHomeUiState()
+        val id = original.attentionItems.first().id
+        val sourceCounts = original.attentionItems.associate { it.id to 1 } + (id to 2)
+        var opened = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionHomeScreen(
+                    state = original.copy(attentionSourceIdCounts = sourceCounts),
+                    onAction = {},
+                    onOpenAttention = { opened++ },
+                    onOpenQuickEntry = {},
+                    amountsVisibleOverride = false,
+                )
+            }
+        }
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasTestTag("home_attention_row_0"))
+        composeRule.onNodeWithTag("home_attention_row_0").assertIsNotEnabled()
+        composeRule.onNodeWithText(
+            "Μη έγκυρη ή διπλή ταυτότητα υποχρέωσης · δεν ανοίγει.",
+        ).assertIsDisplayed()
+        composeRule.runOnIdle { assertTrue(opened == 0) }
+    }
+
+    @Test
     fun canonicalHiddenAccountCollisionDisablesPrimaryHomeActions() {
         val state = syntheticHomeUiState().copy(
             accountSourceIdCounts = mapOf(

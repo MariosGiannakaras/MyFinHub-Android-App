@@ -180,7 +180,11 @@ fun ProductionHomeScreen(
             }
             if (state.attentionItems.isNotEmpty()) {
                 item(key = "home-attention") {
-                    HomeAttentionSection(items = state.attentionItems.take(2), onOpen = onOpenAttention)
+                    HomeAttentionSection(
+                        items = state.attentionItems.take(2),
+                        canOpen = { state.uniqueAttention(it) != null },
+                        onOpen = onOpenAttention,
+                    )
                 }
             }
             item {
@@ -359,6 +363,7 @@ private fun HomeRecentSection(
 @Composable
 private fun HomeAttentionSection(
     items: List<HomeAttentionItem>,
+    canOpen: (String) -> Boolean,
     onOpen: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -370,7 +375,12 @@ private fun HomeAttentionSection(
         Column(modifier = Modifier.fillMaxWidth()) {
             Column {
                 items.forEachIndexed { index, item ->
-                    HomeAttentionRow(item = item, onOpen = { onOpen(item.id) })
+                    HomeAttentionRow(
+                        item = item,
+                        canOpen = canOpen(item.id),
+                        rowTag = "home_attention_row_$index",
+                        onOpen = { if (canOpen(item.id)) onOpen(item.id) },
+                    )
                     if (index != items.lastIndex) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
@@ -383,13 +393,17 @@ private fun HomeAttentionSection(
 @Composable
 private fun HomeAttentionRow(
     item: HomeAttentionItem,
+    canOpen: Boolean,
+    rowTag: String,
     onOpen: () -> Unit,
 ) {
     val tone = if (item.tone == HomeAttentionTone.URGENT) FinanceTone.Attention else FinanceTone.Neutral
     Surface(
         onClick = onOpen,
+        enabled = canOpen,
         modifier = Modifier.fillMaxWidth()
-            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget),
+            .heightIn(min = MyFinHubDesignMetrics.minimumTouchTarget)
+            .testTag(rowTag),
         color = MaterialTheme.colorScheme.surface,
     ) {
         Row(
@@ -415,6 +429,13 @@ private fun HomeAttentionRow(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (!canOpen) {
+                    Text(
+                        "Μη έγκυρη ή διπλή ταυτότητα υποχρέωσης · δεν ανοίγει.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
                 Text(
                     item.dueLabel,
                     style = MaterialTheme.typography.labelMedium,
