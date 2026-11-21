@@ -1,15 +1,20 @@
 package app.myfinhub.android.app
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.test.platform.app.InstrumentationRegistry
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.home.syntheticHomeUiState
+import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
 import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -57,6 +62,39 @@ class D6MobileSettingsNavigationAcceptanceTest {
             .performScrollTo().assertIsDisplayed().performClick()
         compose.onNodeWithText("Ασφαλή στοιχεία για έλεγχο και υποστήριξη")
             .assertIsDisplayed()
+    }
+
+    @Test fun homePrivacyToggleSettingsAndActivityShareOneRetainedDevicePreference() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val original = AmountVisibilityPreference.read(context)
+        try {
+            AmountVisibilityPreference.write(context, false)
+            compose.setContent {
+                MyFinHubTheme {
+                    MyFinHubAppContent(
+                        homeState = syntheticHomeUiState(),
+                        onHomeAction = {},
+                    )
+                }
+            }
+
+            // Home privacy action updates the same device preference that Settings reads.
+            compose.onNodeWithContentDescription("Εμφάνιση ποσών").assertExists().performClick()
+            compose.runOnIdle { assertTrue(AmountVisibilityPreference.read(context)) }
+            compose.onNodeWithContentDescription("Απόκρυψη ποσών").assertExists()
+
+            compose.onNodeWithContentDescription("Ρυθμίσεις").performClick()
+            compose.onNodeWithText("Εμφάνιση ποσών").performScrollTo().performClick()
+            compose.runOnIdle { assertFalse(AmountVisibilityPreference.read(context)) }
+
+            // Back to Home and then Activity must not leak a once-visible amount.
+            compose.onNodeWithContentDescription("Πίσω").performClick()
+            compose.onNodeWithContentDescription("Εμφάνιση ποσών").assertExists()
+            compose.onNodeWithContentDescription("Κινήσεις", useUnmergedTree = true).performClick()
+            compose.onNodeWithText("•••• €", substring = true).assertExists()
+        } finally {
+            AmountVisibilityPreference.write(context, original)
+        }
     }
 
     @Test fun homeSettingsRouteKeepsPrivacyAndLogoutReachableWithoutWebAdministration() {
