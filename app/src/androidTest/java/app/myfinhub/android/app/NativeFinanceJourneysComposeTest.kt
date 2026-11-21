@@ -39,6 +39,38 @@ import org.junit.Test
 class NativeFinanceJourneysComposeTest {
     @get:Rule val rule = createComposeRule()
 
+    @Test fun homeScheduledAlertCannotChangeTargetOrDismissAfterSourceCollision() {
+        val original = syntheticHomeUiState()
+        val alert = original.attentionItems.first()
+        var home by mutableStateOf(original)
+        var dismissCalls = 0
+        rule.setContent {
+            MyFinHubTheme {
+                MyFinHubAppContent(
+                    homeState = home,
+                    onHomeAction = { dismissCalls++ },
+                )
+            }
+        }
+        rule.onNodeWithTag("home_list")
+            .performScrollToNode(hasTestTag("home_attention_row_0"))
+        rule.onNodeWithTag("home_attention_row_0").performClick()
+        rule.onNodeWithText("Απόκρυψη για τώρα").assertIsDisplayed()
+
+        // A new source with the same ID invalidates an already-open detail
+        // even when the colliding source is not among Home's first two alerts.
+        rule.runOnIdle {
+            home = home.copy(
+                attentionSourceIdCounts = mapOf(alert.id to 2),
+            )
+        }
+        rule.onNodeWithText("Αυτό το στοιχείο δεν είναι πλέον διαθέσιμο.")
+            .assertIsDisplayed()
+        rule.onNodeWithText("Απόκρυψη για τώρα").assertDoesNotExist()
+        rule.onNodeWithText("Άνοιγμα πλάνου").assertDoesNotExist()
+        rule.runOnIdle { assertEquals(0, dismissCalls) }
+    }
+
     @Test fun companionCreditPaymentOpensSafeQuickEntryWithoutInventingStatementOrAmount() {
         val credit = syntheticMoneyCards().last().copy(canonicalKind = "credit")
         val statement = CanonicalCreditStatementView(
