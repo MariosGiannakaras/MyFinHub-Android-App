@@ -37,6 +37,27 @@ class HomeUiStateTest {
     }
 
     @Test
+    fun alertsRequireTrimStableUniqueIdsAcrossTheEntireScheduledSource() {
+        val base = syntheticHomeUiState()
+        val first = base.attentionItems.first()
+        assertEquals(first, base.uniqueAttention(first.id))
+        assertNull(base.uniqueAttention("missing"))
+        assertNull(base.uniqueAttention(" ${first.id} "))
+
+        val visibleDuplicate = base.copy(
+            attentionItems = listOf(first, first.copy(title = "Άλλη υποχρέωση")),
+        )
+        assertNull(visibleDuplicate.uniqueAttention(first.id))
+
+        val hiddenDuplicate = base.copy(
+            attentionSourceIdCounts = mapOf(first.id to 2),
+        )
+        assertNull(hiddenDuplicate.uniqueAttention(first.id))
+        val padded = base.copy(attentionItems = listOf(first.copy(id = " ${first.id} ")))
+        assertNull(padded.uniqueAttention(" ${first.id} "))
+    }
+
+    @Test
     fun syntheticFixture_containsHomeDecisionSections() {
         val state = syntheticHomeUiState()
         assertTrue(state.accounts.any { it.group == HomeAccountGroup.LIQUID })
