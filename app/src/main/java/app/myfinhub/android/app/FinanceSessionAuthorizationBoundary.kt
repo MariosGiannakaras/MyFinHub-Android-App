@@ -20,6 +20,17 @@ internal fun financeSessionAuthorizationChanged(
  * rebinds ViewModels. An older Ready/AuthRejected must not be rendered or used
  * for cross-session decisions during that frame.
  */
+/** Offline auth and validated-online auth are distinct presentation authorities.
+ * A matched bearer alone is insufficient during the pre-attachment Compose frame.
+ */
+internal fun financePresentationMatchesAuthority(
+    attached: AuthSession?,
+    expected: AuthSession?,
+    attachedAllowsOnline: Boolean,
+    expectedAllowsOnline: Boolean,
+): Boolean = attachedAllowsOnline == expectedAllowsOnline &&
+    app.myfinhub.android.core.auth.matchesSensitiveUiSession(attached, expected)
+
 internal fun visibleFinanceStateForSession(
     authorized: Boolean,
     observed: FinanceProductState,
