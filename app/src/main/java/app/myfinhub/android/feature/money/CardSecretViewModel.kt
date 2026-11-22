@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.myfinhub.android.core.auth.AuthSession
+import app.myfinhub.android.core.auth.matchesSensitiveUiSession
 import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.ApiFailureKind
@@ -114,6 +115,10 @@ class CardSecretViewModel internal constructor(
     private var cleanupGeneration = 0L
     // Each card read/navigation transition revokes all older in-flight sensitive callbacks.
     private var detailRequestGeneration = 0L
+
+    /** Never reveal a stale PAN/CVV during a Compose frame preceding session attach. */
+    fun matchesSensitivePresentationSession(session: AuthSession): Boolean =
+        matchesSensitiveUiSession(currentSession, session)
 
     fun attachSession(session: AuthSession) {
         val previous = currentSession
