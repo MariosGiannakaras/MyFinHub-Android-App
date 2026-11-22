@@ -1237,7 +1237,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 OPEN 6/8. PR #511 passed six exact-head CI gates and squash merged develop 2fdac0f; offline card PAN/CVV boundary is integrated, physical S24 remains unverified. D7 branch android/d7-vault-cleanup-session-guard-20261122 now closes pre-attachment cross-session auto-vault-cleanup race; final CI/merge pending. Public rc20/10019 predates current source. Real GET400, two missing credit-purchase links, signer/Play Protect, Recents/screen recording and encrypted installed-data continuity independently block any signed release.",
+    "next_action": "D7 OPEN 6/8. PR #512 passed six exact-head CI gates and squash merged develop 77e65e1 (vault cleanup current-session guard integrated). D7 branch android/d7-finance-cache-disclosure-revalidation-20261122 corrects finance offline provenance on network loss and reconnect; final-head CI/merge pending. Public rc20/10019 predates source fixes. Physical Galaxy S24 signer/Play Protect/Recents/card recording and in-place encrypted local-data continuity, real GET400 and two missing card purchases remain release blockers.",
     "stages": [
       {
         "id": "D1",
@@ -1873,8 +1873,8 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "2fdac0fb6edd0cba5bc4bde8000c00f481375f16",
-      "status": "blocked_release_card_cleanup_pre_attach_source_authored_ci_pending",
+      "baseline_develop": "77e65e1944f7d78979d7a52645a4bd6ce6a75477",
+      "status": "blocked_release_finance_cache_reconnect_source_authored_ci_pending",
       "reviewed_domains": 7,
       "total_domains": 8,
       "release_cleared_domains": 0,
@@ -1961,13 +1961,18 @@
         {
           "severity": "P1",
           "kind": "card_vault_cleanup_before_new_session_attachment",
-          "detail": "Root auto-cleanup effect could read previous owner's finance server-confirmed cleanup IDs before new auth Ready's finance/vault controller attachment. Current branch adds both-session online AAL2 guard plus no unauthorized purge and transition tests; CI/merge pending."
+          "detail": "PR512 exact-head f5592eb passed six gates and merged develop 77e65e1; automated vault cleanup now checks both current finance and vault session authorities plus AAL2 online. Real S24 proof pending."
+        },
+        {
+          "severity": "P1",
+          "kind": "finance_cache_network_disconnect_and_reconnect_provenance",
+          "detail": "FinanceProductViewModel network offline/unknown collector previously ignored disconnection so Ready could remain online, with reconnect skipping GET without pending work; revalidation GET set offline=false before accepted response. Branch android/d7-finance-cache-disclosure-revalidation-20261122 corrects offline presentation, reconnect GET and callback status; final CI/merge and real S24 pending."
         }
       ],
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
-      "ci_exact_head": "pr_511_ca3fad7_all_6_success_squash_merged_2fdac0f",
-      "next_action": "Run final exact-head six CI checks for D7 card-secret auto-cleanup session gate on branch android/d7-vault-cleanup-session-guard-20261122; merge only after green gates and clean reviews/base. Physical S24 Recents/capture, enrolled signer/in-place data, GET400 and missing credit purchases remain unverified; no new signed APK.",
+      "ci_exact_head": "pr_512_f5592eb_all_6_success_squash_merged_77e65e1",
+      "next_action": "Verify final-head six CI gates for D7 finance network-loss cache disclosure and reconnect revalidation branch android/d7-finance-cache-disclosure-revalidation-20261122. Merge only with clean base/reviews and six successful checks. Physical S24 signer/Recents/installed-data, historical GET400 and two card purchases remain unresolved; no new signed APK.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -2109,8 +2114,25 @@
           "app/src/androidTest/java/app/myfinhub/android/feature/money/CardSecretViewModelTest.kt"
         ],
         "mitigation": "Require both ViewModel attached owner/bearer/AAL authority and online Ready AAL2 before auto-cleanup; key effect on attachment authority; deny direct purge when offline or AAL1.",
-        "status": "source_authored_exact_head_ci_pending",
+        "status": "integrated_pr512_f5592eb_six_exact_head_checks_green_merge_77e65e1_physical_s24_pending",
         "owner_physical_s24": "not_verified",
+        "signed_release": "not_authorized",
+        "pr_512": {
+          "head": "f5592eb1f02e1f8cdfac365b3988ad1bab17a3cc",
+          "merged_commit": "77e65e1944f7d78979d7a52645a4bd6ce6a75477",
+          "checks": "6_of_6_success"
+        }
+      },
+      "additional_finance_network_provenance_guard": {
+        "finding": "Existing Ready remained offline=false after connectivity loss; reconnect could skip GET without pending; reconnect read presented cached data as online before confirmation.",
+        "branch": "android/d7-finance-cache-disclosure-revalidation-20261122",
+        "source": "app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt",
+        "tests": [
+          "app/src/test/java/app/myfinhub/android/app/FinanceNetworkProvenanceTest.kt"
+        ],
+        "mitigation": "Reactive cache provenance downgrade on network loss, reloadWhenOnline signal independent of pending queue, cached display remains offline during GET, successful response after another loss keeps offline and schedules revalidation.",
+        "status": "source_authored_exact_head_ci_pending",
+        "physical_s24": "not_verified",
         "signed_release": "not_authorized"
       }
     }

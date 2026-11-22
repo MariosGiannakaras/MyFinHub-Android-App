@@ -65,7 +65,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 OPEN 6/8. PR #511 passed six exact-head CI gates and squash merged develop 2fdac0f; offline card PAN/CVV boundary is integrated, physical S24 remains unverified. D7 branch android/d7-vault-cleanup-session-guard-20261122 now closes pre-attachment cross-session auto-vault-cleanup race; final CI/merge pending. Public rc20/10019 predates current source. Real GET400, two missing credit-purchase links, signer/Play Protect, Recents/screen recording and encrypted installed-data continuity independently block any signed release.
+Next: D7 OPEN 6/8. PR #512 passed six exact-head CI gates and squash merged develop 77e65e1 (vault cleanup current-session guard integrated). D7 branch android/d7-finance-cache-disclosure-revalidation-20261122 corrects finance offline provenance on network loss and reconnect; final-head CI/merge pending. Public rc20/10019 predates source fixes. Physical Galaxy S24 signer/Play Protect/Recents/card recording and in-place encrypted local-data continuity, real GET400 and two missing card purchases remain release blockers.
 
 
 ## Active Web parity progress

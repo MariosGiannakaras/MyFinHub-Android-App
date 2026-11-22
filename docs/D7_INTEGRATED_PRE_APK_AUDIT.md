@@ -217,8 +217,40 @@ A stale card ID could therefore be selected for destructive vault cleanup.
 - Add JVM transition cases and emulator-facing regressions proving
   downgraded/offline purge is inert and does not delete local vault values.
 
+**Integration:** PR #512 exact head `f5592eb1f02e1f8cdfac365b3988ad1bab17a3cc`
+passed all six required checks (Project Tracking, Android CI, screenshots,
+both emulator shards and aggregate). Squash merged to `develop`
+as `77e65e1944f7d78979d7a52645a4bd6ce6a75477`.
+Physical S24 Recents/recording, encrypted-cache preservation, live GET and
+historical purchase linkage remain unverified. D7 and D8 are blocked.
+
+## 03e follow-up: network loss, finance cache provenance and revalidation
+
+**Confirmed source gap after #512:** The controller's `networkStatus.drop(1)`
+collector returned immediately on OFFLINE/UNKNOWN, leaving an existing
+`FinanceProductState.Ready(offline = false)` visible after connectivity was
+lost. On reconnection, no GET was scheduled when there were no pending
+mutations, and during the next GET the cached `Ready` was re-labelled
+`offline = false` before any server response. This could incorrectly
+represent old balances as newly server-confirmed.
+
+**Source correction on `android/d7-finance-cache-disclosure-revalidation-20261122`:**
+- On disconnection, immediately mark a previously online finance presentation
+  offline and preserve its projection and in-flight saving guard. Use the
+  existing pending-count projection so pending work is disclosed rather than
+  silently masked.
+- Set `reloadWhenOnline` even without pending mutations, so reconnect runs
+  a fresh read before claiming server authority.
+- Keep previously cached/reconnected finance values labelled offline while
+  the GET is still in flight; only an accepted response may restore online
+  provenance. If connectivity drops during a successful read/write callback,
+  leave the UI offline and keep a revalidation request queued.
+- JVM truth-table tests distinguish validated online, offline, UNKNOWN and
+  prior cached status. No new finance schema, store migration, backend write,
+  release publication or secret permission changes.
+
 **Status:** source and tests authored, final-head CI and merge pending.
-These checks cannot establish the installed device's Recents or
-screen-recording security, encrypted-cache preservation, live GET
-or historical purchase linkage. D7 and D8 remain blocked. No new signed
-APK, production finance changes or backend mutation.
+This is not the owner's real GET /api/data investigation, installed-cache
+continuity evidence, two historical card purchase reconciliation or physical
+Galaxy S24 Ultra acceptance. The public rc20/10019 predates the integrated
+D7 source changes; no new signed APK authorized.
