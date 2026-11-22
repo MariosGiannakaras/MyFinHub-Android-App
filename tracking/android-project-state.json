@@ -1571,10 +1571,10 @@
   },
   "ux_journey_audit_2026_11_20": {
     "stage": "03e_integrated_deep_pre_apk_audit",
-    "source_branch": "android/d7-rc20-publication-preflight-evidence-20261122",
-    "status": "pr_506_integrated_six_gates_public_rc20_verified_preflight_alignment_authored_pending_exact_head_ci",
+    "source_branch": "android/d7-finance-datastore-read-failclosed-20261122",
+    "status": "03e_datastore_read_and_hold_write_failclosed_fix_authored_pending_exact_head_ci",
     "next_stage": "03f_resolve_P0_P1_integrated_device_acceptance",
-    "summary": "Integrated audit 03e remains source/previous-evidence 7/8 domains reviewed and 0/8 release-cleared. PR #506 immutable head 5d449b83 passed all six exact-head checks (including both S24 emulator shards, aggregate and 102 screenshot regression) and squash merged to develop c306ab4, protecting legacy/current offline intents, fail-closed recovery and separate owner encrypted caches. Live GitHub Releases on 2026-11-22 proves rc20/10019 is newest publicly published candidate, tag source 0285a87 and APK SHA256 f64c3bc9..., not previously tracked rc19; rc20 physical installed signer/Play Protect/Recents/card secret and finance GET/missing purchases are NOT validated, and rc20 predates PR506. D7 remains 6/8, W6.4 5/6 (23/24), D8 separate. This checkpoint corrects read-only S24 version preflight and tracking; no APK build or backend/finance mutation.",
+    "summary": "Deploy 6/8 D7, Web parity 5/6 and 23/24, 03e 7/8 source/evidence-reviewed and 0/8 release-cleared. PR #506 encrypted offline mutation identity, owner-scoped v1 migration and recovery hold passed 6/6 exact-head gates and merged c306ab4; PR #507 public rc20/10019 preflight reconciliation passed 6/6 and merged ffd92cb. Additional concrete failure-mode gap: EncryptedFinanceLocalStore.load read of preferences DataStore occurred outside FinanceLocalRestoreException handling, and an error writing the recovery hold could escape in its raw form; the ViewModel's fail-closed branch would not run. Current branch wraps non-cancellation DataStore read and recovery-hold writes as FinanceLocalRestoreException, so FinanceProductViewModel stops sync without deleting encrypted bytes. Instrumentation tests inject I/O read and hold-write failures and assert genuine prior encrypted data remains; cancellation remains cancellation. Source and tests authored, CI and merge pending. This does not recover corrupted bytes nor establish real S24 acceptance, GET400 or November credit purchases. No APK or server writes.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1873,8 +1873,8 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "c306ab4c9f4bf6ab3131cd0179eb2ef7bf35c4ca",
-      "status": "pr_506_six_gates_merged_latest_public_rc20_physical_and_finance_acceptance_blocked",
+      "baseline_develop": "ffd92cbad901c0f5577e94f00d3725176859bc06",
+      "status": "blocked_release_datastore_read_and_hold_write_hardening_authored_ci_pending",
       "reviewed_domains": 7,
       "total_domains": 8,
       "release_cleared_domains": 0,
@@ -1947,7 +1947,7 @@
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
       "ci_exact_head": "pr_506_5d449b83_all_6_success_squash_merged_c306ab4",
-      "next_action": "PR #506 merged with all six checks. Verify read-only preflight rc20 allowlist and document public release tag/digest via exact-head CI; physical owner-installed S24 needs card-secret recording/Recents/Play Protect/signer/in-place preservation and read-only finance GET/card-purchase evidence. Maintain 0/8 release-cleared and do not build/publish APK or touch backend/finance.",
+      "next_action": "Validate exact-head tracking, Kotlin/Android tests, existing goldens and both S24 hosted shards for the DataStore read failure checkpoint. If six gates pass, merge; continue 03e risk disposition and real S24 owner security / GET /api/data / missing credit purchase validation. Do not start new APK/D8.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -1990,6 +1990,20 @@
         "installed_signer_verified": false,
         "physical_s24_acceptance": "pending",
         "develop_source_parity": "tag predates merged PR506"
+      },
+      "additional_datastore_read_boundary": {
+        "finding": "DataStore.data.first() happened outside cache decryption error handling; low-level I/O/corruption exceptions bypassed FinanceLocalRestoreException and could leave app finance startup coroutine unhandled.",
+        "secondary_finding": "Recovery flag DataStore.edit failure also escaped in raw form rather than reaching ViewModel's nonretryable recovery guard.",
+        "source": "app/src/main/java/app/myfinhub/android/core/data/EncryptedFinanceLocalStore.kt",
+        "test": "app/src/androidTest/java/app/myfinhub/android/core/data/EncryptedFinanceLocalStoreTest.kt",
+        "checks": [
+          "Injected DataStore read IOException resolves to FinanceLocalRestoreException and preserves prior durable pending work",
+          "Partial owner slot with failed recovery hold persistence rejects load as FinanceLocalRestoreException while original IV/ciphertext survive",
+          "CancellationException is propagated rather than transformed into corruption"
+        ],
+        "behavior": "No automatic clear, no network finance GET/replay on failed load, no promise of persisted hold if file cannot be edited; owner guidance is already shown by FinanceProductViewModel.",
+        "status": "source_and_android_tests_authored_exact_head_ci_pending",
+        "physical_s24_owner_acceptance": "pending"
       }
     }
   }
