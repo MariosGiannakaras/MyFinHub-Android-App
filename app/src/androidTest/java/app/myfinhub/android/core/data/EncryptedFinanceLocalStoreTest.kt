@@ -3,6 +3,8 @@ package app.myfinhub.android.core.data
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.myfinhub.android.core.security.EncryptedPayload
+import app.myfinhub.android.core.security.SecureValueCipher
 import java.io.File
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -10,6 +12,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -93,6 +96,36 @@ class EncryptedFinanceLocalStoreTest {
         assertTrue(dataStoreFile.exists())
         assertFalse(dataStoreFile.readBytes().decodeToString().contains(secretMarker))
         assertFalse(dataStoreFile.readBytes().decodeToString().contains("Offline edit"))
+    }
+
+    @Test
+    fun failedDecryptKeepsCiphertextAndPreventsSilentOverwriteEvenAfterRecreation() = runBlocking {
+        val original = FinanceLocalSnapshot(
+            userId = "owner-user", serverDocument = document("PENDING-DO-NOT-LOSE"),
+            pendingMutations = listOf(PendingCanonicalMutationIntent.fromMutation(
+                mutation = AppendCanonicalEvent(event("evt-pending", "Εκκρεμής κίνηση"), NOW),
+                intentId = "intent-do-not-lose",
+            )), lastSuccessfulSync = NOW,
+        )
+        store.save(original)
+        val storedFile = File(context.filesDir, "datastore/finance_offline_v1.preferences_pb")
+        val before = storedFile.readBytes()
+        val brokenCipher = object : SecureValueCipher {
+            override fun encrypt(plaintext: ByteArray): EncryptedPayload =
+                throw UnsupportedOperationException("Test must never encrypt with bad cipher")
+            override fun decrypt(payload: EncryptedPayload): ByteArray =
+                throw IllegalStateException("Injected decrypt failure")
+        }
+        val failingStore = EncryptedFinanceLocalStore(context, cipher = brokenCipher)
+        assertTrue(runCatching { failingStore.load("owner-user") }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        assertArrayEquals(before, storedFile.readBytes())
+        // The safety hold is durable across store recreation and owner actions.
+        assertTrue(runCatching { EncryptedFinanceLocalStore(context).load("owner-user") }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        assertTrue(runCatching { store.save(original.copy(pendingMutations = emptyList())) }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        assertArrayEquals(before, storedFile.readBytes())
     }
 
     @Test
