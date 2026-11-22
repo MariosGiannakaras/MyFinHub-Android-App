@@ -292,10 +292,15 @@ fun MyFinHubRoot(
     }
     // The server-saved finance marker survives process death. Resume vault cleanup only with
     // an online authenticated session and a freshly confirmed profile deletion.
-    LaunchedEffect(authState, financeState, cardSecretCleanupState) {
-        val authReady = authState as? AuthShellUiState.Ready
-        if (authReady != null && !authReady.offline &&
-            authReady.session.assuranceLevel == app.myfinhub.android.core.auth.AssuranceLevel.AAL2
+    LaunchedEffect(
+        authState, financeState, cardSecretCleanupState,
+        financeSessionAuthorized, vaultSessionAuthorized,
+    ) {
+        // The auth shell can advance before either ViewModel attachment effect.
+        // Never initiate cleanup using a prior owner's server-confirmed marker.
+        if (mayRunCardVaultCleanupForAuth(
+                authState, financeSessionAuthorized, vaultSessionAuthorized,
+            )
         ) {
             val pendingIds = financeViewModel.serverConfirmedPendingSecretCleanupIds()
             when (val cleanup = cardSecretCleanupState) {
