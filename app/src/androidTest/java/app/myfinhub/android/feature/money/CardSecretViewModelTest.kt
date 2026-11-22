@@ -116,6 +116,17 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun switchingOwnersClearsEvenHiddenPreviousOwnerCardReference() = runBlocking {
+        val vm = CardSecretViewModel(application, FakeCardApi(), FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("old-card-id")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        vm.attachSession(session.copy(userId = "other-owner"))
+        assertEquals(CardSecretUiState.Hidden(), vm.state.value)
+        assertFalse(vm.matchesSensitivePresentationSession(session))
+    }
+
+    @Test
     fun offlineReadyWithSameBearerImmediatelyRevokesCardPanAndCvvAndRejectsWrites() = runBlocking {
         val api = FakeCardApi()
         val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
