@@ -24,6 +24,41 @@ class AppNavigationPolicyTest {
     }
 
     @Test
+    fun revealedCardSecretsAreScopedToVisibleWalletFaceOrSecureDetailsOnly() {
+        assertFalse(shouldHideCardSecretsForRoute(TopLevelDestination.MONEY, AppRoute.Money))
+        assertFalse(shouldHideCardSecretsForRoute(
+            TopLevelDestination.MONEY, AppRoute.CardSecureDetails("card-1"),
+        ))
+
+        // Same MONEY back stack is insufficient: profile/edit/quick entry must drop
+        // secrets and fence an in-flight vault read while no protected face is visible.
+        listOf(
+            AppRoute.CardDetail("card-1"),
+            AppRoute.CardCreate,
+            AppRoute.QuickEntry,
+            AppRoute.AccountDetail("account-1"),
+            null,
+        ).forEach { route ->
+            assertTrue("Money/$route must hide card secrets",
+                shouldHideCardSecretsForRoute(TopLevelDestination.MONEY, route))
+        }
+
+        // A retained MONEY back stack cannot leak secrets under another root tab.
+        listOf(
+            TopLevelDestination.HOME,
+            TopLevelDestination.ACTIVITY,
+            TopLevelDestination.PLAN,
+            TopLevelDestination.INSIGHTS,
+        ).forEach { destination ->
+            listOf(AppRoute.Money, AppRoute.CardSecureDetails("card-1"), AppRoute.Home, null)
+                .forEach { route ->
+                    assertTrue("$destination/$route must hide card secrets",
+                        shouldHideCardSecretsForRoute(destination, route))
+                }
+        }
+    }
+
+    @Test
     fun insights_isIndependentReportsRoot() {
         assertEquals(TopLevelDestination.INSIGHTS, AppRoute.Insights.topLevelDestination)
         assertEquals(TopLevelDestination.ACTIVITY, AppRoute.Activity.topLevelDestination)
