@@ -249,8 +249,42 @@ represent old balances as newly server-confirmed.
   prior cached status. No new finance schema, store migration, backend write,
   release publication or secret permission changes.
 
-**Status:** source and tests authored, final-head CI and merge pending.
-This is not the owner's real GET /api/data investigation, installed-cache
-continuity evidence, two historical card purchase reconciliation or physical
-Galaxy S24 Ultra acceptance. The public rc20/10019 predates the integrated
-D7 source changes; no new signed APK authorized.
+**Integration:** PR #513 exact head `5dabe3fa994cf57d5c5bb6fcd76693595a4fd3d6`
+passed all six required checks (Project Tracking, Android CI, screenshots,
+both hosted S24 shards and the aggregate). Squash merged to `develop`
+as `861259a2326b702f90463aeac6681430e6da4561`. No owner physical
+S24, installed-data, GET400 or card-linkage issue is resolved by CI.
+
+## 03e follow-up: auth-offline authority with network still connected
+
+**Confirmed product privacy/provenance gap after PR #513.**
+`AuthShellUiState.Ready(session, offline=true)` can occur after a failed
+server-session revalidation while Android still reports a validated network.
+If the same owner, bearer and AAL were previously online, the root's
+`financeSessionAuthorized` still matched the prior attached token until
+`LaunchedEffect(authState)`; and `FinanceProductViewModel.attachSession`
+updated `automaticSyncAllowed=false` but kept its existing
+`FinanceProductState.Ready(offline=false)`. The offline connectivity
+collector added in PR #513 never runs in this case because connectivity
+itself did not change. The screen could thus imply recently authenticated
+online balances, while the auth shell had withdrawn server authority.
+
+**Source correction on `android/d7-finance-auth-offline-authority-20261122`:**
+- Finance presentation authority now includes the attached validated-online
+  flag as well as exact owner/bearer/AAL identity. Root checks the expected
+  flag from the auth shell before composing, masking the stale pre-attachment
+  frame; refresh-token-only changes do not revoke the same authority.
+- On same-session online-to-offline validation failure, synchronously
+  re-label the current projection as offline and preserve in-flight saving
+  guard and encrypted pending mutations. Set `reloadWhenOnline` so the
+  next validated attachment triggers a server read.
+- Reconnected same-owner online attachment retains the offline presentation
+  while the accepted GET is pending, as implemented by merged PR #513.
+- JVM tests cover identical owner/bearer/AAL, refresh-only, changed bearer,
+  owner and AAL, initial null attachment, and online/offline transition
+  directions. No server schema, signing, installed data or permission changes.
+
+**Status:** source and tests authored; final-head CI and merge pending.
+Physical owner S24 and real finance contract acceptances remain blocked.
+Public rc20/10019 predates all recent D7 source fixes; no new signed APK,
+production finance mutation or backend change authorized.
