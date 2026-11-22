@@ -96,6 +96,16 @@ internal fun sessionScopedFinanceCallbackAuthorized(
     automaticSyncAllowed: Boolean,
 ): Boolean = automaticSyncAllowed && app.myfinhub.android.core.auth.matchesSensitiveUiSession(attached, expected)
 
+/** A validated auth token is not enough to keep previously revealed PAN/CVV on
+ * screen after physical connectivity is lost or becomes unvalidated. UNKNOWN
+ * is fail-closed. Offline finance cache has a separate presentation policy.
+ */
+internal fun cardVaultServerAccessAllowed(
+    authState: app.myfinhub.android.feature.auth.AuthShellUiState,
+    networkStatus: app.myfinhub.android.core.network.NetworkStatus,
+): Boolean = (authState as? app.myfinhub.android.feature.auth.AuthShellUiState.Ready)?.offline == false &&
+    networkStatus == app.myfinhub.android.core.network.NetworkStatus.ONLINE
+
 /** Offline-ready permits encrypted finance cache, not previously fetched card PAN/CVV. */
 internal fun cardVaultPresentationAllowed(
     authState: app.myfinhub.android.feature.auth.AuthShellUiState,
