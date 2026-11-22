@@ -1237,7 +1237,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 OPEN 6/8; W6.4 remains pending (23/24 Web-parity subtasks). PR #518 immutable head ac982db passed all six exact-head gates after retrying S24 shard 1 (first attempt Maven Central HTTP429), with clean reviews/base, and squash merged develop 6c6d94c (single initial remote PAN/CVV GET). No additional source CI-pending D7 PR. Public signed rc20/10019 predates merged corrections. D7 owner acceptance still blocked by real Galaxy S24 Recents/screen recording privacy, in-place signer/Play Protect and encrypted cache continuity, live GET /api/data HTTP400 INVALID_DATA and two missing Nov 12 credit-purchase links. No signed release, production finance mutation, or D8 promotion authorized.",
+    "next_action": "D7 OPEN 6/8; W6.4 remains pending (23/24 Web-parity subtasks). PR #519 head af23ddb passed all six exact-head gates and merged develop b3e6709; mandatory UI checks now run for D7 tracking changes. 2026-11-22 read-only live Supabase: finance revision 499, 509 events and no selected structural leg/header anomalies; two 2026-11-12 expenses still lack credit-card linkage. This does not reproduce or clear owner-observed GET /api/data 400 INVALID_DATA. Public signed rc20/10019 predates source fixes. Owner real S24 privacy, in-place signer/Play Protect/encrypted cache continuity, live authenticated GET trace and credit-purchase reconciliation still block release. No backend write, new signed APK or D8 authorization.",
     "stages": [
       {
         "id": "D1",
@@ -1873,7 +1873,7 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "6c6d94c177ebf6d609f3e106a9b81d243b72ff8c",
+      "baseline_develop": "b3e670906302a0718106fe54df484cc75ae15084",
       "status": "blocked_release_physical_s24_and_live_finance_evidence_pending",
       "reviewed_domains": 7,
       "total_domains": 8,
@@ -1926,7 +1926,7 @@
         {
           "severity": "P0",
           "kind": "canonical_finance",
-          "detail": "historical GET /api/data HTTP400 INVALID_DATA and two reported 2026-11-12 missing card purchase linkages unresolved"
+          "detail": "Historical owner GET /api/data HTTP400 INVALID_DATA and two reported 2026-11-12 credit purchases remain unresolved. Read-only Supabase 2026-11-22: relational_v1 revision 499, 509 events, 10 card_purchase, 9 card_payment; rebuilt schema-v3 document and selected event/leg integrity checks show no anomaly, but cannot verify authenticated owner GET. Two 2026-11-12 expense rows remain without cardId/statementId/credit funding; not proven to be the owner's intended purchases. No backend writes authorized."
         },
         {
           "severity": "P1",
@@ -1996,8 +1996,8 @@
       ],
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
-      "ci_exact_head": "pr_518_ac982db_all_6_success_after_hosted_s24_shard1_retry_squash_merged_6c6d94c",
-      "next_action": "No source CI-pending D7 correction remains after merged PR518. Owner must validate real Galaxy S24 Ultra Recents/screen recording privacy, verified signer/Play Protect and in-place encrypted data continuity; separately diagnose live GET /api/data 400 INVALID_DATA and two absent Nov 12 credit-purchase associations with read-only evidence before any approved backend correction. Keep D7 6/8, W6.4 23/24 and D8 unsigned/unapproved.",
+      "ci_exact_head": "pr_519_af23ddb_all_6_success_squash_merged_b3e6709",
+      "next_action": "D7 release still blocked. Owner evidence required for real Galaxy S24 Ultra installed-signer/cache continuity and PAN/CVV Recents/recording, and a fresh authorized GET /api/data trace to distinguish upstream RPC vs server validation. Two Nov 12 expenses cannot be auto-linked to cards; require owner-confirmed intent and approved reconciliation. Current read-only SQL structural checks do not authorize backend mutation, signed APK or W6.4/D8 completion.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -2268,6 +2268,37 @@
           "checks": "6_of_6_success",
           "ci_note": "S24 emulator shard 1 first attempt failed during Gradle dependency resolution on Maven Central HTTP 429, before instrumentation execution; targeted rerun same immutable PR head passed; both hosted S24 shards, aggregate, screenshots, tracking and Android CI successful."
         }
+      },
+      "live_finance_readonly_2026_11_22": {
+        "evidence_class": "Supabase connected project SELECT-only aggregation on 2026-11-22; no owner authenticated REST invocation, no changes or exported raw financial records",
+        "database_revision": 499,
+        "finance_storage_mode": "relational_v1",
+        "updated_at_utc": "2026-11-19T19:16:31.112324Z",
+        "reconstructed_schema_version": 3,
+        "effective_document_octet_length": 275926,
+        "counts": {
+          "events": 509,
+          "cards": 6,
+          "deleted_cards": 0,
+          "credit_statements": 13,
+          "card_purchase": 10,
+          "card_payment": 9,
+          "nov_12_expense": 2
+        },
+        "checked_invariants": {
+          "header_event_kind_mismatches": 0,
+          "header_event_date_mismatches": 0,
+          "nonpositive_header_amounts": 0,
+          "invalid_transaction_legs": 0,
+          "unexpected_leg_cardinalities": 0,
+          "card_purchase_leg_or_card_id_anomalies": 0,
+          "card_payment_leg_or_card_id_anomalies": 0
+        },
+        "historic_nov_12_credit_linkage": "Both 2026-11-12 rows remain expense, with no cardId/statementId/funding/nonzero creditDelta. No evidence they are the precise two user-reported attempted card purchases.",
+        "api_get400": "Prior owner 400 INVALID_DATA not reproduced or disproved; owner-AAL2 authenticated API and original runtime logs not available for this check. Source may surface upstream RPC invalid state or post-read server validation failure.",
+        "status": "read_only_structural_checks_passed_owner_http_get_and_physical_s24_unverified",
+        "financial_mutation": "none",
+        "release_approval": false
       }
     }
   }
