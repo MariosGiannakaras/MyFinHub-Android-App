@@ -1569,9 +1569,9 @@
   "ux_journey_audit_2026_11_20": {
     "stage": "03e_integrated_deep_pre_apk_audit",
     "source_branch": "android/d7-integrated-preapk-audit-20261122",
-    "status": "integrated_source_audit_in_progress_offline_duplicate_restore_fix_authored_ci_pending_release_blocked",
+    "status": "offline_merge_and_persistent_cache_recovery_hold_authored_pending_new_exact_head_ci_release_blocked",
     "next_stage": "03f_resolve_P0_P1_integrated_device_acceptance",
-    "summary": "PR #505 Home scheduled source identity passed all 6 exact-head gates at e7e33faf and merged into develop as 9e23f4bf. Stage 03e begins an integrated pre-distributable-APK audit across 8 categories with 7 reviewed from source/existing evidence and 0 release-cleared; it is NOT a release or D7 acceptance. New helper/test rejects duplicate/ID-colliding restored encrypted offline pending intents instead of silently distinctBy-dropping a potentially user-approved mutation and conservatively carries NEEDS_REVIEW from legacy. Source and tests authored, exact-head CI pending; even after CI, invalid encrypted cache auto-clear policy remains P1 risk needing disposition. Owner physical S24 rc19 secure recording/Recents and GET /api/data HTTP400/missing credit purchases are unresolved P0. No new signed APK, Web/backend changes, production money edits or D7/D8 advancement.",
+    "summary": "After PR #505 passed six exact-head gates and merged 9e23f4bf, stage 03e integrated deep pre-distributable-APK audit has 7/8 domains inspected by source/earlier evidence and 0/8 release-cleared. Initial PR #506 head 4935c6b passed Android verify, tracking and both hosted S24 shards + aggregate; screenshot gate failed solely on Maven Central HTTP429 dependency retrieval BEFORE comparing the 102 goldens. A targeted review established that EncryptedFinanceLocalStore.load previously clear()-deleted the only pending finance queue on ANY bad decrypt/replay. In the SAME PR, a new fail-closed persistent finance_recovery_hold now keeps IV and ciphertext, refuses overwrite, surfaces actionable owner recovery error and blocks finance sync; injected decryption test plus six pure merge safety tests authored. Current final-head CI pending. Cross-owner single-slot offline cache retention is a separate P1 requiring review, as are owner rc19 physical S24 Recents/card secret test and unresolved GET400/missing card purchases P0. D7 and D8 remain open; no signed APK, production finance or Web/backend changes.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1871,7 +1871,7 @@
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
       "baseline_develop": "9e23f4bf50407e38c08891361a9cd4d041973fc2",
-      "status": "blocked_pre_release_source_fix_authored_ci_pending",
+      "status": "blocked_pre_release_offline_restore_recovery_hold_authored_final_head_ci_pending",
       "reviewed_domains": 7,
       "total_domains": 8,
       "release_cleared_domains": 0,
@@ -1889,8 +1889,11 @@
         "path": "app/src/main/java/app/myfinhub/android/core/data/OfflinePendingRestorePolicy.kt",
         "consumer": "EncryptedFinanceLocalStore.load",
         "tests": "app/src/test/java/app/myfinhub/android/core/data/OfflinePendingRestorePolicyTest.kt",
-        "status": "authored_unexecuted",
-        "behavior": "require distinct generic/legacy IDs separately, only exact cross-format migration overlap, monotonic NEEDS_REVIEW and deterministic replay ordering"
+        "status": "duplicate_merge_and_encrypted_recovery_hold_with_injected_decrypt_android_test_authored_pending_ci",
+        "behavior": "require distinct generic/legacy IDs separately, only exact cross-format migration overlap, monotonic NEEDS_REVIEW and deterministic replay ordering",
+        "additional_consumer": "FinanceProductViewModel.loadFresh and queueLocalMutation catch FinanceLocalRestoreException, halt sync and display local recovery hold; EncryptedFinanceLocalStore.save refuses overwrite if hold persisted",
+        "additional_test": "app/src/androidTest/java/app/myfinhub/android/core/data/EncryptedFinanceLocalStoreTest.kt::failedDecryptKeepsCiphertextAndPreventsSilentOverwriteEvenAfterRecreation",
+        "recovery_behavior": "Set boolean finance_recovery_hold without clearing IV/ciphertext on malformed cache or decryption; block further loads/saves until deliberate explicit clear. No automatic network sync or writes. Owner-guided preservation, not automatic recovery."
       },
       "blockers": [
         {
@@ -1905,19 +1908,39 @@
         },
         {
           "severity": "P1",
-          "kind": "offline_restore",
-          "detail": "corrupt encrypted cache currently catches and clears local snapshot; after conflict detection risk of losing pending financial changes requires tested fail-closed retention strategy or explicit disposition"
+          "kind": "offline_owner_switch",
+          "detail": "Current single-slot encrypted finance cache can be overwritten after different authenticated owner logs in; physical owner-switch and preservation policy not yet resolved. Recovery hold for corrupt cache authored but awaits CI and physical validation."
         },
         {
           "severity": "P1",
           "kind": "source_version_gap",
           "detail": "rc19 signed release pre-dates merged #502-505 and this source audit; no new signed APK permitted"
+        },
+        {
+          "severity": "P1",
+          "kind": "quarantined_offline_recovery",
+          "detail": "Restored invalid encrypted finance data retained behind durable hold; no approved owner-safe export or physical restoration workflow; original IV/ciphertext preserved by source and unexecuted emulator regression."
         }
       ],
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
-      "ci_exact_head": "pending",
-      "next_action": "Run exact-head six gates for audit/queue branch; review corruption-recovery policy and D7 S24 external evidence without backend writes. Keep any signed release blocked until integrated deep audit and device owner gates explicitly pass."
+      "ci_exact_head": "new_final_head_pending",
+      "next_action": "Validate new PR #506 head in all 6 CI checks, including actual screenshot comparison and targeted encrypted-data test. No merge if pending/failing. Then review cross-owner offline data preservation and actual Galaxy S24 Ultra security/finance acceptance independently; protected signed APK remains blocked.",
+      "initial_exact_head_ci": {
+        "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
+        "passed": [
+          "tracking-verify",
+          "android-verify",
+          "S24 emulator shard 0",
+          "S24 emulator shard 1",
+          "s24-ultra-target-instrumented"
+        ],
+        "failed": [
+          "screenshot-regression"
+        ],
+        "reason": "Maven Central HTTP429 resolving Kotlin Compose plugin before any screenshot comparisons; no evidence of changed golden pixels",
+        "next": "full exact-head check pass after same-PR source change; do not rerun obsolete SHA"
+      }
     }
   }
 }
