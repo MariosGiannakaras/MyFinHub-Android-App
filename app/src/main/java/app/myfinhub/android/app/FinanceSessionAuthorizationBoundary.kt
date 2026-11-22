@@ -50,3 +50,12 @@ internal fun financePresentationAfterAuthorizationChange(
 ): FinanceProductState = if (financeSessionAuthorizationChanged(previous, incoming)) {
     FinanceProductState.Idle
 } else observed
+
+/** Session-scoped server metadata, device lists and revocation callbacks must
+ * never publish after an owner, access bearer, AAL or offline authority change.
+ */
+internal fun sessionScopedFinanceCallbackAuthorized(
+    attached: AuthSession?,
+    expected: AuthSession,
+    automaticSyncAllowed: Boolean,
+): Boolean = automaticSyncAllowed && app.myfinhub.android.core.auth.matchesSensitiveUiSession(attached, expected)
