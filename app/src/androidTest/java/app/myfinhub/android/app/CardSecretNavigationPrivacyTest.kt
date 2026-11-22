@@ -5,7 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.performClick
 import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
@@ -49,7 +52,10 @@ class CardSecretNavigationPrivacyTest {
         }
 
         composeRule.runOnIdle { assertEquals(0, redactions) }
-        composeRule.onNodeWithContentDescription("Αρχική").performClick()
+        composeRule.onNode(
+            hasClickAction() and hasAnyDescendant(hasContentDescription("Αρχική")),
+            useUnmergedTree = true,
+        ).performClick()
         composeRule.runOnIdle {
             assertEquals(1, redactions)
             assertEquals(CardSecretUiState.Hidden(), secrets)
@@ -65,10 +71,16 @@ class CardSecretNavigationPrivacyTest {
             assertEquals(CardSecretUiState.Hidden(), secrets)
         }
 
-        composeRule.onNodeWithContentDescription("Κάρτες").performClick()
+        composeRule.onNode(
+            hasClickAction() and hasAnyDescendant(hasContentDescription("Κάρτες")),
+            useUnmergedTree = true,
+        ).performClick()
         composeRule.runOnIdle { assertEquals(2, redactions) }
         composeRule.runOnIdle { secrets = CardSecretUiState.Loading("card-1") }
-        composeRule.onNodeWithContentDescription("Κινήσεις").performClick()
+        composeRule.onNode(
+            hasClickAction() and hasAnyDescendant(hasContentDescription("Κινήσεις")),
+            useUnmergedTree = true,
+        ).performClick()
         composeRule.runOnIdle {
             assertEquals(3, redactions)
             assertEquals(CardSecretUiState.Hidden(), secrets)
