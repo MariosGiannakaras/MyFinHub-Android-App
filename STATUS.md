@@ -65,7 +65,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 OPEN 6/8; W6.4 remains pending (23/24 Web-parity subtasks). PR #518 immutable head ac982db passed all six exact-head gates after retrying S24 shard 1 (first attempt Maven Central HTTP429), with clean reviews/base, and squash merged develop 6c6d94c (single initial remote PAN/CVV GET). No additional source CI-pending D7 PR. Public signed rc20/10019 predates merged corrections. D7 owner acceptance still blocked by real Galaxy S24 Recents/screen recording privacy, in-place signer/Play Protect and encrypted cache continuity, live GET /api/data HTTP400 INVALID_DATA and two missing Nov 12 credit-purchase links. No signed release, production finance mutation, or D8 promotion authorized.
+Next: D7 OPEN 6/8; W6.4 remains pending (23/24 Web-parity subtasks). PR #519 head af23ddb passed all six exact-head gates and merged develop b3e6709; mandatory UI checks now run for D7 tracking changes. 2026-11-22 read-only live Supabase: finance revision 499, 509 events and no selected structural leg/header anomalies; two 2026-11-12 expenses still lack credit-card linkage. This does not reproduce or clear owner-observed GET /api/data 400 INVALID_DATA. Public signed rc20/10019 predates source fixes. Owner real S24 privacy, in-place signer/Play Protect/encrypted cache continuity, live authenticated GET trace and credit-purchase reconciliation still block release. No backend write, new signed APK or D8 authorization.
 
 
 ## Active Web parity progress
