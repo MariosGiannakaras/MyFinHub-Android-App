@@ -277,6 +277,16 @@ internal fun MyFinHubAppContent(
         TopLevelDestination.PLAN -> planBackStack
         TopLevelDestination.INSIGHTS -> insightsBackStack
     }
+    val activeRoute = activeBackStack.lastOrNull() as? AppRoute
+
+    // The selected wallet card face is allowed to show owner+AAL2 PAN/CVV.
+    // Retire that privilege on every other route, not just when a card-detail
+    // composable happens to be disposed. hideSecrets also fences late GET replies.
+    LaunchedEffect(currentDestination, activeRoute) {
+        if (shouldHideCardSecretsForRoute(currentDestination, activeRoute)) {
+            onHideCardSecrets()
+        }
+    }
 
     fun openFastExpense(backStack: NavBackStack<NavKey>) {
         onQuickEntryAction(QuickEntryAction.Reset)
@@ -998,7 +1008,6 @@ internal fun MyFinHubAppContent(
         }
     }
 
-    val activeRoute = activeBackStack.lastOrNull() as? AppRoute
     if (activeRoute?.showsGlobalNavigation == true) {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
