@@ -178,6 +178,7 @@ fun MyFinHubRoot(
     var securityFeedback by remember { mutableStateOf<String?>(null) }
 
     val authState by authViewModel.state.collectAsStateWithLifecycle()
+    val networkStatus by financeViewModel.networkStatus.collectAsStateWithLifecycle()
     val observedFinanceState by financeViewModel.state.collectAsStateWithLifecycle()
     val attachedFinanceOnlineAuthority by financeViewModel.presentationOnlineAuthority.collectAsStateWithLifecycle()
     val financialProviderCatalog by financeViewModel.financialProviderCatalog.collectAsStateWithLifecycle()
@@ -198,18 +199,18 @@ fun MyFinHubRoot(
                 ready.session, allowAutomaticSync = !ready.offline,
             )
     } == true
-    val vaultSessionAuthorized = cardVaultPresentationAllowed(
-        authState,
-        activeAuthenticatedSession != null &&
-            cardSecretViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession),
-    )
+    val vaultSessionAuthorized = cardVaultServerAccessAllowed(authState, networkStatus) &&
+        cardVaultPresentationAllowed(
+            authState,
+            activeAuthenticatedSession != null &&
+                cardSecretViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession),
+        )
     val financeState = visibleFinanceStateForSession(financeSessionAuthorized, observedFinanceState)
     val cardSecretState = visibleCardSecretsForSession(vaultSessionAuthorized, observedCardSecretState)
     val cardSecretCleanupState = visibleCardCleanupForSession(
         vaultSessionAuthorized, observedCardSecretCleanupState,
     )
     val updateState by updateViewModel.state.collectAsStateWithLifecycle()
-    val networkStatus by financeViewModel.networkStatus.collectAsStateWithLifecycle()
     val lastSuccessfulSync by financeViewModel.lastSuccessfulSync.collectAsStateWithLifecycle()
     val latestFinanceState by rememberUpdatedState(financeState)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -281,9 +282,6 @@ fun MyFinHubRoot(
                     session = state.session,
                     allowAutomaticSync = !state.offline,
                 )
-                cardSecretViewModel.attachSession(
-                    state.session, allowServerAccess = !state.offline,
-                )
                 if (state.offline) {
                     updateViewModel.clearSession()
                 } else {
@@ -293,9 +291,20 @@ fun MyFinHubRoot(
             else -> {
                 // Finance clear is intentionally volatile-only; encrypted offline cache survives lock.
                 financeViewModel.clear()
-                cardSecretViewModel.clear()
                 updateViewModel.clearSession()
             }
+        }
+    }
+    // Network loss can occur while the auth shell remains online Ready. Independently
+    // revoke the remote vault and any revealed PAN/CVV when connectivity is not
+    // validated; reconnect never auto-reveals the old card.
+    LaunchedEffect(authState, networkStatus) {
+        when (val state = authState) {
+            is AuthShellUiState.Ready -> cardSecretViewModel.attachSession(
+                state.session,
+                allowServerAccess = cardVaultServerAccessAllowed(state, networkStatus),
+            )
+            else -> cardSecretViewModel.clear()
         }
     }
     // The server-saved finance marker survives process death. Resume vault cleanup only with

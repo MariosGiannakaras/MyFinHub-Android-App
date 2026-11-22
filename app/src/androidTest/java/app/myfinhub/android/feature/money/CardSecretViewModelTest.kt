@@ -3,6 +3,9 @@ package app.myfinhub.android.feature.money
 import android.app.Application
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import app.myfinhub.android.app.cardVaultServerAccessAllowed
+import app.myfinhub.android.core.network.NetworkStatus
+import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
@@ -155,6 +158,33 @@ class CardSecretViewModelTest {
 
         vm.attachSession(session, allowServerAccess = true)
         assertTrue(vm.matchesSensitivePresentationSession(session))
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(2, api.serverSecretReadCalls)
+    }
+
+    @Test
+    fun transportLossWithAuthenticatedReadyRedactsVaultAndRequiresExplicitReopen() = runBlocking {
+        val api = FakeCardApi()
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        val ready = AuthShellUiState.Ready(session)
+        vm.attachSession(session, allowServerAccess = cardVaultServerAccessAllowed(ready, NetworkStatus.ONLINE))
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(1, api.serverSecretReadCalls)
+
+        // Auth is still online Ready, but physical transport has disappeared.
+        vm.attachSession(session, allowServerAccess = cardVaultServerAccessAllowed(ready, NetworkStatus.OFFLINE))
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertFalse(vm.matchesSensitivePresentationSession(session))
+        vm.attachSession(session, allowServerAccess = cardVaultServerAccessAllowed(ready, NetworkStatus.UNKNOWN))
+        vm.reveal()
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+
+        vm.attachSession(session, allowServerAccess = cardVaultServerAccessAllowed(ready, NetworkStatus.ONLINE))
         assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
         assertEquals(1, api.serverSecretReadCalls)
         vm.openCard("card-1")

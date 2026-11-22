@@ -75,7 +75,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 OPEN 6/8. PR #514 passed all six exact-head CI gates and squash merged develop 5621add (same-bearer auth offline finance presentation corrected). D7 branch android/d7-session-metadata-revalidation-20261122 resets stale online device/provider/recurring snapshots on auth revalidation, fences late callbacks and reloads safely; exact-head CI/merge pending. Public rc20/10019 predates fixes. Physical S24 signer/Play Protect/Recents/card recording and encrypted installed-data continuity, real GET400 and two missing credit-purchase links still block release.
+Next: D7 OPEN 6/8. PR #515 exact-head 1f23d83 passed 6/6 CI gates and squash merged to develop f98a2ca (revalidated device/provider metadata with epoch-fenced callbacks). Branch android/d7-card-vault-network-revocation-20261122 addresses PAN/CVV still visible when physical connectivity becomes OFFLINE/UNKNOWN while auth stays online Ready; final-head six-gate CI and merge pending. The latest public signed rc20/10019 predates these source changes. Physical Galaxy S24 signer/Play Protect/Recents/recording and in-place encrypted cache continuity, real GET400 and two missing credit-purchase links still block release.
 
 
 ## Active Web parity progress

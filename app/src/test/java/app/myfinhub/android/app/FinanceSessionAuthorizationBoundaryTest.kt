@@ -2,6 +2,7 @@ package app.myfinhub.android.app
 
 import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.auth.AuthSession
+import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.money.CardSecretCleanupUiState
@@ -102,6 +103,19 @@ class FinanceSessionAuthorizationBoundaryTest {
         ))))
         assertFalse(mayPublishRootServerSnapshot(first, AuthShellUiState.Ready(first, offline = true)))
         assertFalse(mayPublishRootServerSnapshot(first, AuthShellUiState.Login()))
+    }
+
+    @Test fun physicalNetworkLossMasksVaultEvenWhileAuthShellRemainsOnlineReady() {
+        val ready = AuthShellUiState.Ready(first)
+        assertTrue(cardVaultServerAccessAllowed(ready, NetworkStatus.ONLINE))
+        assertFalse(cardVaultServerAccessAllowed(ready, NetworkStatus.OFFLINE))
+        assertFalse(cardVaultServerAccessAllowed(ready, NetworkStatus.UNKNOWN))
+        // A validated network does not make an offline-only auth token valid.
+        assertFalse(cardVaultServerAccessAllowed(
+            AuthShellUiState.Ready(first, offline = true), NetworkStatus.ONLINE,
+        ))
+        assertFalse(cardVaultServerAccessAllowed(AuthShellUiState.Login(), NetworkStatus.ONLINE))
+        assertFalse(cardVaultServerAccessAllowed(AuthShellUiState.Loading, NetworkStatus.ONLINE))
     }
 
     @Test fun offlineReadyMustMaskCardSecretsEvenWithSameOwnerBearerAndAal() {
