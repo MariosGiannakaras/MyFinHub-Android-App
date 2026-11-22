@@ -1237,7 +1237,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 OPEN 6/8. Live GitHub Releases now lists rc20/10019 (published 2026-11-19 23:56 UTC) as the newest signed prerelease; it is not confirmed installed or accepted on the owner's physical Galaxy S24 Ultra. Android develop PR #506 merged c306ab4 after 6/6 exact-head CI, adding offline mutation ID safety, durable recovery hold and per-owner encrypted v1 migration, but rc20's earlier release tag does NOT contain that newer code. Do not build/publish a new APK until the deep audit and independent owner physical D7 security, Play Protect, in-place preservation, real GET /api/data HTTP400 and historical credit-purchase evidence are resolved. W6.4 remains 5/6 (23/24), D8 protected release separate.",
+    "next_action": "D7 OPEN 6/8. PR #509 passed six exact-head gates and merged 75a42a8. New branch android/d7-auth-transition-finance-metadata-boundary-20261122 corrects same-owner bearer/AAL finance presentation and in-memory IBAN/history authorization; CI/merge pending. Public rc20/10019 predates these changes and remains unverified on the owner's S24. Real GET400, missing credit linkage, signer/Play Protect, Recents/screen-recording and installed-data continuity block any new signed release.",
     "stages": [
       {
         "id": "D1",
@@ -1873,8 +1873,8 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "27351d0231c24583a1ed8e33095034ea0681d677",
-      "status": "blocked_release_privacy_precompose_owner_bearer_mask_authored_ci_pending",
+      "baseline_develop": "75a42a8ce4ac459b25e49500cb6bbbf8567e312d",
+      "status": "blocked_release_auth_transition_followup_authored_ci_pending",
       "reviewed_domains": 7,
       "total_domains": 8,
       "release_cleared_domains": 0,
@@ -1946,13 +1946,18 @@
         {
           "severity": "P1",
           "kind": "auth_precompose_owner_privacy",
-          "detail": "Source-confirmed pre-LaunchedEffect frame could render old owner finance/card secret states after auth Ready switch. Exact session identity UI masks and immediate finance reset implemented in branch; CI, source merge and physical S24 owner transition checks pending."
+          "detail": "PR509 root pre-attach guard 6/6 exact-head CI passed and squash merged 75a42a8; physical owner S24 privacy acceptance remains unverified."
+        },
+        {
+          "severity": "P1",
+          "kind": "auth_postattach_same_owner_assurance_boundary",
+          "detail": "Source gap: same-owner bearer/AAL attachment preserved prior finance Ready and IBAN/history snapshot keys omitted AAL. Follow-up authored, final-head CI and merge pending."
         }
       ],
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
-      "ci_exact_head": "pr_508_d45d9b_all_6_success_squash_merged_27351d0",
-      "next_action": "Run final exact-head six CI checks (tracking, Android JVM/instrumented, Compose screenshots, S24 shards 0/1 and aggregate) for auth-bound pre-Compose privacy guard. Merge only if all green on same SHA and reviews/base clean. Physical S24 Recents/card recording/in-place continuity and live finance GET400/unlinked purchases independently block release; no new APK.",
+      "ci_exact_head": "pr_509_53b51b9_all_6_success_squash_merged_75a42a8",
+      "next_action": "Verify all six exact-head CI gates for new D7 same-owner bearer/AAL finance and IBAN/history boundary PR on branch android/d7-auth-transition-finance-metadata-boundary-20261122. Merge only after green gates, clean reviews and current base. Physical S24, real finance GET400 and historical card linkage remain blocked; no signed APK.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -2030,9 +2035,28 @@
           "app/src/test/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundaryTest.kt",
           "app/src/androidTest/java/app/myfinhub/android/feature/money/CardSecretViewModelTest.kt"
         ],
-        "status": "source_and_regression_tests_authored_ci_pending",
+        "status": "integrated_pr509_53b51b9_six_exact_head_checks_green_merge_75a42a8_physical_s24_pending",
         "owner_physical": "not_verified",
-        "installed_version": "public_rc20_does_not_include_this_change"
+        "installed_version": "public_rc20_does_not_include_this_change",
+        "pr_509": {
+          "head": "53b51b9952be2abbbdcbb91eb95c254f4bda3827",
+          "merged_commit": "75a42a8ce4ac459b25e49500cb6bbbf8567e312d",
+          "checks": "6_of_6_success"
+        }
+      },
+      "additional_auth_transition_guard": {
+        "finding": "Same-owner bearer/AAL reattachment could reauthorize old finance StateFlow.Ready; IBAN/account metadata and history keys omitted AAL.",
+        "source_paths": [
+          "app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt",
+          "app/src/main/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundary.kt",
+          "app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt"
+        ],
+        "regression_test": "app/src/test/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundaryTest.kt",
+        "mitigation": "Reset volatile finance presentation on each owner/bearer/AAL transition while preserving encrypted pending queue; use exact owner+bearer+AAL authorization for root server snapshots, IBAN write and late responses; refresh-only changes retain authority.",
+        "status": "source_authored_final_head_ci_pending",
+        "branch": "android/d7-auth-transition-finance-metadata-boundary-20261122",
+        "physical_owner_s24": "not_verified",
+        "signed_release": "not_authorized"
       }
     }
   }
