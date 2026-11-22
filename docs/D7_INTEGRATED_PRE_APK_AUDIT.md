@@ -274,6 +274,9 @@ online balances, while the auth shell had withdrawn server authority.
   flag as well as exact owner/bearer/AAL identity. Root checks the expected
   flag from the auth shell before composing, masking the stale pre-attachment
   frame; refresh-token-only changes do not revoke the same authority.
+- The attached online/offline flag is exposed via a separate reactive StateFlow,
+  allowing Compose to re-evaluate the root gate even when the finance Ready
+  state was already offline and would otherwise emit no new state on attach.
 - On same-session online-to-offline validation failure, synchronously
   re-label the current projection as offline and preserve in-flight saving
   guard and encrypted pending mutations. Set `reloadWhenOnline` so the
