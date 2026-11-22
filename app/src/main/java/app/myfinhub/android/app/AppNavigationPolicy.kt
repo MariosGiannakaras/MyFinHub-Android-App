@@ -28,3 +28,16 @@ internal val AppRoute.topLevelDestination: TopLevelDestination?
         AppRoute.Insights -> TopLevelDestination.INSIGHTS
         else -> null
     }
+
+/**
+ * Full card secrets belong only to the visible wallet card face or secure-card detail route.
+ * Other destinations (including card profile, editors and different primary tabs) must revoke
+ * already-loaded PAN/CVV and invalidate any in-flight response before the next frame is shown.
+ * The secure-details route owns its separate on-open/on-close read lifecycle.
+ */
+internal fun shouldHideCardSecretsForRoute(
+    destination: TopLevelDestination,
+    activeRoute: AppRoute?,
+): Boolean =
+    destination != TopLevelDestination.MONEY ||
+        (activeRoute != AppRoute.Money && activeRoute !is AppRoute.CardSecureDetails)
