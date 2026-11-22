@@ -315,12 +315,15 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             cancelOperations()
             repository.clear()
             reloadWhenOnline = true
+            // Revoke the previous bearer/AAL presentation synchronously, even
+            // for the same owner: attachment advances currentSession before
+            // asynchronous cache/server loading replaces the old UI state.
+            mutableState.value = financePresentationAfterAuthorizationChange(
+                previous, session, mutableState.value,
+            )
+            mutableLastSuccessfulSync.value = null
         }
         if (previous != null && previous.userId != session.userId) {
-            // Revoke the prior owner's visible finance BEFORE scheduling any
-            // new load. Otherwise StateFlow.Ready can leak in the interim frame.
-            mutableState.value = FinanceProductState.Idle
-            mutableLastSuccessfulSync.value = null
             lastServerDocument = null
             pendingMutations = emptyList()
             serverReadBlocked = false
