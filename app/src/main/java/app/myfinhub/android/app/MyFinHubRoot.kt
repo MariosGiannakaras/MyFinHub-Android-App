@@ -179,6 +179,7 @@ fun MyFinHubRoot(
 
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val observedFinanceState by financeViewModel.state.collectAsStateWithLifecycle()
+    val attachedFinanceOnlineAuthority by financeViewModel.presentationOnlineAuthority.collectAsStateWithLifecycle()
     val financialProviderCatalog by financeViewModel.financialProviderCatalog.collectAsStateWithLifecycle()
     val recurringServiceAssets by financeViewModel.recurringServiceAssets.collectAsStateWithLifecycle()
     val deviceSessions by financeViewModel.deviceSessions.collectAsStateWithLifecycle()
@@ -188,8 +189,15 @@ fun MyFinHubRoot(
     // Do not expose the old owner's finance, PAN/CVV or pending vault cleanup
     // even for one frame while a new owner/bearer/AAL has become authenticated.
     val activeAuthenticatedSession = (authState as? AuthShellUiState.Ready)?.session
-    val financeSessionAuthorized = activeAuthenticatedSession != null &&
-        financeViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession)
+    val financeSessionAuthorized = (authState as? AuthShellUiState.Ready)?.let { ready ->
+        // Attached online/offline authority is observable separately: if the
+        // cache was already offline, attaching the same bearer must still
+        // recompose this gate after failed online session revalidation.
+        attachedFinanceOnlineAuthority == !ready.offline &&
+            financeViewModel.matchesSensitivePresentationSession(
+                ready.session, allowAutomaticSync = !ready.offline,
+            )
+    } == true
     val vaultSessionAuthorized = cardVaultPresentationAllowed(
         authState,
         activeAuthenticatedSession != null &&

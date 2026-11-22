@@ -122,6 +122,42 @@ class FinanceSessionAuthorizationBoundaryTest {
         assertFalse(mayRunCardVaultCleanupForAuth(AuthShellUiState.Login(), true, true))
     }
 
+    @Test fun sameBearerOfflineAuthRevalidationRevokesOnlineFinanceEvenWithNetwork() {
+        assertTrue(financeValidatedOnlineAuthorityRevoked(first, first, true, false))
+        assertTrue(financeValidatedOnlineAuthorityRevoked(
+            first, first.copy(refreshToken = "refreshed-only"), true, false,
+        ))
+        assertFalse(financeValidatedOnlineAuthorityRevoked(first, first, false, true))
+        assertFalse(financeValidatedOnlineAuthorityRevoked(first, first, false, false))
+        assertFalse(financeValidatedOnlineAuthorityRevoked(null, first, true, false))
+        assertFalse(financeValidatedOnlineAuthorityRevoked(
+            first, first.copy(accessToken = "new-bearer"), true, false,
+        ))
+        assertFalse(financeValidatedOnlineAuthorityRevoked(
+            first, first.copy(userId = "new-owner"), true, false,
+        ))
+        assertFalse(financeValidatedOnlineAuthorityRevoked(
+            first, first.copy(assuranceLevel = AssuranceLevel.AAL1), true, false,
+        ))
+    }
+
+    @Test fun financePresentationRequiresExactOnlineOrOfflineAuthAuthority() {
+        assertTrue(financePresentationMatchesAuthority(first, first, true, true))
+        assertTrue(financePresentationMatchesAuthority(first, first, false, false))
+        assertTrue(financePresentationMatchesAuthority(
+            first.copy(refreshToken = "rotated-refresh"), first, true, true,
+        ))
+        assertFalse(financePresentationMatchesAuthority(first, first, true, false))
+        assertFalse(financePresentationMatchesAuthority(first, first, false, true))
+        assertFalse(financePresentationMatchesAuthority(
+            first.copy(accessToken = "different-bearer"), first, false, false,
+        ))
+        assertFalse(financePresentationMatchesAuthority(
+            first.copy(assuranceLevel = AssuranceLevel.AAL1), first, false, false,
+        ))
+        assertFalse(financePresentationMatchesAuthority(null, first, false, false))
+    }
+
     @Test fun delayedServerMetadataAndDeviceCallbacksRequireExactOnlineSession() {
         assertTrue(sessionScopedFinanceCallbackAuthorized(first, first, true))
         assertTrue(sessionScopedFinanceCallbackAuthorized(first.copy(refreshToken = "refreshed"), first, true))

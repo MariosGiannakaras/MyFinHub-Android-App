@@ -15,6 +15,29 @@ internal fun financeSessionAuthorizationChanged(
         previous.assuranceLevel != incoming.assuranceLevel
 )
 
+/** A same-bearer auth validation failure can downgrade server authority even when
+ * connectivity is still VALIDATED. An owner/bearer/AAL change has its separate
+ * reset path, so do not republish that prior owner's projection here.
+ */
+internal fun financeValidatedOnlineAuthorityRevoked(
+    previous: AuthSession?,
+    incoming: AuthSession,
+    previousAllowsOnline: Boolean,
+    incomingAllowsOnline: Boolean,
+): Boolean = previous != null && previousAllowsOnline && !incomingAllowsOnline &&
+    !financeSessionAuthorizationChanged(previous, incoming)
+
+/** Offline auth and validated-online auth are distinct presentation authorities.
+ * A matched bearer alone is insufficient during the pre-attachment Compose frame.
+ */
+internal fun financePresentationMatchesAuthority(
+    attached: AuthSession?,
+    expected: AuthSession?,
+    attachedAllowsOnline: Boolean,
+    expectedAllowsOnline: Boolean,
+): Boolean = attachedAllowsOnline == expectedAllowsOnline &&
+    app.myfinhub.android.core.auth.matchesSensitiveUiSession(attached, expected)
+
 /**
  * Root Compose can observe an authenticated owner before the side effect that
  * rebinds ViewModels. An older Ready/AuthRejected must not be rendered or used

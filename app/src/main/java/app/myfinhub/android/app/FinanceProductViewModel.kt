@@ -276,6 +276,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
      */
     private var currentSession: AuthSession? = null
     private var automaticSyncAllowed = true
+    // Observe authority changes even when Ready was already offline and its
+    // StateFlow value would not change during auth revalidation failure.
+    private val mutablePresentationOnlineAuthority = MutableStateFlow<Boolean?>(null)
+    val presentationOnlineAuthority: StateFlow<Boolean?> =
+        mutablePresentationOnlineAuthority.asStateFlow()
     private var lastServerDocument: CanonicalFinanceDocument? = null
     private var pendingMutations: List<PendingCanonicalMutationIntent> = emptyList()
     private var reloadWhenOnline = false
@@ -289,9 +294,13 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var deviceSessionsJob: Job? = null
     private var deviceRevokeJob: Job? = null
 
-    /** Read-only session authority for the Compose frame before LaunchedEffect attaches it. */
-    fun matchesSensitivePresentationSession(session: AuthSession): Boolean =
-        matchesSensitiveUiSession(currentSession, session)
+    /** Check both the bearer identity and whether this attachment is online-validated. */
+    fun matchesSensitivePresentationSession(
+        session: AuthSession,
+        allowAutomaticSync: Boolean = true,
+    ): Boolean = financePresentationMatchesAuthority(
+        currentSession, session, automaticSyncAllowed, allowAutomaticSync,
+    )
 
     init {
         viewModelScope.launch {
@@ -331,6 +340,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     fun attachSession(session: AuthSession, allowAutomaticSync: Boolean = true) {
         val previous = currentSession
+        val onlineAuthorityRevoked = financeValidatedOnlineAuthorityRevoked(
+            previous, session, automaticSyncAllowed, allowAutomaticSync,
+        )
         // A refreshed bearer for the SAME owner is still a new authorization
         // boundary. An old in-flight GET/POST must never satisfy or block the
         // new token's load. Stable queued writes are already stored locally;
@@ -360,6 +372,21 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
         currentSession = session
         automaticSyncAllowed = allowAutomaticSync
+        mutablePresentationOnlineAuthority.value = allowAutomaticSync
+        if (onlineAuthorityRevoked) {
+            // Auth revalidation can fail without Android losing connectivity.
+            // Revoke the old online provenance even for the SAME bearer/AAL.
+            reloadWhenOnline = true
+            val existing = mutableState.value as? FinanceProductState.Ready
+            if (existing != null && !existing.offline) {
+                mutableState.value = readyForProjection(
+                    projection = existing.projection,
+                    saving = existing.saving,
+                    offline = true,
+                    issue = existing.issue,
+                )
+            }
+        }
         if (previous?.userId != session.userId || previous.accessToken != session.accessToken ||
             mutableFinancialProviderCatalog.value.isEmpty()) {
             refreshFinancialProviderCatalog(session)
@@ -396,6 +423,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         deviceRevokeJob = null
         mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
         automaticSyncAllowed = true
+        mutablePresentationOnlineAuthority.value = null
         lastServerDocument = null
         pendingMutations = emptyList()
         reloadWhenOnline = false
