@@ -15,11 +15,6 @@ internal fun financeSessionAuthorizationChanged(
         previous.assuranceLevel != incoming.assuranceLevel
 )
 
-/**
- * Root Compose can observe an authenticated owner before the side effect that
- * rebinds ViewModels. An older Ready/AuthRejected must not be rendered or used
- * for cross-session decisions during that frame.
- */
 /** A same-bearer auth validation failure can downgrade server authority even when
  * connectivity is still VALIDATED. An owner/bearer/AAL change has its separate
  * reset path, so do not republish that prior owner's projection here.
@@ -43,6 +38,11 @@ internal fun financePresentationMatchesAuthority(
 ): Boolean = attachedAllowsOnline == expectedAllowsOnline &&
     app.myfinhub.android.core.auth.matchesSensitiveUiSession(attached, expected)
 
+/**
+ * Root Compose can observe an authenticated owner before the side effect that
+ * rebinds ViewModels. An older Ready/AuthRejected must not be rendered or used
+ * for cross-session decisions during that frame.
+ */
 internal fun visibleFinanceStateForSession(
     authorized: Boolean,
     observed: FinanceProductState,
