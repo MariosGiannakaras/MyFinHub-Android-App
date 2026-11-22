@@ -199,6 +199,15 @@ internal fun financePendingCounts(
  * Only cached finance reads from a previously authenticated owner may survive
  * non-auth server read failures; never bypass local PIN, server auth or MFA.
  */
+/** Cached finance cannot be presented as freshly server-confirmed while disconnected
+ * or during the first GET after reconnect. Only a successful accepted GET or write
+ * can end this provisional presentation while online authority is still valid.
+ */
+internal fun financeSnapshotRequiresRevalidation(
+    previousOffline: Boolean,
+    networkStatus: NetworkStatus,
+): Boolean = previousOffline || networkStatus != NetworkStatus.ONLINE
+
 internal fun financeReadFailureMayUseCache(kind: ApiFailureKind): Boolean = when (kind) {
     ApiFailureKind.AUTH_REQUIRED, ApiFailureKind.MFA_REQUIRED, ApiFailureKind.FORBIDDEN,
     ApiFailureKind.BUILD_NOT_CONFIGURED,
@@ -290,7 +299,25 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     init {
         viewModelScope.launch {
             networkStatus.drop(1).collect { status ->
-                if (status != NetworkStatus.ONLINE || !automaticSyncAllowed || currentSession == null) return@collect
+                if (status != NetworkStatus.ONLINE) {
+                    if (currentSession != null && automaticSyncAllowed) {
+                        // Connectivity loss makes the last accepted snapshot a cache,
+                        // not a fresh server read. Keep in-flight money writes blocked
+                        // by their existing saving state and require a verified GET.
+                        reloadWhenOnline = true
+                        val existing = mutableState.value as? FinanceProductState.Ready
+                        if (existing != null && !existing.offline) {
+                            mutableState.value = readyForProjection(
+                                projection = existing.projection,
+                                saving = existing.saving,
+                                offline = true,
+                                issue = existing.issue,
+                            )
+                        }
+                    }
+                    return@collect
+                }
+                if (!automaticSyncAllowed || currentSession == null) return@collect
                 val ready = mutableState.value as? FinanceProductState.Ready
                 if (mutableFinancialProviderCatalog.value.isEmpty()) {
                     currentSession?.let(::refreshFinancialProviderCatalog)
@@ -1695,6 +1722,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         previousProjection: CanonicalProductProjection?,
         includeNeedsReview: Boolean,
     ) {
+        val previousOffline = (mutableState.value as? FinanceProductState.Ready)?.offline == true
         mutableState.value = if (previousProjection == null && lastServerDocument == null) {
             FinanceProductState.Loading
         } else {
@@ -1703,7 +1731,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     document = applyAllPending(document),
                     previous = previousProjection,
                     saving = true,
-                    offline = false,
+                    offline = financeSnapshotRequiresRevalidation(
+                        previousOffline, connectivityObserver.current(),
+                    ),
                 )
             } ?: FinanceProductState.Loading
         }
@@ -1714,6 +1744,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 serverReadBlocked = false
                 lastServerDocument = loaded.envelope.document
                 recordSuccessfulSync(loaded.envelope.lastSavedAt)
+                val disconnectedDuringRead = connectivityObserver.current() != NetworkStatus.ONLINE ||
+                    !automaticSyncAllowed
+                if (disconnectedDuringRead) reloadWhenOnline = true
                 reconcileCommittedPending(loaded.envelope.document)
                 persistLocalSnapshot()
 
@@ -1730,7 +1763,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                         eligible = eligible,
                     )
                 } else {
-                    renderLocalState(previous = previousProjection, offline = false)
+                    renderLocalState(previous = previousProjection, offline = disconnectedDuringRead)
                 }
             }
             is FinanceSyncState.Error -> {
@@ -1794,9 +1827,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 pendingMutations = pendingMutations.filterNot { it.intentId in eligibleIds }
                 lastServerDocument = saved.envelope.document
                 recordSuccessfulSync(saved.envelope.lastSavedAt)
+                val disconnectedDuringWrite = !hasOnlineSession()
+                if (disconnectedDuringWrite) reloadWhenOnline = true
                 reconcileCommittedPending(saved.envelope.document)
                 persistLocalSnapshot()
-                renderLocalState(previousProjection, offline = false)
+                renderLocalState(previousProjection, offline = disconnectedDuringWrite)
             }
             is FinanceSyncState.Conflict -> {
                 persistLocalSnapshot()
@@ -1945,6 +1980,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 pendingMutations = pendingMutations.filterNot { it.intentId == inFlightIntent.intentId }
                 lastServerDocument = saved.envelope.document
                 recordSuccessfulSync(saved.envelope.lastSavedAt)
+                val disconnectedDuringWrite = !hasOnlineSession()
+                if (disconnectedDuringWrite) reloadWhenOnline = true
                 persistLocalSnapshot()
 
                 var committedProjection = projectCanonicalProduct(
@@ -1965,7 +2002,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 mutableState.value = readyForProjection(
                     projection = committedProjection,
                     saving = false,
-                    offline = false,
+                    offline = disconnectedDuringWrite,
                 )
             }
             is FinanceSyncState.Conflict -> {
