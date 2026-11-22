@@ -2,6 +2,7 @@ package app.myfinhub.android.core.data
 
 import android.content.Context
 import android.util.Base64
+import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -70,9 +71,19 @@ class EncryptedFinanceLocalStore(
     private val context: Context,
     private val cipher: SecureValueCipher = AndroidKeystoreCipher("myfinhub.finance-offline.aes.v1"),
     private val json: Json = Json { ignoreUnknownKeys = true },
+    private val preferencesStore: DataStore<Preferences> = context.financeOfflineDataStore,
 ) {
     suspend fun load(userId: String): FinanceLocalSnapshot? {
-        val preferences = context.financeOfflineDataStore.data.first()
+        // The DataStore read itself may throw (I/O or unreadable preference file),
+        // before any encrypted IV/ciphertext is available. That is NOT an empty
+        // local queue: fail closed so the ViewModel cannot GET/replay/overwrite it.
+        val preferences = try {
+            preferencesStore.data.first()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            throw FinanceLocalRestoreException()
+        }
         val ownerSlot = ownerFinanceCacheSlot(userId)
         // A new owner must never replace another owner's encrypted pending
         // changes in the historical single-slot v1 store. Prefer an existing
@@ -175,7 +186,15 @@ class EncryptedFinanceLocalStore(
     }
 
     private suspend fun holdForRecovery(key: Preferences.Key<Boolean>) {
-        context.financeOfflineDataStore.edit { it[key] = true }
+        try {
+            preferencesStore.edit { it[key] = true }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // Even if a broken preferences file prevents persisting the hold,
+            // never let this load attempt become an empty-cache success.
+            throw FinanceLocalRestoreException()
+        }
     }
 
     suspend fun save(snapshot: FinanceLocalSnapshot) {
@@ -221,7 +240,7 @@ class EncryptedFinanceLocalStore(
             plaintext.fill(0)
         }
         val ownerSlot = ownerFinanceCacheSlot(snapshot.userId)
-        context.financeOfflineDataStore.edit { preferences ->
+        preferencesStore.edit { preferences ->
             if (preferences[RECOVERY_HOLD_KEY] == true ||
                 preferences[ownerSlot.hold] == true
             ) throw FinanceLocalRestoreException()
@@ -234,7 +253,7 @@ class EncryptedFinanceLocalStore(
 
     /** Explicit destructive reset of ALL owners. Never called automatically by load/session changes. */
     suspend fun clear() {
-        context.financeOfflineDataStore.edit { preferences -> preferences.clear() }
+        preferencesStore.edit { preferences -> preferences.clear() }
     }
 
     @Serializable

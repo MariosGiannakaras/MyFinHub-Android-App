@@ -54,3 +54,34 @@ Merged PRs #502 (card payment wording), #503 (Card Detail goldens), #504 (Activi
 **Latest published candidate reconciliation — 2026-11-22.** Public GitHub Releases records `v1.0.0-rc20` / versionCode `10019` published on **2026-11-19 23:56 UTC** (2026-11-20 Greece time), newer than rc19. The direct APK asset is `MyFinHub-1.0.0-rc20-10019.apk`, **4,012,124 bytes**, with GitHub asset digest SHA-256 `f64c3bc9c2e6972896ab1ca3429ea6ef6c29fdd1e2a58f4ab0cddc70f1b23f6f`. The tag points to source commit `0285a8724605c025e39a049884bf552484c0fea7`. The release page describes an enrolled-signer direct APK and a Play-policy AAB, but this public metadata **does not** prove which APK is installed, its physical signer continuity, Play Protect disposition, real Galaxy S24 Ultra capture protection, preserved user data, GET /api/data or historical card purchase linkage. The rc20 owner test remains **not assessed**. Earlier rc19 observation remains historical evidence, not an alternative current release pointer. No new build or signing requested.
 
 **Read-only phone preflight:** `scripts/s24_physical_preflight.py --expected-version-code 10019 --json` now accepts precisely the known rc20 code/name pair, while older rc19 is reported as older and unknown rc21 remains unrecognized. The output never claims signer verification, physical acceptance or Play Protect clearance. Do not install, bypass protection, inspect card secrets or collect credentials as part of this preflight. The 8-domain release decision remains **BLOCKED**.
+
+
+## 03e additional failure-mode review: unreadable encrypted DataStore
+
+**Confirmed source gap at the installed-file boundary.** The #506 encrypted-cache recovery
+hold began *after* `context.financeOfflineDataStore.data.first()` returned. If reading
+the preferences file itself throws an I/O or corruption exception, that error bypassed
+`FinanceLocalRestoreException`, which is the ViewModel's fail-closed signal. A
+failed `holdForRecovery()` write could likewise leak a raw storage exception instead
+of the recovery signal. This is a structural gap, not proof that the owner's phone
+currently has a corrupted DataStore.
+
+**Correction in PR #508 candidate:** Convert non-cancellation read and hold-write
+failures into `FinanceLocalRestoreException`, preserving `CancellationException`
+semantics. The existing `FinanceProductViewModel.loadFresh` handler can then refuse
+server GET/queued write/replay, clear only volatile finance state and show its
+nonretryable owner-guidance message that explicitly distinguishes no app-initiated deletion from guaranteed recoverability. The encrypted preferences file is **not cleared
+or replaced**. When the underlying DataStore is unwritable, a durable hold cannot
+be claimed to exist; the current attempt still fails closed. Recovery from actual
+corruption is not implemented.
+
+**Hermetic Android regressions authored:** inject a DataStore whose read throws
+`IOException` while another valid cache retains its queued intent; inject a partial
+owner slot whose hold write also throws; verify original IV/ciphertext and queued
+work remain unchanged; verify cancellation is propagated, not mislabeled as
+corruption. The existing owner-scoped/v1 migration and other #506 checks remain
+unchanged. These new tests are **not yet CI-verified or merged**.
+
+**Gate:** owner physical S24 encrypted-install upgrade/capture/Recents, real finance
+GET and historical card-linkage evidence are still independent blockers. Neither
+this source correction nor hosted emulator testing authorizes a new signed APK.

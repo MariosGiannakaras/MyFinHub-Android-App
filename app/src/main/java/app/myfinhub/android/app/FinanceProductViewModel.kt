@@ -1641,7 +1641,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 mutableLastSuccessfulSync.value = null
                 repository.clear()
                 mutableState.value = FinanceProductState.Failure(
-                    "Η κρυπτογραφημένη τοπική αποθήκευση δεν ανακτήθηκε. Τα δεδομένα διατηρήθηκαν στη συσκευή. Μην διαγράψεις τα δεδομένα της εφαρμογής· απαιτείται έλεγχος ανάκτησης πριν από νέο συγχρονισμό.",
+                    "Η κρυπτογραφημένη τοπική αποθήκευση δεν διαβάστηκε με ασφάλεια. Η εφαρμογή δεν διέγραψε τα δεδομένα, αλλά δεν έχει επιβεβαιωθεί ότι ανακτώνται. Μην διαγράψεις τα δεδομένα της εφαρμογής· απαιτείται έλεγχος πριν από νέο συγχρονισμό.",
                     retryable = false,
                 )
                 mutableNotices.emit(UserNotice(
