@@ -193,11 +193,11 @@ fun MyFinHubRoot(
         financeViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession)
     val vaultSessionAuthorized = activeAuthenticatedSession != null &&
         cardSecretViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession)
-    val financeState = if (financeSessionAuthorized) observedFinanceState else FinanceProductState.Loading
-    val cardSecretState = if (vaultSessionAuthorized) observedCardSecretState
-        else CardSecretUiState.Hidden()
-    val cardSecretCleanupState = if (vaultSessionAuthorized) observedCardSecretCleanupState
-        else CardSecretCleanupUiState.Idle
+    val financeState = visibleFinanceStateForSession(financeSessionAuthorized, observedFinanceState)
+    val cardSecretState = visibleCardSecretsForSession(vaultSessionAuthorized, observedCardSecretState)
+    val cardSecretCleanupState = visibleCardCleanupForSession(
+        vaultSessionAuthorized, observedCardSecretCleanupState,
+    )
     val updateState by updateViewModel.state.collectAsStateWithLifecycle()
     val networkStatus by financeViewModel.networkStatus.collectAsStateWithLifecycle()
     val lastSuccessfulSync by financeViewModel.lastSuccessfulSync.collectAsStateWithLifecycle()
