@@ -20,6 +20,18 @@ internal fun financeSessionAuthorizationChanged(
  * rebinds ViewModels. An older Ready/AuthRejected must not be rendered or used
  * for cross-session decisions during that frame.
  */
+/** A same-bearer auth validation failure can downgrade server authority even when
+ * connectivity is still VALIDATED. An owner/bearer/AAL change has its separate
+ * reset path, so do not republish that prior owner's projection here.
+ */
+internal fun financeValidatedOnlineAuthorityRevoked(
+    previous: AuthSession?,
+    incoming: AuthSession,
+    previousAllowsOnline: Boolean,
+    incomingAllowsOnline: Boolean,
+): Boolean = previous != null && previousAllowsOnline && !incomingAllowsOnline &&
+    !financeSessionAuthorizationChanged(previous, incoming)
+
 /** Offline auth and validated-online auth are distinct presentation authorities.
  * A matched bearer alone is insufficient during the pre-attachment Compose frame.
  */
