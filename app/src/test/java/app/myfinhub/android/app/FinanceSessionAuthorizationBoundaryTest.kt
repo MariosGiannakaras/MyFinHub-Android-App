@@ -158,6 +158,36 @@ class FinanceSessionAuthorizationBoundaryTest {
         assertFalse(financePresentationMatchesAuthority(null, first, false, false))
     }
 
+    @Test fun serverScopedMetadataRevokedOnOfflineAuthEvenWithSameBearerAndValidatedNetwork() {
+        assertTrue(financeServerMetadataAuthorityChanged(first, first, true, false))
+        assertTrue(financeServerMetadataAuthorityChanged(first, first, false, true))
+        assertTrue(financeServerMetadataAuthorityChanged(
+            first, first.copy(refreshToken = "new-refresh"), true, false,
+        ))
+        // A refresh-token-only update must not discard a still-valid picker.
+        assertFalse(financeServerMetadataAuthorityChanged(
+            first, first.copy(refreshToken = "new-refresh"), true, true,
+        ))
+        assertFalse(financeServerMetadataAuthorityChanged(first, first, true, true))
+        assertFalse(financeServerMetadataAuthorityChanged(first, first, false, false))
+        assertFalse(financeServerMetadataAuthorityChanged(null, first, true, false))
+    }
+
+    @Test fun ownerBearerAndAalTransitionsAlwaysInvalidateOldDeviceMetadata() {
+        assertTrue(financeServerMetadataAuthorityChanged(
+            first, first.copy(userId = "other-owner"), true, true,
+        ))
+        assertTrue(financeServerMetadataAuthorityChanged(
+            first, first.copy(accessToken = "new-bearer"), true, true,
+        ))
+        assertTrue(financeServerMetadataAuthorityChanged(
+            first, first.copy(assuranceLevel = AssuranceLevel.AAL1), true, true,
+        ))
+        assertTrue(financeServerMetadataAuthorityChanged(
+            first, first.copy(userId = "other-owner"), false, false,
+        ))
+    }
+
     @Test fun delayedServerMetadataAndDeviceCallbacksRequireExactOnlineSession() {
         assertTrue(sessionScopedFinanceCallbackAuthorized(first, first, true))
         assertTrue(sessionScopedFinanceCallbackAuthorized(first.copy(refreshToken = "refreshed"), first, true))
