@@ -453,3 +453,49 @@ credit-purchase rows need separate read-only forensic evidence and an explicitly
 approved production correction. Public signed rc20/10019 predates the current
 merged source and does not validate it. No signed candidate, destructive
 in-place installation, live financial write or D8 release is authorized.
+
+## 2026-11-22 read-only live finance forensic checkpoint (after merged #519)
+
+**Evidence class: authenticated Supabase project metadata/SQL inspection, not
+an owner-authenticated HTTP GET or a physical Android run.** The linked
+Supabase project reported ACTIVE_HEALTHY. All queries were SELECT-only and
+returned *aggregate metadata*; no transaction payload, identity, PIN,
+credentials, financial amounts or secret card values were exported.
+
+The current stored finance state has revision **499**, relational_v1 mode,
+and latest app_state update **2026-11-19 19:16:31 UTC**. The deployed database
+function `public.rheomiq_read_state` calls owner/AAL access checking and then
+`private.rheomiq_effective_data`; that stable composition function rebuilds
+cards/statements/events from private normalized tables. Direct read-only SQL
+composed one schema-v3 `RheomIQ` JSON document of **275,926 UTF-8 bytes**,
+with **509 events, 6 active card records, 0 deleted-card records and
+13 credit statements**. The read-only direct SQL composition is **not** a
+proof that the owner-AAL2 `/api/data` REST route succeeds.
+
+Focused consistency queries against all **509** relational event headers and
+their linked legs found: **0** header-kind / JSON kind mismatches, **0**
+event-date / JSON date mismatches, **0** non-positive header amounts,
+**0** invalid leg account/zero leg values, **0** unexpected leg cardinalities,
+and **0** card-purchase / card-payment sign-sum or card-ID anomalies under
+their specific Web semantics. These are *selected structural checks*, not a
+full `validateCompleteFinanceData` replay or general ledger certification.
+
+**Credit-specific evidence:** the current private ledger has **10**
+`card_purchase` records and **9** `card_payment` records, each kind's
+latest recorded event date **2026-11-18**. Exactly **two** rows have event
+date **2026-11-12**. Both are `expense` and neither has cardId,
+statementId, a `funding` field or a nonzero creditDelta. They cannot be
+counted as confirmed credit-card purchases. Do not infer these must be the
+owner's two expected transactions, or automatically migrate/link them.
+
+**Boundaries and next evidence:** The historical owner-captured
+`GET /api/data` 400 `INVALID_DATA` has not been reproduced or disproven;
+the original Vercel runtime request log has expired. `server/storage.ts`
+shows the response may be mapped from an upstream invalid-data RPC or
+thrown by server-side structural/domain validation after the data read.
+Neither failure location can be established from the present SQL aggregates.
+A fresh *owner-authorized* real request with sanitized status/request ID and
+matched runtime error diagnostics is required. No backend data mutation,
+reclassification, destructive recovery, public release, or signed APK is
+authorized by this checkpoint. Physical Galaxy S24 Ultra W6.4 and D7/D8
+acceptance still block release.
