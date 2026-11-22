@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.auth.AssuranceLevel
+import app.myfinhub.android.core.auth.matchesSensitiveUiSession
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.AppendCanonicalEvent
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
@@ -282,6 +283,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var deviceSessionsJob: Job? = null
     private var deviceRevokeJob: Job? = null
 
+    /** Read-only session authority for the Compose frame before LaunchedEffect attaches it. */
+    fun matchesSensitivePresentationSession(session: AuthSession): Boolean =
+        matchesSensitiveUiSession(currentSession, session)
+
     init {
         viewModelScope.launch {
             networkStatus.drop(1).collect { status ->
@@ -312,6 +317,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             reloadWhenOnline = true
         }
         if (previous != null && previous.userId != session.userId) {
+            // Revoke the prior owner's visible finance BEFORE scheduling any
+            // new load. Otherwise StateFlow.Ready can leak in the interim frame.
+            mutableState.value = FinanceProductState.Idle
+            mutableLastSuccessfulSync.value = null
             lastServerDocument = null
             pendingMutations = emptyList()
             serverReadBlocked = false
