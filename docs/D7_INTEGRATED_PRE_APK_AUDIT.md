@@ -70,7 +70,7 @@ currently has a corrupted DataStore.
 failures into `FinanceLocalRestoreException`, preserving `CancellationException`
 semantics. The existing `FinanceProductViewModel.loadFresh` handler can then refuse
 server GET/queued write/replay, clear only volatile finance state and show its
-nonretryable owner-guidance message. The encrypted preferences file is **not cleared
+nonretryable owner-guidance message that explicitly distinguishes no app-initiated deletion from guaranteed recoverability. The encrypted preferences file is **not cleared
 or replaced**. When the underlying DataStore is unwritable, a durable hold cannot
 be claimed to exist; the current attempt still fails closed. Recovery from actual
 corruption is not implemented.
