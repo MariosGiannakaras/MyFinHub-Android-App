@@ -59,3 +59,10 @@ internal fun sessionScopedFinanceCallbackAuthorized(
     expected: AuthSession,
     automaticSyncAllowed: Boolean,
 ): Boolean = automaticSyncAllowed && app.myfinhub.android.core.auth.matchesSensitiveUiSession(attached, expected)
+
+/** Offline-ready permits encrypted finance cache, not previously fetched card PAN/CVV. */
+internal fun cardVaultPresentationAllowed(
+    authState: app.myfinhub.android.feature.auth.AuthShellUiState,
+    attachedSessionMatches: Boolean,
+): Boolean = attachedSessionMatches &&
+    (authState as? app.myfinhub.android.feature.auth.AuthShellUiState.Ready)?.offline == false
