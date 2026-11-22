@@ -66,3 +66,20 @@ internal fun cardVaultPresentationAllowed(
     attachedSessionMatches: Boolean,
 ): Boolean = attachedSessionMatches &&
     (authState as? app.myfinhub.android.feature.auth.AuthShellUiState.Ready)?.offline == false
+
+/**
+ * A server-confirmed cleanup marker is usable only when BOTH finance and vault
+ * controllers are attached to the current online AAL2 owner/bearer.
+ * The shell becomes Ready before LaunchedEffect attaches these controllers.
+ */
+internal fun mayRunCardVaultCleanupForAuth(
+    authState: app.myfinhub.android.feature.auth.AuthShellUiState,
+    financeSessionAuthorized: Boolean,
+    vaultSessionAuthorized: Boolean,
+): Boolean {
+    val ready = authState as? app.myfinhub.android.feature.auth.AuthShellUiState.Ready
+        ?: return false
+    return !ready.offline &&
+        ready.session.assuranceLevel == app.myfinhub.android.core.auth.AssuranceLevel.AAL2 &&
+        financeSessionAuthorized && vaultSessionAuthorized
+}
