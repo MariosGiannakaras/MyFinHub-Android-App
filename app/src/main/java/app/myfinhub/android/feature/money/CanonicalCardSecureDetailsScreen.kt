@@ -53,6 +53,7 @@ fun CanonicalCardSecureDetailsScreen(
     cardId: String,
     card: MoneyCard?,
     secretState: CardSecretUiState,
+    serverAccessAllowed: Boolean = true,
     onReveal: () -> Unit,
     onSaveServerSecrets: (CharArray, CharArray) -> Unit,
     onSaveCvv: (CharArray) -> Unit,
@@ -112,7 +113,9 @@ fun CanonicalCardSecureDetailsScreen(
     }
 
     LaunchedEffect(cardId, cardAvailable) {
-        if (cardAvailable) onReveal()
+        // Reconnection is not a new screen opening: never auto-reveal after
+        // a network/auth downgrade. The Hidden state offers explicit retry.
+        if (cardAvailable && serverAccessAllowed) onReveal()
     }
 
     fun closeDetailsSurface() {
@@ -239,8 +242,17 @@ fun CanonicalCardSecureDetailsScreen(
 
                     when (relevantState) {
                         is CardSecretUiState.Hidden -> {
-                            CircularProgressIndicator()
-                            Text("Φόρτωση στοιχείων κάρτας…")
+                            if (serverAccessAllowed) {
+                                Text("Τα ασφαλή στοιχεία είναι κρυφά. Επίλεξε προβολή για νέα ανάκτηση.")
+                                MyFinHubPrimaryAction(
+                                    label = "Προβολή στοιχείων",
+                                    onClick = onReveal,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    icon = null,
+                                )
+                            } else {
+                                Text("Απαιτείται επιβεβαιωμένη online σύνδεση για προβολή των ασφαλών στοιχείων.")
+                            }
                         }
                         is CardSecretUiState.Saving -> {
                             CircularProgressIndicator()
