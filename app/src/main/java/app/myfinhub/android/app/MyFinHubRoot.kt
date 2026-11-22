@@ -179,12 +179,25 @@ fun MyFinHubRoot(
     var securityFeedback by remember { mutableStateOf<String?>(null) }
 
     val authState by authViewModel.state.collectAsStateWithLifecycle()
-    val financeState by financeViewModel.state.collectAsStateWithLifecycle()
+    val observedFinanceState by financeViewModel.state.collectAsStateWithLifecycle()
     val financialProviderCatalog by financeViewModel.financialProviderCatalog.collectAsStateWithLifecycle()
     val recurringServiceAssets by financeViewModel.recurringServiceAssets.collectAsStateWithLifecycle()
     val deviceSessions by financeViewModel.deviceSessions.collectAsStateWithLifecycle()
-    val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
-    val cardSecretCleanupState by cardSecretViewModel.cleanupState.collectAsStateWithLifecycle()
+    val observedCardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
+    val observedCardSecretCleanupState by cardSecretViewModel.cleanupState.collectAsStateWithLifecycle()
+    // LaunchedEffect(session) attaches ViewModels AFTER this frame was composed.
+    // Do not expose the old owner's finance, PAN/CVV or pending vault cleanup
+    // even for one frame while a new owner/bearer/AAL has become authenticated.
+    val activeAuthenticatedSession = (authState as? AuthShellUiState.Ready)?.session
+    val financeSessionAuthorized = activeAuthenticatedSession != null &&
+        financeViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession)
+    val vaultSessionAuthorized = activeAuthenticatedSession != null &&
+        cardSecretViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession)
+    val financeState = visibleFinanceStateForSession(financeSessionAuthorized, observedFinanceState)
+    val cardSecretState = visibleCardSecretsForSession(vaultSessionAuthorized, observedCardSecretState)
+    val cardSecretCleanupState = visibleCardCleanupForSession(
+        vaultSessionAuthorized, observedCardSecretCleanupState,
+    )
     val updateState by updateViewModel.state.collectAsStateWithLifecycle()
     val networkStatus by financeViewModel.networkStatus.collectAsStateWithLifecycle()
     val lastSuccessfulSync by financeViewModel.lastSuccessfulSync.collectAsStateWithLifecycle()
@@ -339,7 +352,7 @@ fun MyFinHubRoot(
         networkStatus = networkStatusLabel(networkStatus),
         apiStatus = financeDiagnosticStatus(financeState),
         sessionStatus = authDiagnosticStatus(authState),
-        lastSuccessfulSync = lastSuccessfulSync,
+        lastSuccessfulSync = if (financeSessionAuthorized) lastSuccessfulSync else null,
         lastDiagnosticCode = lastDiagnosticCode,
     )
     val updateController = UpdateController(

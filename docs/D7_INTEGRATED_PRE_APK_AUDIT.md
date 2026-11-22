@@ -11,8 +11,8 @@ This is a living, evidence-based audit checkpoint, not a claim that inspecting a
 | 1. Primary navigation and workflows | Three root tabs Home / Activity / Cards; native secondary Settings and Quick Entry. Source-backed journey fixes #502–#505 each passed all six exact-head gates and merged. Home alert identity now checks the full scheduled source rather than first match. | **Source/hosted CI accepted on merged baseline; physical S24 still needed** |
 | 2. UI/UX, responsive and accessibility | Official synthetic Compose screenshot artifact run `44927422834`: 102 PNGs grouped into 11 journeys, including dark/light/large-type reference variants; 15 reviewed contact sheets. Card Detail action correction #503 re-rendered three goldens. Compose semantics and scrolling tests cover selected flows. | **Partially verified; actual owner gestures, TalkBack, font scale and scroll on S24 outstanding** |
 | 3. Financial ledger/account/credit math | Shared canonical projections, strict monetary value and date validation, unique source identity and real card-purchase/payment guards inspected. Past green exact-head Android unit/emulator tests exercise fixture flows. Historical owner GET failure and November credit records do not become resolved by this. | **Blocked on real finance GET and reported missing purchase linkage** |
-| 4. Offline persistence and reconnect | `EncryptedFinanceLocalStore` uses Android Keystore encryption, preserves v1 keys, keeps server snapshot separate from durable pending intents and validates optimistic replay. *New audit finding:* `distinctBy(intentId)` previously coalesced all persisted intents before duplicate checking, silently discarding conflicting work. This checkpoint adds a legacy/generic merge that rejects conflicting IDs and never downgrades NEEDS_REVIEW. A failed restore now retains IV/ciphertext and places its owner slot under a durable recovery hold, rejecting overwrite and halting the ViewModel sync path. The former v1 single slot is read without deletion; new encrypted writes use SHA-256-fingerprinted per-owner slots so a different login cannot overwrite the previous owner's never-sent work. | **PR #506 six exact-head gates SUCCESS and merged; physical encrypted-cache migration/recovery still unverified** |
-| 5. Authentication, privacy and secrets | Source uses early API33+ Recents snapshot disable, pre-33 secure flag, restricted revealed-card `FLAG_SECURE` leases and transition grace; offline cache is owner-scoped. Private card copy actions are sensitive. Previous rc18 physical recording exposed full card secrets during navigation; #487 correction exists and rc19 includes it. | **Physical rc19 screenshot/Recents and screen-recording retest mandatory** |
+| 4. Offline persistence and reconnect | `EncryptedFinanceLocalStore` uses Android Keystore encryption, preserves v1 keys, keeps server snapshot separate from durable pending intents and validates optimistic replay. *New audit finding:* `distinctBy(intentId)` previously coalesced all persisted intents before duplicate checking, silently discarding conflicting work. This checkpoint adds a legacy/generic merge that rejects conflicting IDs and never downgrades NEEDS_REVIEW. A failed restore now retains IV/ciphertext and places its owner slot under a durable recovery hold, rejecting overwrite and halting the ViewModel sync path. The former v1 single slot is read without deletion; new encrypted writes use SHA-256-fingerprinted per-owner slots so a different login cannot overwrite the previous owner's never-sent work. | **PRs #506 and #508 six exact-head gates SUCCESS and merged; physical encrypted-cache migration/recovery still unverified** |
+| 5. Authentication, privacy and secrets | Source uses early API33+ Recents snapshot disable, pre-33 secure flag, restricted revealed-card `FLAG_SECURE` leases and transition grace; offline cache is owner-scoped. Private card copy actions are sensitive. Previous rc18 physical recording exposed full card secrets during navigation; #487 correction exists and rc19 includes it. | **Physical rc20 screenshot/Recents and screen-recording retest mandatory; new auth-frame guard pending CI** |
 | 6. Network failure/sync authorization | FinanceRepository separates read retries from non-retried money writes, guards stale response epochs, validates documents and fences rejected finance reads. Legacy owner GET `/api/data` HTTP400 `INVALID_DATA` was not reproducible in later read-only projections; old server logs have expired. | **Blocked — no verified resolution or authorized server change** |
 | 7. Installer, release and integrity | Manifest disables Android backup, exported launcher only, internal update receiver, `REQUEST_INSTALL_PACKAGES` (user-confirmed install); no unattended-update permission in observed manifest. Protected production workflow resolves an exact green source PR, checks package/version/direct APK permissions and protected signer. rc17 was Play Protect-blocked; owner later reported rc18 allowed, but rc19/rc20 physical verification is pending. Public rc20/10019 supersedes rc19 for latest-version preflight, but neither version has an owner-completed physical acceptance record. | **Public rc20 publication metadata verified; no new build, release or installation authorized by this audit** |
 | 8. Integrated physical acceptance and release decision | Owner Galaxy S24 Ultra only. Verify exact installed version/signer continuity, existing session/local cache and queue preservation, Recents/screen recording and card secret expiry, live GET and two historical card purchases, transaction create/pay/edit, offline→online exactly-once behavior, accessible scrolling and updates. | **Not run against a new candidate. D7 and D8 remain open** |
@@ -66,7 +66,7 @@ failed `holdForRecovery()` write could likewise leak a raw storage exception ins
 of the recovery signal. This is a structural gap, not proof that the owner's phone
 currently has a corrupted DataStore.
 
-**Correction in PR #508 candidate:** Convert non-cancellation read and hold-write
+**Correction integrated through PR #508:** Convert non-cancellation read and hold-write
 failures into `FinanceLocalRestoreException`, preserving `CancellationException`
 semantics. The existing `FinanceProductViewModel.loadFresh` handler can then refuse
 server GET/queued write/replay, clear only volatile finance state and show its
@@ -80,8 +80,46 @@ corruption is not implemented.
 owner slot whose hold write also throws; verify original IV/ciphertext and queued
 work remain unchanged; verify cancellation is propagated, not mislabeled as
 corruption. The existing owner-scoped/v1 migration and other #506 checks remain
-unchanged. These new tests are **not yet CI-verified or merged**.
+unchanged. These tests passed all six final-head PR #508 gates and merged in `develop` as `27351d0231c24583a1ed8e33095034ea0681d677`. They do **not** establish physical corrupted-cache recovery.
 
 **Gate:** owner physical S24 encrypted-install upgrade/capture/Recents, real finance
 GET and historical card-linkage evidence are still independent blockers. Neither
 this source correction nor hosted emulator testing authorizes a new signed APK.
+
+
+## 03e additional privacy review: owner/bearer transition before Compose attachment
+
+**Concrete source-level issue.** In `MyFinHubRoot`, `authState` can already be
+`Ready` for user B or a refreshed bearer, but the finance and card-secret
+ViewModels are attached in `LaunchedEffect(authState)` **after** the current
+composition. Until that effect runs, the root previously forwarded the
+observed old owner's `FinanceProductState.Ready`, potentially revealed
+`CardSecretUiState.Revealed` (PAN/CVV), and a pending vault cleanup state
+to the new authenticated screen. Owner-scoped IBAN and history were already
+guarded during that gap; finance/vault screen state was not. This is
+confirmed by reading the dataflow, not by a reported physical incident.
+
+**Targeted fix authored on the same integrated D7 audit:** Shared
+`matchesSensitiveUiSession` checks exact owner ID, access bearer and AAL,
+not refresh-token text. The root masks finance presentation as `Loading`,
+card secrets as `Hidden` and vault cleanup as `Idle` until the new
+authentication identity matches the corresponding ViewModel's attached
+session. This masking also applies to root-level auth-rejection effects,
+finance diagnostics and root secure-vault cleanup decisions, avoiding
+misattributing a stale authentication error to a new user. On owner switch,
+`FinanceProductViewModel.attachSession` also immediately clears prior
+`Ready` state and sync timestamp **before** asynchronous new-owner loading.
+`CardSecretViewModel` already redacts the old vault state when attached;
+the new root gate closes the earlier pre-attachment frame.
+
+**Preventive tests authored:** JVM checks null/new-owner/bearer/AAL
+mismatches and refresh-only preservation; JVM presentation tests verify
+that stale finance errors, PAN/CVV and cleanup states cannot reach the new
+session; S24 instrumentation now checks actual card-secret ViewModel
+attachment and transition authority. **Source and tests are authored but
+have not yet passed final-head CI or been merged.**
+
+**Release gate unchanged:** This is not proof that real Samsung Recents,
+screen recording or a new in-place installed APK is secure. The latest
+public rc20 predates these changes. No APK/publication, backend mutation,
+or real finance data test is authorized by this checkpoint.

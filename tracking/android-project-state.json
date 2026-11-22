@@ -1571,10 +1571,10 @@
   },
   "ux_journey_audit_2026_11_20": {
     "stage": "03e_integrated_deep_pre_apk_audit",
-    "source_branch": "android/d7-finance-datastore-read-failclosed-20261122",
-    "status": "03e_datastore_read_and_hold_write_failclosed_fix_authored_pending_exact_head_ci",
+    "source_branch": "android/d7-auth-bound-privacy-before-compose-20261122",
+    "status": "03e_owner_bearer_privacy_precompose_guard_authored_tests_pending_exact_head_ci",
     "next_stage": "03f_resolve_P0_P1_integrated_device_acceptance",
-    "summary": "Deploy 6/8 D7, Web parity 5/6 and 23/24, 03e 7/8 source/evidence-reviewed and 0/8 release-cleared. PR #506 encrypted offline mutation identity, owner-scoped v1 migration and recovery hold passed 6/6 exact-head gates and merged c306ab4; PR #507 public rc20/10019 preflight reconciliation passed 6/6 and merged ffd92cb. Additional concrete failure-mode gap: EncryptedFinanceLocalStore.load read of preferences DataStore occurred outside FinanceLocalRestoreException handling, and an error writing the recovery hold could escape in its raw form; the ViewModel's fail-closed branch would not run. Current branch wraps non-cancellation DataStore read and recovery-hold writes as FinanceLocalRestoreException, so FinanceProductViewModel stops sync without deleting encrypted bytes. Instrumentation tests inject I/O read and hold-write failures and assert genuine prior encrypted data remains; cancellation remains cancellation. Source and tests authored, CI and merge pending. This does not recover corrupted bytes nor establish real S24 acceptance, GET400 or November credit purchases. No APK or server writes.",
+    "summary": "D7 6/8, Web parity 5/6 23/24, integrated audit 03e source-reviewed 7/8 and release-cleared 0/8. PR #508 exact-head d45d9b passed all six mandatory tracking/Android/screenshot/S24 checks and squash merged develop 27351d0, closing the DataStore read/hold-write fail-closed gap. Next source-confirmed P1: when auth Ready changes owner/bearer/AAL, MyFinHubRoot could render the old FinanceProductState.Ready and CardSecretUiState.Revealed during the Compose frame before LaunchedEffect attaches the new authenticated session. This branch immediately resets finance owner UI state and sync timestamp on owner switch, masks finance, PAN/CVV and card cleanup by exact attached owner+bearer+AAL before presentation/logout/diagnostics, and adds JVM and S24 instrumentation session-transition tests. Current head CI pending, no merge or physical S24 evidence yet. Latest public rc20/10019 predates develop; no new APK/backend finance mutation. Physical owner capture/Recents, GET400 and November missing card purchases still block D7.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1873,8 +1873,8 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "ffd92cbad901c0f5577e94f00d3725176859bc06",
-      "status": "blocked_release_datastore_read_and_hold_write_hardening_authored_ci_pending",
+      "baseline_develop": "27351d0231c24583a1ed8e33095034ea0681d677",
+      "status": "blocked_release_privacy_precompose_owner_bearer_mask_authored_ci_pending",
       "reviewed_domains": 7,
       "total_domains": 8,
       "release_cleared_domains": 0,
@@ -1942,12 +1942,17 @@
           "severity": "P1",
           "kind": "quarantined_offline_recovery",
           "detail": "PR506 quarantines unreadable owner cache and retains IV/ciphertext (Android tests green). No owner-safe corrupted cache recovery/export or physical migration assurance; cannot claim recoverable bytes."
+        },
+        {
+          "severity": "P1",
+          "kind": "auth_precompose_owner_privacy",
+          "detail": "Source-confirmed pre-LaunchedEffect frame could render old owner finance/card secret states after auth Ready switch. Exact session identity UI masks and immediate finance reset implemented in branch; CI, source merge and physical S24 owner transition checks pending."
         }
       ],
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
-      "ci_exact_head": "pr_506_5d449b83_all_6_success_squash_merged_c306ab4",
-      "next_action": "Validate exact-head tracking, Kotlin/Android tests, existing goldens and both S24 hosted shards for the DataStore read failure checkpoint. If six gates pass, merge; continue 03e risk disposition and real S24 owner security / GET /api/data / missing credit purchase validation. Do not start new APK/D8.",
+      "ci_exact_head": "pr_508_d45d9b_all_6_success_squash_merged_27351d0",
+      "next_action": "Run final exact-head six CI checks (tracking, Android JVM/instrumented, Compose screenshots, S24 shards 0/1 and aggregate) for auth-bound pre-Compose privacy guard. Merge only if all green on same SHA and reviews/base clean. Physical S24 Recents/card recording/in-place continuity and live finance GET400/unlinked purchases independently block release; no new APK.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -2002,8 +2007,32 @@
           "CancellationException is propagated rather than transformed into corruption"
         ],
         "behavior": "No automatic clear, no network finance GET/replay on failed load, no promise of persisted hold if file cannot be edited; owner guidance is already shown by FinanceProductViewModel.",
-        "status": "source_and_android_tests_authored_exact_head_ci_pending",
-        "physical_s24_owner_acceptance": "pending"
+        "status": "integrated_pr508_d45d9b_six_exact_head_checks_green_merge_27351d0_physical_recovery_pending",
+        "physical_s24_owner_acceptance": "pending",
+        "pr_508": {
+          "head": "d45d9b83be25f3eb2431118d7f0dace76199d90a",
+          "merged_commit": "27351d0231c24583a1ed8e33095034ea0681d677",
+          "checks": "6_of_6_success"
+        }
+      },
+      "additional_auth_presentation_guard": {
+        "finding": "MyFinHubRoot LaunchedEffect attaches finance/card vault after recomposition; a new auth Ready could render prior owner's FinanceProductState.Ready/CardSecretUiState.Revealed and cleanup state for a frame before previous owner ViewModel clears.",
+        "mitigation": "Exact authenticated owner+bearer+AAL session match at root before displaying finance/vault, rejecting stale auth errors for logout and masking diagnostics/cleanup; FinanceProductViewModel immediately resets owner-dependent state and last sync on owner change.",
+        "source_paths": [
+          "app/src/main/java/app/myfinhub/android/core/auth/SensitiveUiSessionIdentity.kt",
+          "app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt",
+          "app/src/main/java/app/myfinhub/android/feature/money/CardSecretViewModel.kt",
+          "app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt",
+          "app/src/main/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundary.kt"
+        ],
+        "tests": [
+          "app/src/test/java/app/myfinhub/android/core/auth/SensitiveUiSessionIdentityTest.kt",
+          "app/src/test/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundaryTest.kt",
+          "app/src/androidTest/java/app/myfinhub/android/feature/money/CardSecretViewModelTest.kt"
+        ],
+        "status": "source_and_regression_tests_authored_ci_pending",
+        "owner_physical": "not_verified",
+        "installed_version": "public_rc20_does_not_include_this_change"
       }
     }
   }
