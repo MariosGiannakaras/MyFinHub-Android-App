@@ -2146,7 +2146,7 @@
         }
       },
       "additional_finance_auth_offline_guard": {
-        "finding": "Same-session auth validation failure produced offline Ready without network loss; finance controller/Compose could retain prior online presentation until/after attachment.",
+        "finding": "Same-session auth validation failure produced offline Ready without network loss; finance controller/Compose could retain prior online presentation until/after attachment. When Ready was already offline, nonreactive attachment could leave Compose showing Loading.",
         "branch": "android/d7-finance-auth-offline-authority-20261122",
         "source_paths": [
           "app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt",
@@ -2156,7 +2156,7 @@
         "tests": [
           "app/src/test/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundaryTest.kt"
         ],
-        "mitigation": "Root exact online/offline authority matching plus immediate FinanceProductState.Ready offline downgrade on same-bearer auth validation failure, preserving durable cache and pending writes; force revalidation on online reattachment.",
+        "mitigation": "Root observes separate finance presentationOnlineAuthority StateFlow and matches exact owner/bearer/AAL plus expected online/offline status; on same-bearer auth validation failure, marks projection offline and schedules GET after verified online reattachment, preserving encrypted owner cache/pending writes.",
         "status": "source_authored_exact_head_ci_pending",
         "physical_s24": "not_verified",
         "signed_release": "not_authorized"
