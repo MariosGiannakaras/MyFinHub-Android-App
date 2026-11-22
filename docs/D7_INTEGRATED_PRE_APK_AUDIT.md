@@ -433,6 +433,23 @@ recomposed after session authorization changes.
   when secret values already appear; pressing the button does trigger
   exactly one. No new write, permissions, schema or signed APK.
 
-**Status:** source and tests authored; required exact-head six-gate CI and
-merge pending. Galaxy S24 real Recents/capture, installed cache/signature,
-Play Protect, historical finance GET400 and credit linkage remain blocked.
+**Integration:** PR #518 final immutable head `ac982db9e495531177840d60251f7acebe7be9cb`
+passed all six required exact-head CI gates: Project Tracking, Android CI,
+screenshot regression, both S24 emulator shards and instrumentation aggregate.
+The initial S24 shard 1 run failed during Gradle resolution because Maven
+Central returned HTTP 429, *before tests executed*. A targeted rerun of the
+failed shard **at the same PR head** passed; no source code change was needed.
+Reviews and base were clean. PR #518 squash merged to `develop` as
+`6c6d94c177ebf6d609f3e106a9b81d243b72ff8c`.
+
+**D7 handoff — no new source correction pending.** Native D7 source-reviewed
+domains remain 7/8; release-cleared domains remain 0/8; deploy remains 6/8;
+Web parity W6.4 stays 23/24. The remaining domain is owner physical acceptance,
+not more emulator CI. Real Galaxy S24 Ultra requires signer/Play Protect,
+same-install encrypted data continuity, Recents and screen-recording privacy
+(PAN/CVV and navigation/dialog transitions). The live finance
+`GET /api/data` HTTP 400 `INVALID_DATA` and the two November 12 unlinked
+credit-purchase rows need separate read-only forensic evidence and an explicitly
+approved production correction. Public signed rc20/10019 predates the current
+merged source and does not validate it. No signed candidate, destructive
+in-place installation, live financial write or D8 release is authorized.

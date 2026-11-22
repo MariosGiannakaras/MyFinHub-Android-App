@@ -6,6 +6,12 @@ on:
       - develop
     paths:
       - 'app/**'
+      # D7 source-tracking handoffs also require the six exact-head Android/UI gates.
+      # Otherwise documentation-only corrections silently skip hosted S24 checks.
+      - 'tracking/**'
+      - 'STATUS.md'
+      - 'TODO.md'
+      - 'docs/D7_INTEGRATED_PRE_APK_AUDIT.md'
       - 'scripts/build_android_ux_review_pack.py'
       - 'scripts/test_build_android_ux_review_pack.py'
       - 'scripts/install-android-sdk.sh'
