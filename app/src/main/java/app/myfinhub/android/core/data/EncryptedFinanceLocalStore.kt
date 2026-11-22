@@ -2,12 +2,14 @@ package app.myfinhub.android.core.data
 
 import android.content.Context
 import android.util.Base64
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import app.myfinhub.android.core.security.AndroidKeystoreCipher
 import app.myfinhub.android.core.security.EncryptedPayload
 import app.myfinhub.android.core.security.SecureValueCipher
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -21,6 +23,11 @@ data class FinanceLocalSnapshot(
     val serverDocument: CanonicalFinanceDocument,
     val pendingMutations: List<PendingCanonicalMutationIntent>,
     val lastSuccessfulSync: String?,
+)
+
+/** A durable encrypted snapshot could not be reconstructed. Never clear or overwrite it implicitly. */
+class FinanceLocalRestoreException : IllegalStateException(
+    "Encrypted offline finance snapshot needs explicit recovery; original bytes are retained.",
 )
 
 /**
@@ -41,9 +48,15 @@ class EncryptedFinanceLocalStore(
 ) {
     suspend fun load(userId: String): FinanceLocalSnapshot? {
         val preferences = context.financeOfflineDataStore.data.first()
-        val iv = preferences[IV_KEY] ?: return null
-        val ciphertext = preferences[CIPHERTEXT_KEY] ?: return null
-        return runCatching {
+        if (preferences[RECOVERY_HOLD_KEY] == true) throw FinanceLocalRestoreException()
+        val iv = preferences[IV_KEY]
+        val ciphertext = preferences[CIPHERTEXT_KEY]
+        if (iv == null && ciphertext == null) return null
+        if (iv == null || ciphertext == null) {
+            holdForRecovery()
+            throw FinanceLocalRestoreException()
+        }
+        return try {
             val encrypted = EncryptedPayload(
                 initializationVector = Base64.decode(iv, Base64.NO_WRAP),
                 ciphertext = Base64.decode(ciphertext, Base64.NO_WRAP),
@@ -111,10 +124,18 @@ class EncryptedFinanceLocalStore(
             } finally {
                 plaintext.fill(0)
             }
-        }.getOrElse {
-            clear()
-            null
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // A bad queue, decrypt failure or unsupported payload must not be
+            // mistaken for an empty cache. Keep the encrypted evidence intact.
+            holdForRecovery()
+            throw FinanceLocalRestoreException()
         }
+    }
+
+    private suspend fun holdForRecovery() {
+        context.financeOfflineDataStore.edit { it[RECOVERY_HOLD_KEY] = true }
     }
 
     suspend fun save(snapshot: FinanceLocalSnapshot) {
@@ -160,6 +181,7 @@ class EncryptedFinanceLocalStore(
             plaintext.fill(0)
         }
         context.financeOfflineDataStore.edit { preferences ->
+            if (preferences[RECOVERY_HOLD_KEY] == true) throw FinanceLocalRestoreException()
             preferences[IV_KEY] = Base64.encodeToString(encrypted.initializationVector, Base64.NO_WRAP)
             preferences[CIPHERTEXT_KEY] = Base64.encodeToString(encrypted.ciphertext, Base64.NO_WRAP)
         }
@@ -169,6 +191,8 @@ class EncryptedFinanceLocalStore(
         context.financeOfflineDataStore.edit { preferences ->
             preferences.remove(IV_KEY)
             preferences.remove(CIPHERTEXT_KEY)
+            // Explicit destructive clear only; load failures never call clear().
+            preferences.remove(RECOVERY_HOLD_KEY)
         }
     }
 
@@ -204,6 +228,7 @@ class EncryptedFinanceLocalStore(
     }
 
     private companion object {
+        val RECOVERY_HOLD_KEY = booleanPreferencesKey("finance_recovery_hold")
         val IV_KEY = stringPreferencesKey("finance_iv")
         val CIPHERTEXT_KEY = stringPreferencesKey("finance_ciphertext")
     }
