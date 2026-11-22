@@ -2,7 +2,11 @@ package app.myfinhub.android.core.data
 
 import android.content.Context
 import android.util.Base64
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.toMutablePreferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.test.core.app.ApplicationProvider
@@ -11,6 +15,11 @@ import app.myfinhub.android.core.security.AndroidKeystoreCipher
 import app.myfinhub.android.core.security.EncryptedPayload
 import app.myfinhub.android.core.security.SecureValueCipher
 import java.io.File
+import java.io.IOException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -141,6 +150,70 @@ class EncryptedFinanceLocalStoreTest {
         val afterRejectedSave = context.financeOfflineDataStore.data.first()
         assertEquals(originalIv, afterRejectedSave[ivKey])
         assertEquals(originalCiphertext, afterRejectedSave[ciphertextKey])
+    }
+
+    @Test
+    fun datastoreReadIoFailureDoesNotMasqueradeAsMissingOfflineQueue() = runBlocking {
+        val original = ownerSnapshot("owner-user", "RETAIN-IO-FAIL", "evt-io-fail")
+        store.save(original)
+        val unsafeRead = object : DataStore<Preferences> {
+            override val data: Flow<Preferences> = flow {
+                throw IOException("Synthetic corrupt preference bytes; keep private")
+            }
+            override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences =
+                throw IOException("Synthetic store write failure")
+        }
+        val failing = EncryptedFinanceLocalStore(context, preferencesStore = unsafeRead)
+        assertTrue(runCatching { failing.load(original.userId) }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        // Neither a reset nor an overwrite of the real encrypted cache was attempted.
+        val reopened = requireNotNull(EncryptedFinanceLocalStore(context).load(original.userId))
+        assertEquals(original.serverDocument.raw, reopened.serverDocument.raw)
+        assertEquals(original.pendingMutations, reopened.pendingMutations)
+    }
+
+    @Test
+    fun failureToPersistRecoveryHoldStillFailsClosedAndPreservesCiphertext() = runBlocking {
+        val original = ownerSnapshot("owner-user", "RETAIN-HOLD-FAIL", "evt-hold-fail")
+        store.save(original)
+        val realStore = context.financeOfflineDataStore.data.first()
+        val hash = financeCacheOwnerSlotHash(original.userId)
+        val ivKey = stringPreferencesKey("finance_iv_owner_$hash")
+        val ciphertextKey = stringPreferencesKey("finance_ciphertext_owner_$hash")
+        val originalIv = requireNotNull(realStore[ivKey])
+        val originalCiphertext = requireNotNull(realStore[ciphertextKey])
+        val incomplete = emptyPreferences().toMutablePreferences().apply {
+            this[ivKey] = originalIv
+            // Missing ciphertext triggers an attempted durable recovery hold.
+        }
+        var attemptedHold = false
+        val readButUnwritable = object : DataStore<Preferences> {
+            override val data: Flow<Preferences> = flowOf(incomplete)
+            override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences {
+                attemptedHold = true
+                throw IOException("Cannot write recovery hold")
+            }
+        }
+        val failing = EncryptedFinanceLocalStore(context, preferencesStore = readButUnwritable)
+        assertTrue(runCatching { failing.load(original.userId) }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        assertTrue(attemptedHold)
+        val preserved = context.financeOfflineDataStore.data.first()
+        assertEquals(originalIv, preserved[ivKey])
+        assertEquals(originalCiphertext, preserved[ciphertextKey])
+        assertEquals(original.pendingMutations, store.load(original.userId)?.pendingMutations)
+    }
+
+    @Test
+    fun cancelledDatastoreReadIsNotSwallowedAsARecoveryFailure() = runBlocking {
+        val cancelled = object : DataStore<Preferences> {
+            override val data: Flow<Preferences> = flow { throw CancellationException("Synthetic cancellation") }
+            override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences =
+                throw CancellationException("Synthetic cancellation")
+        }
+        assertTrue(runCatching {
+            EncryptedFinanceLocalStore(context, preferencesStore = cancelled).load("owner-user")
+        }.exceptionOrNull() is CancellationException)
     }
 
     @Test
