@@ -517,12 +517,16 @@ successful screen capture or of unauthorized data access.
 limit retained card-secret presentation to `TopLevelDestination.MONEY` with
 either `AppRoute.Money` (selected card face) or
 `AppRoute.CardSecureDetails` (secure-details owner). All other routes and
-tabs call the already wired `CardSecretViewModel.hideSecrets()`, which
-revokes `Revealed` and increments the request generation to fence delayed
-vault GET results. Card-face behavior and secure-detail manual retry stay
-unchanged. A JVM policy test checks both allowed routes and every forbidden
-representative route; hosted Compose navigation regression switches primary
-tabs and asserts the hide callback is dispatched exactly once per departure.
+tabs synchronously mask the secret UI value, while the existing wired
+`CardSecretViewModel.hideSecrets()` callback revokes `Revealed` or
+`Loading` and increments the request generation to fence delayed vault
+GET results. A new `Loading`/`Revealed` state created by a token refresh
+while the same non-vault route remains selected is also immediately revoked.
+The root sensitive-window transition lease continues to protect outgoing
+Nav3 frames. Card-face behavior and secure-detail manual retry stay unchanged.
+A JVM policy test covers allowed/forbidden routes; hosted Compose navigation
+regression covers tab departure, a late same-route secret and an in-flight
+read on a second departure.
 
 **Verification status:** source and tests authored; exact-final-head Android
 CI, screenshot regression, both S24 emulator shards and aggregate, tracking
