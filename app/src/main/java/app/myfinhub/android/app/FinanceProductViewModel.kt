@@ -315,12 +315,15 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             cancelOperations()
             repository.clear()
             reloadWhenOnline = true
+            // Revoke the previous bearer/AAL presentation synchronously, even
+            // for the same owner: attachment advances currentSession before
+            // asynchronous cache/server loading replaces the old UI state.
+            mutableState.value = financePresentationAfterAuthorizationChange(
+                previous, session, mutableState.value,
+            )
+            mutableLastSuccessfulSync.value = null
         }
         if (previous != null && previous.userId != session.userId) {
-            // Revoke the prior owner's visible finance BEFORE scheduling any
-            // new load. Otherwise StateFlow.Ready can leak in the interim frame.
-            mutableState.value = FinanceProductState.Idle
-            mutableLastSuccessfulSync.value = null
             lastServerDocument = null
             pendingMutations = emptyList()
             serverReadBlocked = false
@@ -2343,6 +2346,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         recurringServiceAssetsLoaded = false
         deviceSessionsJob?.cancel()
         deviceSessionsJob = null
+        deviceRevokeJob?.cancel()
+        deviceRevokeJob = null
         mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
         loadJob?.cancel()
         mutationJob?.cancel()
@@ -2372,9 +2377,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2) return
         providerCatalogJob = viewModelScope.launch {
             val result = providerAwareApi.loadFinancialProviders(session)
-            if (currentSession?.userId != session.userId ||
-                currentSession?.accessToken != session.accessToken ||
-                !automaticSyncAllowed) return@launch
+            if (!sessionScopedFinanceCallbackAuthorized(
+                    currentSession, session, automaticSyncAllowed,
+                )) return@launch
             mutableFinancialProviderCatalog.value =
                 (result as? ApiResult.Success<List<FinancialProviderRecord>>)?.value.orEmpty()
         }
@@ -2388,9 +2393,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2) return
         recurringServiceAssetsJob = viewModelScope.launch {
             val result = providerAwareApi.loadRecurringServiceAssets(session)
-            if (currentSession?.userId != session.userId ||
-                currentSession?.accessToken != session.accessToken ||
-                !automaticSyncAllowed) return@launch
+            if (!sessionScopedFinanceCallbackAuthorized(
+                    currentSession, session, automaticSyncAllowed,
+                )) return@launch
             recurringServiceAssetsLoaded = result is ApiResult.Success<*>
             mutableRecurringServiceAssets.value =
                 (result as? ApiResult.Success<List<RecurringServiceAssetRecord>>)?.value.orEmpty()
@@ -2412,9 +2417,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutableDeviceSessions.value = snapshot.copy(revokingSessionId = other.sessionId)
         deviceRevokeJob = viewModelScope.launch {
             val result = providerAwareApi.revokeOtherDeviceSession(session, other.sessionId)
-            if (currentSession?.userId != session.userId ||
-                currentSession?.accessToken != session.accessToken ||
-                !automaticSyncAllowed) return@launch
+            if (!sessionScopedFinanceCallbackAuthorized(
+                    currentSession, session, automaticSyncAllowed,
+                )) return@launch
             when (result) {
                 is ApiResult.Success -> {
                     if (result.value.any { it.sessionId == other.sessionId }) {
@@ -2440,9 +2445,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 is ApiResult.Failure -> {
                     // Never automatically retry the POST; GET safely reconciles an ambiguous result.
                     val reconciliation = providerAwareApi.loadDeviceSessions(session)
-                    if (currentSession?.userId != session.userId ||
-                        currentSession?.accessToken != session.accessToken ||
-                        !automaticSyncAllowed) return@launch
+                    if (!sessionScopedFinanceCallbackAuthorized(
+                            currentSession, session, automaticSyncAllowed,
+                        )) return@launch
                     val records = (reconciliation as? ApiResult.Success<List<DeviceSessionRecord>>)?.value
                     mutableDeviceSessions.value = if (records != null) {
                         DeviceSessionsUiSnapshot(loaded = true, devices = records)
@@ -2464,9 +2469,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             deviceRevokeJob?.isActive == true) return
         deviceSessionsJob = viewModelScope.launch {
             val fetched = providerAwareApi.loadDeviceSessions(session)
-            if (currentSession?.userId != session.userId ||
-                currentSession?.accessToken != session.accessToken ||
-                !automaticSyncAllowed) return@launch
+            if (!sessionScopedFinanceCallbackAuthorized(
+                    currentSession, session, automaticSyncAllowed,
+                )) return@launch
             val records = (fetched as? ApiResult.Success<List<DeviceSessionRecord>>)?.value
             mutableDeviceSessions.value = if (records != null) {
                 DeviceSessionsUiSnapshot(loaded = true, devices = records)

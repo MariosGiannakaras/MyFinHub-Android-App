@@ -47,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.auth.AuthSession
+import app.myfinhub.android.core.auth.matchesSensitiveUiSession
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.network.NetworkClientFactory
@@ -91,9 +92,7 @@ internal fun mayPublishRootServerSnapshot(
     currentAuth: AuthShellUiState,
 ): Boolean {
     val ready = currentAuth as? AuthShellUiState.Ready ?: return false
-    return !ready.offline &&
-        ready.session.userId == expectedSession.userId &&
-        ready.session.accessToken == expectedSession.accessToken
+    return !ready.offline && matchesSensitiveUiSession(expectedSession, ready.session)
 }
 
 /**
@@ -167,12 +166,12 @@ fun MyFinHubRoot(
     }
     var accountMetadata by remember { mutableStateOf<Map<String, AccountMetadataRecord>>(emptyMap()) }
     var accountMetadataLoaded by remember { mutableStateOf(false) }
-    var metadataSessionKey by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var metadataSessionKey by remember { mutableStateOf<AuthSession?>(null) }
     var serverHistory by remember {
         mutableStateOf<app.myfinhub.android.core.network.ServerFinanceHistorySummary?>(null)
     }
     var serverHistoryLoaded by remember { mutableStateOf(false) }
-    var serverHistorySessionKey by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var serverHistorySessionKey by remember { mutableStateOf<AuthSession?>(null) }
     var serverHistoryRefresh by remember { mutableStateOf(0) }
     var securityWriteJob by remember { mutableStateOf<Job?>(null) }
     var securitySaving by remember { mutableStateOf(false) }
@@ -234,7 +233,7 @@ fun MyFinHubRoot(
                 is ApiResult.Success -> {
                     if (mayPublishRootServerSnapshot(ready.session, authViewModel.state.value)) {
                         accountMetadata = result.value
-                        metadataSessionKey = ready.session.userId to ready.session.accessToken
+                        metadataSessionKey = ready.session
                         accountMetadataLoaded = true
                     }
                 }
@@ -255,7 +254,7 @@ fun MyFinHubRoot(
                 is ApiResult.Success -> {
                     if (mayPublishRootServerSnapshot(ready.session, authViewModel.state.value)) {
                         serverHistory = result.value
-                        serverHistorySessionKey = ready.session.userId to ready.session.accessToken
+                        serverHistorySessionKey = ready.session
                         serverHistoryLoaded = true
                     }
                 }
@@ -368,12 +367,13 @@ fun MyFinHubRoot(
     // An account switch or token refresh must never render a previous session's private IBAN,
     // including the single Compose frame before LaunchedEffect clears the stale response.
     val activeMetadataSession = authState as? AuthShellUiState.Ready
-    val metadataAuthorized = activeMetadataSession != null && !activeMetadataSession.offline &&
-        metadataSessionKey == (activeMetadataSession.session.userId to activeMetadataSession.session.accessToken)
+    val metadataAuthorized = metadataSessionKey?.let {
+        mayPublishRootServerSnapshot(it, authState)
+    } == true
     val historyEnabled = activeMetadataSession != null && !activeMetadataSession.offline
-    val historyAuthorized = historyEnabled &&
-        serverHistorySessionKey ==
-            (activeMetadataSession?.session?.userId to activeMetadataSession?.session?.accessToken)
+    val historyAuthorized = serverHistorySessionKey?.let {
+        mayPublishRootServerSnapshot(it, authState)
+    } == true
 
     MyFinHubTheme(darkTheme = darkTheme) {
         CompositionLocalProvider(LocalUpdateController provides updateController) {
@@ -494,8 +494,9 @@ fun MyFinHubRoot(
                                 if (!accountMetadataSaving && accountMetadataLoaded &&
                                     metadataSessionKey != null && sessionReady != null &&
                                     !sessionReady.offline && eligible &&
-                                    metadataSessionKey ==
-                                        (sessionReady.session.userId to sessionReady.session.accessToken)) {
+                                    metadataSessionKey?.let {
+                                        mayPublishRootServerSnapshot(it, sessionReady)
+                                    } == true) {
                                     val session = sessionReady.session
                                     val revision = accountMetadata[id]?.revision ?: 0L
                                     accountMetadataSaving = true
@@ -505,10 +506,10 @@ fun MyFinHubRoot(
                                         )
                                         val fresh = authViewModel.state.value as? AuthShellUiState.Ready
                                             ?: return@launch
-                                        if (fresh.session.userId != session.userId ||
-                                            fresh.session.accessToken != session.accessToken ||
-                                            fresh.offline || metadataSessionKey !=
-                                            (session.userId to session.accessToken)) return@launch
+                                        if (!mayPublishRootServerSnapshot(session, fresh) ||
+                                            metadataSessionKey?.let {
+                                                matchesSensitiveUiSession(it, session)
+                                            } != true) return@launch
                                         accountMetadataSaving = false
                                         when (response) {
                                             is ApiResult.Success -> {
@@ -522,9 +523,7 @@ fun MyFinHubRoot(
                                                 val reload = accountMetadataApi.loadAccountMetadata(session)
                                                 val check = authViewModel.state.value as? AuthShellUiState.Ready
                                                 if (check != null &&
-                                                    check.session.userId == session.userId &&
-                                                    check.session.accessToken == session.accessToken &&
-                                                    !check.offline) {
+                                                    mayPublishRootServerSnapshot(session, check)) {
                                                     if (reload is ApiResult.Success) {
                                                         accountMetadata = reload.value
                                                         accountMetadataLoaded = true

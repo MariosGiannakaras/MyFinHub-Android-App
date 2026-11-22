@@ -3,6 +3,7 @@ package app.myfinhub.android.app
 import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.feature.money.CardSecretUiState
+import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.money.CardSecretCleanupUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
@@ -70,6 +71,47 @@ class FinanceSessionAuthorizationBoundaryTest {
         assertSame(CardSecretCleanupUiState.Idle,
             visibleCardCleanupForSession(authorized = false, observed = oldCleanup))
         assertSame(oldCleanup, visibleCardCleanupForSession(true, oldCleanup))
+    }
+
+    @Test fun financeStateMustBeRevokedAfterSameOwnerBearerAndAalReattachment() {
+        val previous = FinanceProductState.Failure("synthetic previous bearer error", true)
+        assertSame(FinanceProductState.Idle,
+            financePresentationAfterAuthorizationChange(first, first.copy(accessToken = "new-bearer"), previous))
+        assertSame(FinanceProductState.Idle,
+            financePresentationAfterAuthorizationChange(first, first.copy(assuranceLevel = AssuranceLevel.AAL1), previous))
+        assertSame(FinanceProductState.Idle,
+            financePresentationAfterAuthorizationChange(first, first.copy(userId = "new-owner"), FinanceProductState.AuthRejected))
+        assertSame(previous,
+            financePresentationAfterAuthorizationChange(first, first.copy(refreshToken = "refresh-only"), previous))
+        assertSame(previous, financePresentationAfterAuthorizationChange(null, first, previous))
+    }
+
+    @Test fun rootServerSnapshotsAndIbanHistoryRequireSameOwnerBearerAndAal() {
+        assertTrue(mayPublishRootServerSnapshot(first, AuthShellUiState.Ready(first)))
+        assertTrue(mayPublishRootServerSnapshot(first, AuthShellUiState.Ready(first.copy(
+            refreshToken = "changed-refresh-only",
+        ))))
+        assertFalse(mayPublishRootServerSnapshot(first, AuthShellUiState.Ready(first.copy(
+            assuranceLevel = AssuranceLevel.AAL1,
+        ))))
+        assertFalse(mayPublishRootServerSnapshot(first, AuthShellUiState.Ready(first.copy(
+            accessToken = "new-bearer",
+        ))))
+        assertFalse(mayPublishRootServerSnapshot(first, AuthShellUiState.Ready(first.copy(
+            userId = "new-owner",
+        ))))
+        assertFalse(mayPublishRootServerSnapshot(first, AuthShellUiState.Ready(first, offline = true)))
+        assertFalse(mayPublishRootServerSnapshot(first, AuthShellUiState.Login()))
+    }
+
+    @Test fun delayedServerMetadataAndDeviceCallbacksRequireExactOnlineSession() {
+        assertTrue(sessionScopedFinanceCallbackAuthorized(first, first, true))
+        assertTrue(sessionScopedFinanceCallbackAuthorized(first.copy(refreshToken = "refreshed"), first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(null, first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(first.copy(userId = "another-owner"), first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(first.copy(accessToken = "new-token"), first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(first.copy(assuranceLevel = AssuranceLevel.AAL1), first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(first, first, false))
     }
 
     @Test fun rotatingSameOwnerBearerStillIsBoundaryIfAssuranceChanges() {
