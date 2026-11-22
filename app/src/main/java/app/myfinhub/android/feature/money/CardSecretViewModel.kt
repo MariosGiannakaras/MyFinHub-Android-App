@@ -159,6 +159,8 @@ class CardSecretViewModel internal constructor(
             mutableState.value = CardSecretUiState.Hidden(currentCardId)
             if (ownerChanged) {
                 currentCardId = null
+                // The hidden state must not retain the prior owner's card ID.
+                mutableState.value = CardSecretUiState.Hidden()
                 pendingCleanup = null
                 mutableCleanupState.value = CardSecretCleanupUiState.Idle
             } else if (vaultAuthorityChanged && allowServerAccess &&
