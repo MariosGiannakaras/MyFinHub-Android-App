@@ -110,25 +110,29 @@ class CardSecretViewModel internal constructor(
     val notices: SharedFlow<UserNotice> = mutableNotices.asSharedFlow()
 
     private var currentSession: AuthSession? = null
+    // Offline-ready is not a validated authority for the remote PAN/CVV vault.
+    private var serverAccessAllowed = false
     private var currentCardId: String? = null
     private var pendingCleanup: PendingCardSecretCleanup? = null
     private var cleanupGeneration = 0L
     // Each card read/navigation transition revokes all older in-flight sensitive callbacks.
     private var detailRequestGeneration = 0L
 
-    /** Never reveal a stale PAN/CVV during a Compose frame preceding session attach. */
+    /** Never reveal prior PAN/CVV while an offline or new auth frame awaits attachment. */
     fun matchesSensitivePresentationSession(session: AuthSession): Boolean =
-        matchesSensitiveUiSession(currentSession, session)
+        serverAccessAllowed && matchesSensitiveUiSession(currentSession, session)
 
-    fun attachSession(session: AuthSession) {
+    fun attachSession(session: AuthSession, allowServerAccess: Boolean = true) {
         val previous = currentSession
         val ownerChanged = previous != null && previous.userId != session.userId
         val vaultAuthorityChanged = previous != null &&
             (ownerChanged ||
                 previous.accessToken != session.accessToken ||
                 previous.assuranceLevel != session.assuranceLevel)
+        val serverAuthorityChanged = previous != null && serverAccessAllowed != allowServerAccess
         currentSession = session
-        if (vaultAuthorityChanged) {
+        serverAccessAllowed = allowServerAccess
+        if (vaultAuthorityChanged || serverAuthorityChanged) {
             detailRequestGeneration += 1
             // A pending secure cleanup is bound to the authenticated bearer.
             // Invalidate the older asynchronous deletion before it can remove
@@ -155,12 +159,20 @@ class CardSecretViewModel internal constructor(
             mutableState.value = CardSecretUiState.Hidden(currentCardId)
             if (ownerChanged) {
                 currentCardId = null
+                // The hidden state must not retain the prior owner's card ID.
+                mutableState.value = CardSecretUiState.Hidden()
                 pendingCleanup = null
                 mutableCleanupState.value = CardSecretCleanupUiState.Idle
-            } else if (session.assuranceLevel == AssuranceLevel.AAL2) {
-                // Re-read the currently open card under the new bearer.
+            } else if (vaultAuthorityChanged && allowServerAccess &&
+                session.assuranceLevel == AssuranceLevel.AAL2) {
+                // Re-read only when a freshly validated bearer changes.
+                // Offline -> online retains Hidden until the user reopens the card.
                 currentCardId?.let(::loadServerDetails)
             }
+        }
+        if (!allowServerAccess) {
+            mutableState.value = CardSecretUiState.Hidden(currentCardId)
+            return
         }
         if (session.assuranceLevel != AssuranceLevel.AAL2) {
             mutableState.value = CardSecretUiState.AuthRejected
@@ -169,6 +181,7 @@ class CardSecretViewModel internal constructor(
 
     fun clear() {
         currentSession = null
+        serverAccessAllowed = false
         currentCardId = null
         detailRequestGeneration += 1
         cleanupGeneration += 1
@@ -211,6 +224,7 @@ class CardSecretViewModel internal constructor(
      * legacy server-vault residue. A partial cleanup never restores the canonical card and is reported once.
      */
     fun purgeCard(cardId: String) {
+        if (!serverAccessAllowed) return
         val normalized = cardId.trim()
         if (!CARD_ID_REGEX.matches(normalized)) {
             emitInvalidCardNotice("Καθαρισμός ασφαλών στοιχείων κάρτας")
@@ -247,7 +261,7 @@ class CardSecretViewModel internal constructor(
         if (mutableCleanupState.value is CardSecretCleanupUiState.Cleaning) return
         // A server-confirmed cleanup cannot be retried under a downgraded
         // session; the pending record remains available after reauthentication.
-        if (currentSession?.assuranceLevel != AssuranceLevel.AAL2) return
+        if (!serverAccessAllowed || currentSession?.assuranceLevel != AssuranceLevel.AAL2) return
         cleanupGeneration += 1
         launchCleanup(request, cleanupGeneration)
     }
@@ -351,7 +365,7 @@ class CardSecretViewModel internal constructor(
         val normalizedExpiry = try { CardVaultWriteContract.normalizeExpiry(expiryCopy.concatToString()) } finally { expiryCopy.fill('\u0000') }
 
         if (
-            session == null || session.assuranceLevel != AssuranceLevel.AAL2 ||
+            session == null || !serverAccessAllowed || session.assuranceLevel != AssuranceLevel.AAL2 ||
             cardId == null ||
             (mutableState.value as? CardSecretUiState.Revealed)?.cardId != cardId
         ) {
@@ -412,7 +426,7 @@ class CardSecretViewModel internal constructor(
         val normalizedCvv = try { CardVaultWriteContract.normalizeCvv(cvvCopy.concatToString()) } finally { cvvCopy.fill('\u0000') }
 
         if (
-            session == null || session.assuranceLevel != AssuranceLevel.AAL2 ||
+            session == null || !serverAccessAllowed || session.assuranceLevel != AssuranceLevel.AAL2 ||
             !CARD_ID_REGEX.matches(normalizedCardId) ||
             normalizedPan == null ||
             normalizedExpiry == null ||
@@ -428,6 +442,7 @@ class CardSecretViewModel internal constructor(
             return
         }
 
+        val generation = detailRequestGeneration
         viewModelScope.launch {
             val result = safeApiCall {
                 api.saveCardSecrets(
@@ -440,7 +455,8 @@ class CardSecretViewModel internal constructor(
                     ),
                 )
             }
-            if (currentSession?.userId != session.userId ||
+            if (!serverAccessAllowed || generation != detailRequestGeneration ||
+                currentSession?.userId != session.userId ||
                 currentSession?.accessToken != session.accessToken ||
                 currentSession?.assuranceLevel != AssuranceLevel.AAL2
             ) return@launch
@@ -472,7 +488,7 @@ class CardSecretViewModel internal constructor(
             cvv.fill('\u0000')
             return
         }
-        if (session == null || session.assuranceLevel != AssuranceLevel.AAL2 ||
+        if (session == null || !serverAccessAllowed || session.assuranceLevel != AssuranceLevel.AAL2 ||
             cardId == null || current?.cardId != cardId
         ) {
             cvv.fill('\u0000')
@@ -531,6 +547,10 @@ class CardSecretViewModel internal constructor(
     private fun loadServerDetails(cardId: String, message: String? = null) {
         val generation = ++detailRequestGeneration
         val session = currentSession
+        if (!serverAccessAllowed) {
+            mutableState.value = CardSecretUiState.Hidden(cardId)
+            return
+        }
         if (session == null || session.assuranceLevel != AssuranceLevel.AAL2) {
             mutableState.value = CardSecretUiState.AuthRejected
             return
@@ -686,7 +706,7 @@ class CardSecretViewModel internal constructor(
     }
 
     private fun stillCurrent(session: AuthSession, cardId: String): Boolean =
-        currentSession?.userId == session.userId &&
+        serverAccessAllowed && currentSession?.userId == session.userId &&
             currentSession?.accessToken == session.accessToken &&
             currentSession?.assuranceLevel == AssuranceLevel.AAL2 &&
             session.assuranceLevel == AssuranceLevel.AAL2 &&

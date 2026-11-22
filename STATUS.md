@@ -65,7 +65,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 OPEN 6/8. PR #509 passed six exact-head gates and merged 75a42a8. New branch android/d7-auth-transition-finance-metadata-boundary-20261122 corrects same-owner bearer/AAL finance presentation and in-memory IBAN/history authorization; CI/merge pending. Public rc20/10019 predates these changes and remains unverified on the owner's S24. Real GET400, missing credit linkage, signer/Play Protect, Recents/screen-recording and installed-data continuity block any new signed release.
+Next: D7 OPEN 6/8. PR #510 passed all six exact-head CI gates (one isolated S24 shard rerun) and squash merged develop 4ffdc13. New D7 branch android/d7-offline-card-vault-authority-20261122 blocks stale PAN/CVV and vault transport on same-session offline Ready; exact-head CI/merge pending. Public rc20/10019 predates these changes and physical S24 is unverified. Real GET400, missing credit linkage, signer/Play Protect, Recents/recording and encrypted installed-data continuity still block any signed release.
 
 
 ## Active Web parity progress

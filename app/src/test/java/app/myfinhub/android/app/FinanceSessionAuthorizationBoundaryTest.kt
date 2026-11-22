@@ -104,6 +104,13 @@ class FinanceSessionAuthorizationBoundaryTest {
         assertFalse(mayPublishRootServerSnapshot(first, AuthShellUiState.Login()))
     }
 
+    @Test fun offlineReadyMustMaskCardSecretsEvenWithSameOwnerBearerAndAal() {
+        assertTrue(cardVaultPresentationAllowed(AuthShellUiState.Ready(first), true))
+        assertFalse(cardVaultPresentationAllowed(AuthShellUiState.Ready(first, offline = true), true))
+        assertFalse(cardVaultPresentationAllowed(AuthShellUiState.Ready(first), false))
+        assertFalse(cardVaultPresentationAllowed(AuthShellUiState.Login(), true))
+    }
+
     @Test fun delayedServerMetadataAndDeviceCallbacksRequireExactOnlineSession() {
         assertTrue(sessionScopedFinanceCallbackAuthorized(first, first, true))
         assertTrue(sessionScopedFinanceCallbackAuthorized(first.copy(refreshToken = "refreshed"), first, true))

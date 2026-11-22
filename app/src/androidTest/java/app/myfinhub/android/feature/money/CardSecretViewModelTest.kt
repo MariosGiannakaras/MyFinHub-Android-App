@@ -116,6 +116,95 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun switchingOwnersClearsEvenHiddenPreviousOwnerCardReference() = runBlocking {
+        val vm = CardSecretViewModel(application, FakeCardApi(), FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("old-card-id")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        vm.attachSession(session.copy(userId = "other-owner"))
+        assertEquals(CardSecretUiState.Hidden(), vm.state.value)
+        assertFalse(vm.matchesSensitivePresentationSession(session))
+    }
+
+    @Test
+    fun offlineReadyWithSameBearerImmediatelyRevokesCardPanAndCvvAndRejectsWrites() = runBlocking {
+        val api = FakeCardApi()
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(1, api.serverSecretReadCalls)
+
+        vm.attachSession(session, allowServerAccess = false)
+        assertFalse(vm.matchesSensitivePresentationSession(session))
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+
+        vm.openCard("card-1")
+        vm.reveal()
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+
+        val pan = "4000000000000002".toCharArray()
+        val expiry = "09/31".toCharArray()
+        val cvv = "123".toCharArray()
+        vm.saveCardDetailsForCard("new-card", pan, expiry, cvv)
+        assertTrue(pan.all { it == '\u0000' })
+        assertTrue(expiry.all { it == '\u0000' })
+        assertTrue(cvv.all { it == '\u0000' })
+        assertEquals(0, api.serverSecretWriteCalls)
+
+        vm.attachSession(session, allowServerAccess = true)
+        assertTrue(vm.matchesSensitivePresentationSession(session))
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(2, api.serverSecretReadCalls)
+    }
+
+    @Test
+    fun delayedCardVaultReadCannotPublishAfterOfflineReadySameBearerTransition() = runBlocking {
+        val api = FakeCardApi().also { it.readDelayMillis = 260 }
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { api.serverSecretReadCalls == 1 }
+        vm.attachSession(session, allowServerAccess = false)
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+
+        delay(350)
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+        vm.attachSession(session, allowServerAccess = true)
+        delay(80)
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+    }
+
+    @Test
+    fun delayedNewCardWriteAfterOfflineRevalidationCannotCleanLocalVault() = runBlocking {
+        val api = FakeCardApi().also { it.writeDelayMillis = 280 }
+        val cvv = FakeCvvVault()
+        val details = FakeCardDetailsVault()
+        val vm = CardSecretViewModel(application, api, cvv, details)
+        vm.attachSession(session)
+        val pan = "4000000000000002".toCharArray()
+        val expiry = "09/31".toCharArray()
+        val code = "123".toCharArray()
+        vm.saveCardDetailsForCard("card-new", pan, expiry, code)
+        waitUntil { api.serverSecretWriteCalls == 1 }
+        vm.attachSession(session, allowServerAccess = false)
+        vm.attachSession(session, allowServerAccess = true)
+        delay(370)
+        assertEquals(CardSecretUiState.Hidden(), vm.state.value)
+        assertNull(details.deletedCardId)
+        assertNull(cvv.deletedCardId)
+        assertTrue(pan.all { it == '\u0000' })
+        assertTrue(expiry.all { it == '\u0000' })
+        assertTrue(code.all { it == '\u0000' })
+    }
+
+    @Test
     fun closeCardRedactsAlreadyRevealedSecretsOnNavigation() = runBlocking {
         val api = FakeCardApi()
         val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
@@ -583,6 +672,7 @@ private class FakeCardApi(
     var committedDeletionFailure: ApiFailureKind? = null,
 ) : MyFinHubApi {
     var readDelayMillis: Long = 0
+    var writeDelayMillis: Long = 0
     var committedDeleteDelayMillis: Long = 0
     var serverSecretReadCalls: Int = 0
         private set
@@ -616,6 +706,7 @@ private class FakeCardApi(
         update: CardSecretUpdate,
     ): ApiResult<CardSecretWriteReceipt> {
         serverSecretWriteCalls += 1
+        if (writeDelayMillis > 0) delay(writeDelayMillis)
         lastUpdate = update
         val current = serverSecrets
         serverSecrets = CardSecrets(

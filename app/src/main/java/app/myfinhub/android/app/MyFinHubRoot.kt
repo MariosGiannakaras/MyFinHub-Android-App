@@ -190,8 +190,11 @@ fun MyFinHubRoot(
     val activeAuthenticatedSession = (authState as? AuthShellUiState.Ready)?.session
     val financeSessionAuthorized = activeAuthenticatedSession != null &&
         financeViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession)
-    val vaultSessionAuthorized = activeAuthenticatedSession != null &&
-        cardSecretViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession)
+    val vaultSessionAuthorized = cardVaultPresentationAllowed(
+        authState,
+        activeAuthenticatedSession != null &&
+            cardSecretViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession),
+    )
     val financeState = visibleFinanceStateForSession(financeSessionAuthorized, observedFinanceState)
     val cardSecretState = visibleCardSecretsForSession(vaultSessionAuthorized, observedCardSecretState)
     val cardSecretCleanupState = visibleCardCleanupForSession(
@@ -270,7 +273,9 @@ fun MyFinHubRoot(
                     session = state.session,
                     allowAutomaticSync = !state.offline,
                 )
-                cardSecretViewModel.attachSession(state.session)
+                cardSecretViewModel.attachSession(
+                    state.session, allowServerAccess = !state.offline,
+                )
                 if (state.offline) {
                     updateViewModel.clearSession()
                 } else {
