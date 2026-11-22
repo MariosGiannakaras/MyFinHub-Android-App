@@ -324,7 +324,45 @@ server might already have processed the request.
 - Add JVM cases for offline↔online, refresh-only, owner, bearer and AAL.
   No backend mutation or new permissions.
 
-**Status:** source and regressions authored; final-head CI and merge pending.
-The physical Galaxy S24 Ultra, real GET400 and missing credit-purchase links,
-installed signer/Play Protect/Recents/capture and encrypted in-place update
-remain unverified and block a signed release.
+**Integration:** PR #515 final head `1f23d832e4ac63803b5e411a1c2e75c665cde5e7`
+passed all six exact-head CI checks (tracking, Android CI, screenshot regression,
+both S24 emulator shards, and aggregate) with no outstanding reviews or base drift.
+Squash merged to `develop` as `f98a2ca058da63953a6891d0991abed803168ce2`.
+Physical Galaxy S24, real GET400/credit linkage, installed signer/Play Protect,
+Recents/capture and in-place encrypted update remain unverified release blockers.
+
+## 03e follow-up: revoked card-vault display on physical network loss
+
+**Confirmed source privacy gap after PR #515:** `AuthShellViewModel`
+reacts to online reconnection for an *offline Ready* session, but does not
+turn an existing `Ready(session, offline=false)` into offline on loss of
+Android connectivity. The root's card-secret presentation and
+`CardSecretViewModel.attachSession(allowServerAccess = !state.offline)`
+were keyed only to the auth shell. A previously revealed PAN/expiry/CVV could
+therefore remain visible when network becomes OFFLINE/UNKNOWN while auth
+stays Ready; the card-secret ViewModel also retained an authorization for
+more remote reads. This is a source-level finding, not confirmed S24
+recording evidence.
+
+**Source mitigation on `android/d7-card-vault-network-revocation-20261122`:**
+- Require **both** non-offline authenticated Ready *and* validated
+  `NetworkStatus.ONLINE` before exposing any observed card-secret state or
+  vault cleanup to Compose. OFFLINE and UNKNOWN hide them immediately in
+  the next recomposition, before attachment effects execute.
+- Independently bind the card-secret controller attachment to
+  `LaunchedEffect(authState, networkStatus)`, revoking revealed secrets,
+  in-flight read/write generations and cleanup authority on lost or
+  unvalidated connectivity even when the owner/bearer/AAL is unchanged.
+  The finance cache and its offline pending queue stay unaffected.
+- On reconnect, retain `Hidden` and do not automatically re-fetch PAN/CVV.
+  A current authenticated user must explicitly open the card again.
+- JVM tests cover online/offline/unknown versus auth-online/offline/logged-out;
+  hosted Android instrumentation covers real `CardSecretViewModel`
+  reveal → transport-loss redaction → blocked reveal → reconnect requiring
+  an explicit reopen. These are **authored tests, not passed CI yet**.
+
+**Status:** source and tests authored; six exact-head CI checks and merge
+pending. The above does not prove physical Samsung Recents or recording
+privacy, signer/data continuity, GET /api/data, historical purchases, or
+release safety. Public rc20/10019 predates all recent source fixes. No
+new distributable APK or live financial change authorized.
