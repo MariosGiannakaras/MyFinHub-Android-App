@@ -12,7 +12,7 @@ This is a living, evidence-based audit checkpoint, not a claim that inspecting a
 | 2. UI/UX, responsive and accessibility | Official synthetic Compose screenshot artifact run `44927422834`: 102 PNGs grouped into 11 journeys, including dark/light/large-type reference variants; 15 reviewed contact sheets. Card Detail action correction #503 re-rendered three goldens. Compose semantics and scrolling tests cover selected flows. | **Partially verified; actual owner gestures, TalkBack, font scale and scroll on S24 outstanding** |
 | 3. Financial ledger/account/credit math | Shared canonical projections, strict monetary value and date validation, unique source identity and real card-purchase/payment guards inspected. Past green exact-head Android unit/emulator tests exercise fixture flows. Historical owner GET failure and November credit records do not become resolved by this. | **Blocked on real finance GET and reported missing purchase linkage** |
 | 4. Offline persistence and reconnect | `EncryptedFinanceLocalStore` uses Android Keystore encryption, preserves v1 keys, keeps server snapshot separate from durable pending intents and validates optimistic replay. *New audit finding:* `distinctBy(intentId)` previously coalesced all persisted intents before duplicate checking, silently discarding conflicting work. This checkpoint adds a legacy/generic merge that rejects conflicting IDs and never downgrades NEEDS_REVIEW. A failed restore now retains IV/ciphertext and places its owner slot under a durable recovery hold, rejecting overwrite and halting the ViewModel sync path. The former v1 single slot is read without deletion; new encrypted writes use SHA-256-fingerprinted per-owner slots so a different login cannot overwrite the previous owner's never-sent work. | **PRs #506 and #508 six exact-head gates SUCCESS and merged; physical encrypted-cache migration/recovery still unverified** |
-| 5. Authentication, privacy and secrets | Source uses early API33+ Recents snapshot disable, pre-33 secure flag, restricted revealed-card `FLAG_SECURE` leases and transition grace; offline cache is owner-scoped. Private card copy actions are sensitive. Previous rc18 physical recording exposed full card secrets during navigation; #487 correction exists and rc19 includes it. | **Physical rc20 screenshot/Recents and screen-recording retest mandatory; new auth-frame guard pending CI** |
+| 5. Authentication, privacy and secrets | Source uses early API33+ Recents snapshot disable, pre-33 secure flag, restricted revealed-card `FLAG_SECURE` leases and transition grace; offline cache is owner-scoped. Private card copy actions are sensitive. Previous rc18 physical recording exposed full card secrets during navigation; #487 correction exists and rc19 includes it. | **Physical rc20 screenshot/Recents and screen-recording retest mandatory; PRs #509/#510 merged, offline-vault follow-up pending CI** |
 | 6. Network failure/sync authorization | FinanceRepository separates read retries from non-retried money writes, guards stale response epochs, validates documents and fences rejected finance reads. Legacy owner GET `/api/data` HTTP400 `INVALID_DATA` was not reproducible in later read-only projections; old server logs have expired. | **Blocked — no verified resolution or authorized server change** |
 | 7. Installer, release and integrity | Manifest disables Android backup, exported launcher only, internal update receiver, `REQUEST_INSTALL_PACKAGES` (user-confirmed install); no unattended-update permission in observed manifest. Protected production workflow resolves an exact green source PR, checks package/version/direct APK permissions and protected signer. rc17 was Play Protect-blocked; owner later reported rc18 allowed, but rc19/rc20 physical verification is pending. Public rc20/10019 supersedes rc19 for latest-version preflight, but neither version has an owner-completed physical acceptance record. | **Public rc20 publication metadata verified; no new build, release or installation authorized by this audit** |
 | 8. Integrated physical acceptance and release decision | Owner Galaxy S24 Ultra only. Verify exact installed version/signer continuity, existing session/local cache and queue preservation, Recents/screen recording and card secret expiry, live GET and two historical card purchases, transaction create/pay/edit, offline→online exactly-once behavior, accessible scrolling and updates. | **Not run against a new candidate. D7 and D8 remain open** |
@@ -151,9 +151,40 @@ transition to reuse an earlier snapshot before its clearing effect.
 - Add JVM regressions for owner, bearer, AAL, refresh-only, offline, and
   unauthenticated transitions, revoked finance presentation and delayed callbacks.
 
-**Status:** authored only; exact-head CI and merge pending. Source analysis
-and emulator CI do not establish a physical Galaxy S24 Ultra privacy result.
+**Integration:** PR #510 final head `d2eb38398ca3397e27c899433f65b7c09c680809`
+passed all six required exact-head checks (the first S24 shard passed on a
+targeted rerun of an unrelated budget UI-test failure). It squash merged
+to `develop` as `4ffdc13baf3141c4edf7de4a0a16222c714628de`.
+No hosted CI result establishes physical S24 privacy acceptance.
 Latest public rc20/10019 predates these corrections. The installed signer,
 Play Protect, Recents/card recording, encrypted-cache continuity, finance
 GET400 and missing historical credit-purchase linkage remain independent
 release blockers. No new signed APK or backend changes are authorized.
+
+## 03e follow-up: offline-ready card vault authority
+
+**Confirmed source-level privacy defect after PR #510:** The root's card-vault
+display authorization matched owner, bearer and AAL but did not check the
+auth shell's `offline` flag. A successful AAL2 vault read could therefore
+remain visible in `Ready(session, offline = true)` after failed server
+revalidation with the *same* bearer. `CardSecretViewModel.attachSession`
+similarly had no offline authority input and could continue allowing card
+reads/writes or publish delayed responses without server revalidation.
+
+**Correction on `android/d7-offline-card-vault-authority-20261122`:**
+- Root hides card secrets and cleanup presentation synchronously for an
+  offline-ready auth frame, even before its attachment effect runs.
+- Card-secret controller accepts validated server-access authority separately
+  from the owner/bearer/AAL identity. A same-session online-to-offline change
+  revokes visible PAN/expiry/CVV and invalidates delayed reads/cleanup results.
+- Offline card requests do not contact the server. Mutations remain blocked,
+  caller credential buffers continue to be zeroed and no automatic secret
+  re-reveal occurs on reconnect until an explicit card open.
+- JVM and Android instrumented tests cover offline Ready masking, immediate
+  redaction, blocked reads/writes, and stale delayed server callbacks.
+
+**Status:** source and tests authored, final-head CI and merge pending.
+This is a source-level prevention measure, not proof of real Samsung
+screen-recording/Recents behavior or installed-data continuity. The
+newest public rc20/10019 predates these fixes; no new signed APK,
+backend mutation or physical D7 acceptance is authorized.
