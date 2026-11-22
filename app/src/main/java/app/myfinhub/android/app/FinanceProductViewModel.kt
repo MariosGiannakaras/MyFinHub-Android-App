@@ -195,10 +195,6 @@ internal fun financePendingCounts(
     )
 }
 
-/**
- * Only cached finance reads from a previously authenticated owner may survive
- * non-auth server read failures; never bypass local PIN, server auth or MFA.
- */
 /** Cached finance cannot be presented as freshly server-confirmed while disconnected
  * or during the first GET after reconnect. Only a successful accepted GET or write
  * can end this provisional presentation while online authority is still valid.
@@ -208,6 +204,7 @@ internal fun financeSnapshotRequiresRevalidation(
     networkStatus: NetworkStatus,
 ): Boolean = previousOffline || networkStatus != NetworkStatus.ONLINE
 
+/** Only previously authenticated owner cache may survive non-auth server read failures. */
 internal fun financeReadFailureMayUseCache(kind: ApiFailureKind): Boolean = when (kind) {
     ApiFailureKind.AUTH_REQUIRED, ApiFailureKind.MFA_REQUIRED, ApiFailureKind.FORBIDDEN,
     ApiFailureKind.BUILD_NOT_CONFIGURED,
