@@ -16,7 +16,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
-private val Context.financeOfflineDataStore by preferencesDataStore(name = "finance_offline_v1")
+internal val Context.financeOfflineDataStore by preferencesDataStore(name = "finance_offline_v1")
 
 data class FinanceLocalSnapshot(
     val userId: String,
