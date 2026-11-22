@@ -62,6 +62,27 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun composePresentationMustMatchExactlyAttachedOwnerBearerAndAssurance() {
+        val vm = CardSecretViewModel(application, FakeCardApi(), FakeCvvVault(), FakeCardDetailsVault())
+        assertFalse(vm.matchesSensitivePresentationSession(session))
+        vm.attachSession(session)
+        assertTrue(vm.matchesSensitivePresentationSession(session))
+        assertTrue(vm.matchesSensitivePresentationSession(session.copy(
+            refreshToken = "synthetic-new-refresh",
+        )))
+        assertFalse(vm.matchesSensitivePresentationSession(session.copy(userId = "other-owner")))
+        assertFalse(vm.matchesSensitivePresentationSession(session.copy(accessToken = "other-bearer")))
+        assertFalse(vm.matchesSensitivePresentationSession(session.copy(assuranceLevel = AssuranceLevel.AAL1)))
+
+        val next = session.copy(userId = "other-owner")
+        vm.attachSession(next)
+        assertFalse(vm.matchesSensitivePresentationSession(session))
+        assertTrue(vm.matchesSensitivePresentationSession(next))
+        vm.clear()
+        assertFalse(vm.matchesSensitivePresentationSession(next))
+    }
+
+    @Test
     fun sameOwnerAalDowngradeImmediatelyRedactsVaultStateAndBlocksFurtherReads() = runBlocking {
         val api = FakeCardApi()
         val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
