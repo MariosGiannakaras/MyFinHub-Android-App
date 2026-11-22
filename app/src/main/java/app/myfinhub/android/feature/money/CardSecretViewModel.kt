@@ -224,7 +224,7 @@ class CardSecretViewModel internal constructor(
      * legacy server-vault residue. A partial cleanup never restores the canonical card and is reported once.
      */
     fun purgeCard(cardId: String) {
-        if (!serverAccessAllowed) return
+        if (!serverAccessAllowed || currentSession?.assuranceLevel != AssuranceLevel.AAL2) return
         val normalized = cardId.trim()
         if (!CARD_ID_REGEX.matches(normalized)) {
             emitInvalidCardNotice("Καθαρισμός ασφαλών στοιχείων κάρτας")
