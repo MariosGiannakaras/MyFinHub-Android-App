@@ -440,6 +440,7 @@ class CardSecretViewModel internal constructor(
             return
         }
 
+        val generation = detailRequestGeneration
         viewModelScope.launch {
             val result = safeApiCall {
                 api.saveCardSecrets(
@@ -452,7 +453,8 @@ class CardSecretViewModel internal constructor(
                     ),
                 )
             }
-            if (!serverAccessAllowed || currentSession?.userId != session.userId ||
+            if (!serverAccessAllowed || generation != detailRequestGeneration ||
+                currentSession?.userId != session.userId ||
                 currentSession?.accessToken != session.accessToken ||
                 currentSession?.assuranceLevel != AssuranceLevel.AAL2
             ) return@launch
