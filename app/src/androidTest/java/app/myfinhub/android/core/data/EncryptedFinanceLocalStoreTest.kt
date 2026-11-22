@@ -1,18 +1,20 @@
 package app.myfinhub.android.core.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.core.security.EncryptedPayload
 import app.myfinhub.android.core.security.SecureValueCipher
 import java.io.File
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import org.junit.After
-import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -108,8 +110,11 @@ class EncryptedFinanceLocalStoreTest {
             )), lastSuccessfulSync = NOW,
         )
         store.save(original)
-        val storedFile = File(context.filesDir, "datastore/finance_offline_v1.preferences_pb")
-        val before = storedFile.readBytes()
+        val originalPreferences = context.financeOfflineDataStore.data.first()
+        val ivKey = stringPreferencesKey("finance_iv")
+        val ciphertextKey = stringPreferencesKey("finance_ciphertext")
+        val originalIv = requireNotNull(originalPreferences[ivKey])
+        val originalCiphertext = requireNotNull(originalPreferences[ciphertextKey])
         val brokenCipher = object : SecureValueCipher {
             override fun encrypt(plaintext: ByteArray): EncryptedPayload =
                 throw UnsupportedOperationException("Test must never encrypt with bad cipher")
@@ -119,13 +124,18 @@ class EncryptedFinanceLocalStoreTest {
         val failingStore = EncryptedFinanceLocalStore(context, cipher = brokenCipher)
         assertTrue(runCatching { failingStore.load("owner-user") }
             .exceptionOrNull() is FinanceLocalRestoreException)
-        assertArrayEquals(before, storedFile.readBytes())
+        val afterFailure = context.financeOfflineDataStore.data.first()
+        assertEquals(originalIv, afterFailure[ivKey])
+        assertEquals(originalCiphertext, afterFailure[ciphertextKey])
+        assertEquals(true, afterFailure[booleanPreferencesKey("finance_recovery_hold")])
         // The safety hold is durable across store recreation and owner actions.
         assertTrue(runCatching { EncryptedFinanceLocalStore(context).load("owner-user") }
             .exceptionOrNull() is FinanceLocalRestoreException)
         assertTrue(runCatching { store.save(original.copy(pendingMutations = emptyList())) }
             .exceptionOrNull() is FinanceLocalRestoreException)
-        assertArrayEquals(before, storedFile.readBytes())
+        val afterRejectedSave = context.financeOfflineDataStore.data.first()
+        assertEquals(originalIv, afterRejectedSave[ivKey])
+        assertEquals(originalCiphertext, afterRejectedSave[ciphertextKey])
     }
 
     @Test
