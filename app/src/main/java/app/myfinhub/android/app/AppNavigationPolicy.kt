@@ -32,7 +32,7 @@ internal val AppRoute.topLevelDestination: TopLevelDestination?
 /**
  * Full card secrets belong only to the visible wallet card face or secure-card detail route.
  * Other destinations (including card profile, editors and different primary tabs) must revoke
- * already-loaded PAN/CVV and invalidate any in-flight response before the next frame is shown.
+ * already-loaded PAN/CVV and invalidate any in-flight response on route transition.
  * The secure-details route owns its separate on-open/on-close read lifecycle.
  */
 internal fun shouldHideCardSecretsForRoute(
