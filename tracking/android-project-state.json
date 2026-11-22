@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-21",
+  "updated_at": "2026-11-22",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -21,11 +21,14 @@
     ]
   },
   "latest_production_candidate": {
-    "version_name": "1.0.0-rc19",
-    "version_code": 10018,
-    "status": "published_signed_pending_owner_rc19_s24_acceptance",
-    "source_pr": 488,
-    "notes": "Protected Production Release run #44412485930 completed SUCCESS on 2026-11-19 Greece local time (2026-11-18 UTC), from immutable source-only PR #488 head c9bfc40ca7112ab0bd1651439491e75fe3d4fd78. All six exact-head checks passed; the source PR was closed WITHOUT merge after the publisher consumed it. Published enrolled-signer APK app.myfinhub.android 1.0.0-rc19 / versionCode 10018, 3,979,356 bytes, SHA-256 79b2832ac47c1ea173d4cc66cc3cb83d3b91c27b15a751ad3fede20e80ea2180, GitHub prerelease v1.0.0-rc19 and authenticated production/10018/MyFinHub-10018.apk. Publisher validated the production signer, package, and version. This rc19 source includes PR #487's root FLAG_SECURE navigation capture guard and repayment in-flight message correction. Published rc18/10017 was reported Play Protect-allowed by owner, but it exposed card values in a screen recording and had an in-flight repayment message defect; rc19 Play Protect result, capture/Recents protection, safe in-place installation with preserved session/data, live GET /api/data, two historical November 12 unlinked card purchases and physical S24 owner acceptance are NOT YET VERIFIED. No new backend/production finance mutation. D7 6/8, W6.4 5/6 (23/24), D8 separate."
+    "version_name": "1.0.0-rc20",
+    "version_code": 10019,
+    "status": "published_signed_pending_owner_rc20_s24_acceptance",
+    "source_pr": null,
+    "source_tag_sha": "0285a8724605c025e39a049884bf552484c0fea7",
+    "published_at_utc": "2026-11-19T23:56:16Z",
+    "apk_sha256": "f64c3bc9c2e6972896ab1ca3429ea6ef6c29fdd1e2a58f4ab0cddc70f1b23f6f",
+    "notes": "Live GitHub Releases verification on 2026-11-22: newest public prerelease v1.0.0-rc20 / versionCode 10019 published 2026-11-19 23:56:16 UTC (2026-11-20 Greece time). Direct APK MyFinHub-1.0.0-rc20-10019.apk, 4,012,124 bytes, GitHub asset SHA-256 f64c3bc9c2e6972896ab1ca3429ea6ef6c29fdd1e2a58f4ab0cddc70f1b23f6f; immutable tag source 0285a8724605c025e39a049884bf552484c0fea7. The published release describes a production-signed same-enrolled-signer direct APK, policy-compatible AAB and private update channel; physical signer, installed version, Play Protect and installed session/cache preservation are NOT inferred from these metadata. rc20 predates currently integrated develop PR #506 (merge c306ab4), so it does not include latest merged offline cache hardening. Owner S24 real rc20 card-secret recording/Recents, live GET /api/data (past HTTP400 INVALID_DATA), two reported November 12 credit purchases, actual in-place install/data continuity and approval remain unverified. Earlier rc19/10018 remains an authentic historical public prerelease, not the latest candidate. No new release or finance writes. D7 open 6/8, W6.4 5/6 (23/24), D8 separate."
   },
   "completed": [
     "Phase 6 physical acceptance and production signing enrollment",
@@ -1234,7 +1237,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 OPEN 6/8: published signed rc17/10016 was Play Protect blocked on the owner's physical S24; historical GET /api/data HTTP400 INVALID_DATA and two November 12 credit-purchase reports remain unresolved. PR #480 exact head d928f23854107cc5244adfffb8067ee50e6d24c2 passed all six required exact-head gates after re-running cancelled Android CI, then squash merged develop d128d3ea714f23800e91b6ae88e46dffcf15d636 on 2026-11-18. Post-merge Android CI and Project Tracking passed. Credit repayment as-of debt preflight and hint are integrated; no owner physical S24 approval is implied. PR #481 exact head 8432ea05702fac1e641eddd2ac4be20670415152 passed all six required tracking/Android/screenshot/S24 checks and squash merged develop b0961650b8e3c218ec819f9f199566de49a11546 on 2026-11-18. Its read-only device preflight now recognizes the published rc17/10016 code/name without proving signer, Play Protect clearance or owner physical acceptance; post-merge Android CI was still in progress at the first check. PR #482 exact head 034183d358872454a845b79cecb21c7420a7e69f passed all six required tracking/Android/screenshot/S24 checks after a focused rerun of S24 shard 0 for an unrelated AVD window-focus failure; squash merged develop 82920065e4a8375ffe8f0cbfa9a6ebbb4211e662 on 2026-11-18. Native Quick Entry now keeps draft edits available during a blocking finance sync issue but disables Save with a clear Greek warning, without allowing a canonical money write. PR #483 exact head 9c58bdfdefcb7328d94d5709c669159a3fa408b2 passed all six required tracking/Android/screenshot/S24 checks and squash merged develop 8dff20519fea2445dbe66c86628b42033b384e99 on 2026-11-18. Post-merge Android CI and Project Tracking passed. Canonical as-of person-specific repayment preflight and visible Quick Entry guidance are integrated, not physical owner acceptance. PR #484 exact head 981949dcdc47f529c5bbd7be262a6f1049338ba3 passed all six tracking/Android/screenshot/hosted-S24 checks and squash merged develop a3f7e28b8bf33d2743145f53fe4191b6f25126b2 on 2026-11-18; post-merge Android CI and Project Tracking passed. Native Activity search/month recovery and compact month source exit are integrated, not owner S24 acceptance. PR #485 head 5d3635ed586f2fd4233fb2b9460a1df16673ee49 passed all six tracking/Android/screenshot/S24 shard/aggregate gates and squash merged into develop 9e0345293da61bb0f54822c18c6592a619e67cc2; post-merge Android CI and Project Tracking passed. Source-only PR #486 head 59e619aca91ca761fb5ee2e3923e2423f13bd9fb passed all six source checks, then protected publisher run #44375430364 SUCCESS released signed rc18/10017 on 2026-11-18. PR #486 was closed without merging. Owner reports rc18 passed Google Play Protect on the real S24 Ultra, superseding the historical rc17 block for this candidate. Successful in-place install, retained local data, live finance GET, November credit purchases, explicit owner functional acceptance and D8 remain separately unverified. D7 stays 6/8 and W6.4 stays 5/6 (23/24). Read-only version-only preflight cannot verify signer, bypass Play Protect or accept owner testing. D8 remains separate. New owner rc18 S24 recording confirms installed version 10017 and Android UI credit purchase/payment flow, but shows screen-capturable card secrets during a navigation/dialog transition and a false zero-debt warning during optimistic repayment save. PR #487's root FLAG_SECURE and neutral in-flight repayment corrections passed all six exact-head checks and merged into develop 143732cf292aa3d5f22bd19c810766da9bb6616a. The guarded publisher run #44412485930 released same-signer rc19/10018 successfully using verified source PR #488; signed candidate is ready for a fresh real S24 privacy/Recents, finance GET, purchase-linkage and in-place continuity retest, none yet confirmed. Historical 12 Nov missing purchases, real GET and in-place continuity still require evidence.",
+    "next_action": "D7 OPEN 6/8. Live GitHub Releases now lists rc20/10019 (published 2026-11-19 23:56 UTC) as the newest signed prerelease; it is not confirmed installed or accepted on the owner's physical Galaxy S24 Ultra. Android develop PR #506 merged c306ab4 after 6/6 exact-head CI, adding offline mutation ID safety, durable recovery hold and per-owner encrypted v1 migration, but rc20's earlier release tag does NOT contain that newer code. Do not build/publish a new APK until the deep audit and independent owner physical D7 security, Play Protect, in-place preservation, real GET /api/data HTTP400 and historical credit-purchase evidence are resolved. W6.4 remains 5/6 (23/24), D8 protected release separate.",
     "stages": [
       {
         "id": "D1",
@@ -1568,10 +1571,10 @@
   },
   "ux_journey_audit_2026_11_20": {
     "stage": "03e_integrated_deep_pre_apk_audit",
-    "source_branch": "android/d7-integrated-preapk-audit-20261122",
-    "status": "offline_identity_recovery_and_owner_scoped_v1_migration_authored_pending_final_exact_head_ci_release_blocked",
+    "source_branch": "android/d7-rc20-publication-preflight-evidence-20261122",
+    "status": "pr_506_integrated_six_gates_public_rc20_verified_preflight_alignment_authored_pending_exact_head_ci",
     "next_stage": "03f_resolve_P0_P1_integrated_device_acceptance",
-    "summary": "PR #505 merged with 6/6 exact-head CI (develop 9e23f4bf). Stage 03e integrated pre-APK audit has 7/8 domains source/previous-evidence reviewed and 0/8 release-cleared. In PR #506, source now rejects conflicting offline mutation IDs without dropping queued work, holds un-decryptable encrypted IV/ciphertext under durable recovery flag without clearing, blocks server sync and overwrite on a recovery hold, and uses SHA-256-fingerprinted owner-specific encrypted snapshots to preserve pending data across account changes while non-destructively reading old v1 legacy cache. Six JVM and additional Android instrumentation restore, tamper and owner-switch tests authored, final immutable head CI pending. Prior heads 4935c6b screenshot and 0565296 S24 shard1 dependencies hit Maven Central HTTP429 before tests; do not infer product failure or acceptance. Owner physical S24 rc19 secure Recents, live GET400 and unlinked historical card purchases remain P0, old signed release rc19 does not include current develop/PR. No APK, Web/backend or production money mutation, D7 remains 6/8, Web parity 5/6 23/24 and D8 independent.",
+    "summary": "Integrated audit 03e remains source/previous-evidence 7/8 domains reviewed and 0/8 release-cleared. PR #506 immutable head 5d449b83 passed all six exact-head checks (including both S24 emulator shards, aggregate and 102 screenshot regression) and squash merged to develop c306ab4, protecting legacy/current offline intents, fail-closed recovery and separate owner encrypted caches. Live GitHub Releases on 2026-11-22 proves rc20/10019 is newest publicly published candidate, tag source 0285a87 and APK SHA256 f64c3bc9..., not previously tracked rc19; rc20 physical installed signer/Play Protect/Recents/card secret and finance GET/missing purchases are NOT validated, and rc20 predates PR506. D7 remains 6/8, W6.4 5/6 (23/24), D8 separate. This checkpoint corrects read-only S24 version preflight and tracking; no APK build or backend/finance mutation.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1870,8 +1873,8 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "9e23f4bf50407e38c08891361a9cd4d041973fc2",
-      "status": "blocked_pre_release_offline_owner_slots_v1_legacy_and_recovery_hold_authored_final_head_ci_pending",
+      "baseline_develop": "c306ab4c9f4bf6ab3131cd0179eb2ef7bf35c4ca",
+      "status": "pr_506_six_gates_merged_latest_public_rc20_physical_and_finance_acceptance_blocked",
       "reviewed_domains": 7,
       "total_domains": 8,
       "release_cleared_domains": 0,
@@ -1889,7 +1892,7 @@
         "path": "app/src/main/java/app/myfinhub/android/core/data/OfflinePendingRestorePolicy.kt",
         "consumer": "EncryptedFinanceLocalStore.load",
         "tests": "app/src/test/java/app/myfinhub/android/core/data/OfflinePendingRestorePolicyTest.kt",
-        "status": "duplicate_guard_recovery_hold_owner_isolation_and_legacy_v1_compatibility_authored_pending_ci",
+        "status": "integrated_after_pr506_exact_head_six_success_physical_owner_upgrade_unverified",
         "behavior": "require distinct generic/legacy IDs separately, only exact cross-format migration overlap, monotonic NEEDS_REVIEW and deterministic replay ordering",
         "additional_consumer": "FinanceProductViewModel.loadFresh and queueLocalMutation catch FinanceLocalRestoreException, halt sync and display local recovery hold; EncryptedFinanceLocalStore.save refuses overwrite if hold persisted",
         "additional_test": "app/src/androidTest/java/app/myfinhub/android/core/data/EncryptedFinanceLocalStoreTest.kt::failedDecryptKeepsCiphertextAndPreventsSilentOverwriteEvenAfterRecreation",
@@ -1904,14 +1907,21 @@
             "A corrupted one-owner slot triggers durable hold without deleting another owner's valid snapshot",
             "Injected owner-scoped decryption failure retains IV/ciphertext across restart and refuses overwrite"
           ],
-          "status": "authored_exact_head_emulator_ci_pending"
+          "status": "implemented_ci_passed_physical_installed_upgrade_unverified"
+        },
+        "pr_506_integration": {
+          "number": 506,
+          "head": "5d449b83e8e681f30923fd458ff7a37e243a09ca",
+          "merged_commit": "c306ab4c9f4bf6ab3131cd0179eb2ef7bf35c4ca",
+          "checks": "6_of_6_success",
+          "real_s24": "pending"
         }
       },
       "blockers": [
         {
           "severity": "P0",
           "kind": "owner_physical_security",
-          "detail": "rc19 S24 recording/Recents secure card/vault privacy not verified"
+          "detail": "rc19 and newly confirmed latest published rc20 on S24 lack verified card recording/Recents, Play Protect, signer and in-place preservation results."
         },
         {
           "severity": "P0",
@@ -1921,23 +1931,23 @@
         {
           "severity": "P1",
           "kind": "offline_owner_switch",
-          "detail": "Per-owner encrypted IV/ciphertext namespace and non-destructive v1 owner migration implemented in source, plus Android owner-switch and legacy migration tests authored. Exact-head CI and physical installed-state continuity are pending; cannot mark release cleared."
+          "detail": "PR506 source and Android owner-separated/legacy-v1 tests passed all six exact-head gates and merged. Physical installed-data migration, owner-switch continuity and recovery hold remain unverified."
         },
         {
           "severity": "P1",
           "kind": "source_version_gap",
-          "detail": "rc19 signed release pre-dates merged #502-505 and this source audit; no new signed APK permitted"
+          "detail": "Newest public rc20/10019 source tag 0285a87 predates develop merge PR506 c306ab4 and latest D7 audit source; no new APK without independent release and owner gate."
         },
         {
           "severity": "P1",
           "kind": "quarantined_offline_recovery",
-          "detail": "Restored invalid encrypted finance data retained behind durable hold; no approved owner-safe export or physical restoration workflow; original IV/ciphertext preserved by source and unexecuted emulator regression."
+          "detail": "PR506 quarantines unreadable owner cache and retains IV/ciphertext (Android tests green). No owner-safe corrupted cache recovery/export or physical migration assurance; cannot claim recoverable bytes."
         }
       ],
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
-      "ci_exact_head": "pending_new_head",
-      "next_action": "Complete source self-review of owner-scoped encrypted migration and recovery invariants. Require fresh exact-head 6-of-6 CI, both full emulator shards with new DataStore tests and unchanged 102 screenshot goldens, then merge PR #506. Physical S24 rc19 capture/Recents and live GET400/credit purchase validation independent and still blocked; do not publish signed APK.",
+      "ci_exact_head": "pr_506_5d449b83_all_6_success_squash_merged_c306ab4",
+      "next_action": "PR #506 merged with all six checks. Verify read-only preflight rc20 allowlist and document public release tag/digest via exact-head CI; physical owner-installed S24 needs card-secret recording/Recents/Play Protect/signer/in-place preservation and read-only finance GET/card-purchase evidence. Maintain 0/8 release-cleared and do not build/publish APK or touch backend/finance.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -1967,6 +1977,19 @@
         ],
         "reason": "Maven Central HTTP429 dependency retrieval before executing shard 1 tests",
         "targeted_rerun": "started but superseded by substantive additional owner-scoped storage changes; not merge evidence for new source"
+      },
+      "public_release_evidence_rc20": {
+        "tag": "v1.0.0-rc20",
+        "version_code": 10019,
+        "published_at_utc": "2026-11-19T23:56:16Z",
+        "tag_sha": "0285a8724605c025e39a049884bf552484c0fea7",
+        "apk_name": "MyFinHub-1.0.0-rc20-10019.apk",
+        "apk_size_bytes": 4012124,
+        "github_asset_digest_sha256": "f64c3bc9c2e6972896ab1ca3429ea6ef6c29fdd1e2a58f4ab0cddc70f1b23f6f",
+        "source": "GitHub Releases + release asset API verified 2026-11-22",
+        "installed_signer_verified": false,
+        "physical_s24_acceptance": "pending",
+        "develop_source_parity": "tag predates merged PR506"
       }
     }
   }

@@ -20,7 +20,7 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #155 — Reconcile Android finance contracts and restore web-parity Home and cards.
 - Workstream state: `in_progress`.
-- Latest private production candidate: `1.0.0-rc19` / `10018` — `published_signed_pending_owner_rc19_s24_acceptance`.
+- Latest private production candidate: `1.0.0-rc20` / `10019` — `published_signed_pending_owner_rc20_s24_acceptance`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
