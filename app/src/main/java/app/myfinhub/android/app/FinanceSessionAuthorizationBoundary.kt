@@ -36,3 +36,17 @@ internal fun visibleCardCleanupForSession(
     observed: app.myfinhub.android.feature.money.CardSecretCleanupUiState,
 ): app.myfinhub.android.feature.money.CardSecretCleanupUiState =
     if (authorized) observed else app.myfinhub.android.feature.money.CardSecretCleanupUiState.Idle
+
+/**
+ * Root pre-attach masking cannot protect the next frame if attachment advances
+ * currentSession while a previous Ready/Failure/AuthRejected remains in StateFlow.
+ * Refresh-token-only changes retain the same authority. Durable offline intents
+ * are deliberately unaffected by this presentation-only transition.
+ */
+internal fun financePresentationAfterAuthorizationChange(
+    previous: AuthSession?,
+    incoming: AuthSession,
+    observed: FinanceProductState,
+): FinanceProductState = if (financeSessionAuthorizationChanged(previous, incoming)) {
+    FinanceProductState.Idle
+} else observed
