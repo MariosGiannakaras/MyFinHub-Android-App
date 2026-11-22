@@ -1237,7 +1237,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 OPEN 6/8. PR #510 passed all six exact-head CI gates (one isolated S24 shard rerun) and squash merged develop 4ffdc13. New D7 branch android/d7-offline-card-vault-authority-20261122 blocks stale PAN/CVV and vault transport on same-session offline Ready; exact-head CI/merge pending. Public rc20/10019 predates these changes and physical S24 is unverified. Real GET400, missing credit linkage, signer/Play Protect, Recents/recording and encrypted installed-data continuity still block any signed release.",
+    "next_action": "D7 OPEN 6/8. PR #511 passed six exact-head CI gates and squash merged develop 2fdac0f; offline card PAN/CVV boundary is integrated, physical S24 remains unverified. D7 branch android/d7-vault-cleanup-session-guard-20261122 now closes pre-attachment cross-session auto-vault-cleanup race; final CI/merge pending. Public rc20/10019 predates current source. Real GET400, two missing credit-purchase links, signer/Play Protect, Recents/screen recording and encrypted installed-data continuity independently block any signed release.",
     "stages": [
       {
         "id": "D1",
@@ -1873,8 +1873,8 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "4ffdc13baf3141c4edf7de4a0a16222c714628de",
-      "status": "blocked_release_offline_card_vault_source_authored_ci_pending",
+      "baseline_develop": "2fdac0fb6edd0cba5bc4bde8000c00f481375f16",
+      "status": "blocked_release_card_cleanup_pre_attach_source_authored_ci_pending",
       "reviewed_domains": 7,
       "total_domains": 8,
       "release_cleared_domains": 0,
@@ -1956,13 +1956,18 @@
         {
           "severity": "P1",
           "kind": "offline_ready_card_vault_presentation_and_transport",
-          "detail": "After validated online card-secret read, same-owner/bearer/AAL offline Ready did not revoke PAN/CVV display or vault controller transport. Branch android/d7-offline-card-vault-authority-20261122 blocks presentation/reads/writes and late callbacks; final CI, merge and real S24 capture unverified."
+          "detail": "PR511 offline vault presentation/transport redaction six exact-head checks succeeded and squash merged develop 2fdac0f; physical S24 capture pending."
+        },
+        {
+          "severity": "P1",
+          "kind": "card_vault_cleanup_before_new_session_attachment",
+          "detail": "Root auto-cleanup effect could read previous owner's finance server-confirmed cleanup IDs before new auth Ready's finance/vault controller attachment. Current branch adds both-session online AAL2 guard plus no unauthorized purge and transition tests; CI/merge pending."
         }
       ],
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
-      "ci_exact_head": "pr_510_d2eb383_all_6_success_squash_merged_4ffdc13",
-      "next_action": "Review final-head CI on android/d7-offline-card-vault-authority-20261122 for offline card PAN/CVV revocation, no offline vault transport and stale callbacks; merge only after all six checks are green and reviews/base clean. Physical S24 card capture, installed-data recovery and real finance GET400/unlinked purchases independently block release.",
+      "ci_exact_head": "pr_511_ca3fad7_all_6_success_squash_merged_2fdac0f",
+      "next_action": "Run final exact-head six CI checks for D7 card-secret auto-cleanup session gate on branch android/d7-vault-cleanup-session-guard-20261122; merge only after green gates and clean reviews/base. Physical S24 Recents/capture, enrolled signer/in-place data, GET400 and missing credit purchases remain unverified; no new signed APK.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -2080,10 +2085,32 @@
           "app/src/androidTest/java/app/myfinhub/android/feature/money/CardSecretViewModelTest.kt"
         ],
         "mitigation": "Root same-frame offline masking; controller online authority flag, immediate redaction and request-generation invalidation, blocked offline reads/writes/cleanup, no automatic re-reveal on reconnect; unmodified durable encrypted card vault data.",
-        "status": "source_authored_exact_head_ci_pending",
+        "status": "integrated_pr511_ca3fad7_six_exact_head_checks_green_merge_2fdac0f_physical_s24_pending",
         "branch": "android/d7-offline-card-vault-authority-20261122",
         "installed_rc20": "predates_develop_changes",
         "physical_s24": "not_verified",
+        "signed_release": "not_authorized",
+        "pr_511": {
+          "head": "ca3fad7fb6069a921d85fd33fc202c44c9cc3591",
+          "merged_commit": "2fdac0fb6edd0cba5bc4bde8000c00f481375f16",
+          "checks": "6_of_6_success"
+        }
+      },
+      "additional_card_cleanup_attachment_guard": {
+        "finding": "Auto vault cleanup could consult a stale prior owner/bearer server-confirmed finance marker during shell Ready pre-attachment frame; UI masks do not stop side effects.",
+        "branch": "android/d7-vault-cleanup-session-guard-20261122",
+        "source_paths": [
+          "app/src/main/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundary.kt",
+          "app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt",
+          "app/src/main/java/app/myfinhub/android/feature/money/CardSecretViewModel.kt"
+        ],
+        "regressions": [
+          "app/src/test/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundaryTest.kt",
+          "app/src/androidTest/java/app/myfinhub/android/feature/money/CardSecretViewModelTest.kt"
+        ],
+        "mitigation": "Require both ViewModel attached owner/bearer/AAL authority and online Ready AAL2 before auto-cleanup; key effect on attachment authority; deny direct purge when offline or AAL1.",
+        "status": "source_authored_exact_head_ci_pending",
+        "owner_physical_s24": "not_verified",
         "signed_release": "not_authorized"
       }
     }

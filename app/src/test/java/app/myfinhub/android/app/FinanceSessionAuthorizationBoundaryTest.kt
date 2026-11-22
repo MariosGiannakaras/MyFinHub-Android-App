@@ -111,6 +111,17 @@ class FinanceSessionAuthorizationBoundaryTest {
         assertFalse(cardVaultPresentationAllowed(AuthShellUiState.Login(), true))
     }
 
+    @Test fun serverConfirmedCleanupNeverCrossesPreAttachmentOrOfflineAuthority() {
+        assertTrue(mayRunCardVaultCleanupForAuth(AuthShellUiState.Ready(first), true, true))
+        assertFalse(mayRunCardVaultCleanupForAuth(AuthShellUiState.Ready(first), false, true))
+        assertFalse(mayRunCardVaultCleanupForAuth(AuthShellUiState.Ready(first), true, false))
+        assertFalse(mayRunCardVaultCleanupForAuth(AuthShellUiState.Ready(first, offline = true), true, true))
+        assertFalse(mayRunCardVaultCleanupForAuth(AuthShellUiState.Ready(first.copy(
+            assuranceLevel = AssuranceLevel.AAL1,
+        )), true, true))
+        assertFalse(mayRunCardVaultCleanupForAuth(AuthShellUiState.Login(), true, true))
+    }
+
     @Test fun delayedServerMetadataAndDeviceCallbacksRequireExactOnlineSession() {
         assertTrue(sessionScopedFinanceCallbackAuthorized(first, first, true))
         assertTrue(sessionScopedFinanceCallbackAuthorized(first.copy(refreshToken = "refreshed"), first, true))

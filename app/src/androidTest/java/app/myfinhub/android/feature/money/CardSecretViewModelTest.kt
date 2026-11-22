@@ -491,6 +491,29 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun nonAal2SessionCannotBeginCardCleanupOrDeleteLocalSecrets() = runBlocking {
+        val api = FakeCardApi()
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val details = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        )
+        val vm = CardSecretViewModel(application, api, cvv, details)
+        vm.attachSession(session.copy(assuranceLevel = AssuranceLevel.AAL1))
+        vm.purgeCard("card-1")
+        delay(50)
+        assertEquals(CardSecretCleanupUiState.Idle, vm.cleanupState.value)
+        assertEquals(0, api.committedSecretDeleteCalls)
+        assertNull(details.deletedCardId)
+        assertNull(cvv.deletedCardId)
+        vm.attachSession(session, allowServerAccess = false)
+        vm.purgeCard("card-1")
+        delay(50)
+        assertEquals(CardSecretCleanupUiState.Idle, vm.cleanupState.value)
+        assertEquals(0, api.committedSecretDeleteCalls)
+    }
+
+    @Test
     fun bearerRotationDuringCommittedSecretCleanupRequiresExplicitServerRecheck() = runBlocking {
         val api = FakeCardApi().also { it.committedDeleteDelayMillis = 240 }
         val cvv = FakeCvvVault(initial = "321".toCharArray())
