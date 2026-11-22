@@ -276,6 +276,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
      */
     private var currentSession: AuthSession? = null
     private var automaticSyncAllowed = true
+    // Observe authority changes even when Ready was already offline and its
+    // StateFlow value would not change during auth revalidation failure.
+    private val mutablePresentationOnlineAuthority = MutableStateFlow<Boolean?>(null)
+    val presentationOnlineAuthority: StateFlow<Boolean?> =
+        mutablePresentationOnlineAuthority.asStateFlow()
     private var lastServerDocument: CanonicalFinanceDocument? = null
     private var pendingMutations: List<PendingCanonicalMutationIntent> = emptyList()
     private var reloadWhenOnline = false
@@ -367,6 +372,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
         currentSession = session
         automaticSyncAllowed = allowAutomaticSync
+        mutablePresentationOnlineAuthority.value = allowAutomaticSync
         if (onlineAuthorityRevoked) {
             // Auth revalidation can fail without Android losing connectivity.
             // Revoke the old online provenance even for the SAME bearer/AAL.
@@ -417,6 +423,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         deviceRevokeJob = null
         mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
         automaticSyncAllowed = true
+        mutablePresentationOnlineAuthority.value = null
         lastServerDocument = null
         pendingMutations = emptyList()
         reloadWhenOnline = false
