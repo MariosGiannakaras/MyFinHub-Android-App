@@ -116,10 +116,41 @@ the new root gate closes the earlier pre-attachment frame.
 mismatches and refresh-only preservation; JVM presentation tests verify
 that stale finance errors, PAN/CVV and cleanup states cannot reach the new
 session; S24 instrumentation now checks actual card-secret ViewModel
-attachment and transition authority. **Source and tests are authored but
-have not yet passed final-head CI or been merged.**
+attachment and transition authority. **PR #509 passed all six exact-head GitHub checks at
+`53b51b9952be2abbbdcbb91eb95c254f4bda3827` and squash merged to
+`develop` as `75a42a8ce4ac459b25e49500cb6bbbf8567e312d`. This is
+hosted source/test evidence, not physical S24 verification.**
 
 **Release gate unchanged:** This is not proof that real Samsung Recents,
 screen recording or a new in-place installed APK is secure. The latest
 public rc20 predates these changes. No APK/publication, backend mutation,
 or real finance data test is authorized by this checkpoint.
+
+## 03e follow-up: same-owner authority reattachment and server snapshots
+
+**Confirmed source-level gap after PR #509.** `FinanceProductViewModel.attachSession`
+cancelled old bearer/AAL work but revoked visible `Ready` or `AuthRejected`
+only for a *different owner*. A same-owner bearer rotation or assurance change
+advanced `currentSession` before the asynchronous load, so the root's new
+session match could temporarily reauthorize an old finance frame. Separately,
+`MyFinHubRoot`'s in-memory account metadata/IBAN and history session keys
+included owner and access bearer but omitted AAL, allowing an AAL-only
+transition to reuse an earlier snapshot before its clearing effect.
+
+**Correction on branch `android/d7-auth-transition-finance-metadata-boundary-20261122`:**
+- Synchronously revoke the previous finance presentation and sync timestamp
+  for every owner/bearer/AAL authorization transition, without discarding
+  per-owner encrypted local snapshots or durable pending mutation intents.
+- Bind account metadata/IBAN and finance-history snapshots to owner, bearer
+  and AAL, preserving refresh-token-only changes as the same authority.
+- Apply the exact session check to late server snapshot publication,
+  IBAN write eligibility and subsequent response/reload publication.
+- Add JVM regressions for owner, bearer, AAL, refresh-only, offline, and
+  unauthenticated transitions plus revoked finance presentation.
+
+**Status:** authored only; exact-head CI and merge pending. Source analysis
+and emulator CI do not establish a physical Galaxy S24 Ultra privacy result.
+Latest public rc20/10019 predates these corrections. The installed signer,
+Play Protect, Recents/card recording, encrypted-cache continuity, finance
+GET400 and missing historical credit-purchase linkage remain independent
+release blockers. No new signed APK or backend changes are authorized.
