@@ -145,8 +145,11 @@ transition to reuse an earlier snapshot before its clearing effect.
   and AAL, preserving refresh-token-only changes as the same authority.
 - Apply the exact session check to late server snapshot publication,
   IBAN write eligibility and subsequent response/reload publication.
+- Fence delayed provider metadata, recurring-service assets, device-list
+  and revocation callbacks by owner/bearer/AAL and online authority; cancel
+  outstanding device-revocation controller work on authorization change.
 - Add JVM regressions for owner, bearer, AAL, refresh-only, offline, and
-  unauthenticated transitions plus revoked finance presentation.
+  unauthenticated transitions, revoked finance presentation and delayed callbacks.
 
 **Status:** authored only; exact-head CI and merge pending. Source analysis
 and emulator CI do not establish a physical Galaxy S24 Ultra privacy result.
