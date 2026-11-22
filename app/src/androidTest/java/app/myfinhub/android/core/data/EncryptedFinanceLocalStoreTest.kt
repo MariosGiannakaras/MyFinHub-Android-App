@@ -1,17 +1,20 @@
 package app.myfinhub.android.core.data
 
 import android.content.Context
+import android.util.Base64
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.myfinhub.android.core.security.AndroidKeystoreCipher
 import app.myfinhub.android.core.security.EncryptedPayload
 import app.myfinhub.android.core.security.SecureValueCipher
 import java.io.File
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
@@ -158,20 +161,28 @@ class EncryptedFinanceLocalStoreTest {
 
     @Test
     fun installedLegacySingleSlotSurvivesAnotherOwnersFirstLoginAndSave() = runBlocking {
-        val existing = ownerSnapshot("legacy-owner", "LEGACY-PRIVATE", "evt-legacy")
-        store.save(existing)
-        val hash = financeCacheOwnerSlotHash(existing.userId)
-        val ownedIv = stringPreferencesKey("finance_iv_owner_$hash")
-        val ownedCiphertext = stringPreferencesKey("finance_ciphertext_owner_$hash")
+        val legacyOwner = "legacy-owner"
+        val legacyId = "evt-legacy"
         val legacyIv = stringPreferencesKey("finance_iv")
         val legacyCiphertext = stringPreferencesKey("finance_ciphertext")
-        // Reconstruct exactly an installed v1 single-slot payload using the
-        // real Keystore ciphertext written by the same application.
+        // Generate a genuine installed v1-format payload (legacy
+        // pendingTransactions rather than generic pendingMutations) using
+        // this installation's same non-exportable Android Keystore alias.
+        val legacyJson = JsonObject(mapOf(
+            "userId" to JsonPrimitive(legacyOwner),
+            "serverDocument" to document("LEGACY-PRIVATE").raw,
+            "pendingTransactions" to JsonArray(listOf(JsonObject(mapOf(
+                "event" to event(legacyId, "Ιστορική offline κίνηση"),
+                "nowIso" to JsonPrimitive(NOW),
+                "syncState" to JsonPrimitive("NEVER_SENT"),
+            )))),
+            "lastSuccessfulSync" to JsonPrimitive(NOW),
+        ))
+        val payload = AndroidKeystoreCipher("myfinhub.finance-offline.aes.v1")
+            .encrypt(legacyJson.toString().encodeToByteArray())
         context.financeOfflineDataStore.edit { prefs ->
-            prefs[legacyIv] = requireNotNull(prefs[ownedIv])
-            prefs[legacyCiphertext] = requireNotNull(prefs[ownedCiphertext])
-            prefs.remove(ownedIv)
-            prefs.remove(ownedCiphertext)
+            prefs[legacyIv] = Base64.encodeToString(payload.initializationVector, Base64.NO_WRAP)
+            prefs[legacyCiphertext] = Base64.encodeToString(payload.ciphertext, Base64.NO_WRAP)
         }
         val prior = context.financeOfflineDataStore.data.first()
         val originalIv = requireNotNull(prior[legacyIv])
@@ -181,14 +192,19 @@ class EncryptedFinanceLocalStoreTest {
         val after = context.financeOfflineDataStore.data.first()
         assertEquals(originalIv, after[legacyIv])
         assertEquals(originalCiphertext, after[legacyCiphertext])
-        assertEquals(existing.pendingMutations,
-            EncryptedFinanceLocalStore(context).load(existing.userId)?.pendingMutations)
+        val restoredLegacy = requireNotNull(EncryptedFinanceLocalStore(context).load(legacyOwner))
+        assertEquals(listOf("legacy-append-$legacyId"),
+            restoredLegacy.pendingMutations.map(PendingCanonicalMutationIntent::intentId))
+        assertEquals(PendingMutationKind.APPEND_EVENT, restoredLegacy.pendingMutations.single().kind)
+        assertEquals(PendingMutationSyncState.NEVER_SENT, restoredLegacy.pendingMutations.single().syncState)
         assertEquals("other-owner", EncryptedFinanceLocalStore(context).load("other-owner")?.userId)
 
-        // Once the legacy owner saves again, only their scoped slot changes.
-        store.save(existing.copy(lastSuccessfulSync = "2026-09-04T00:00:00Z"))
-        assertEquals("2026-09-04T00:00:00Z",
-            EncryptedFinanceLocalStore(context).load(existing.userId)?.lastSuccessfulSync)
+        // The original owner can migrate the validated legacy queue into
+        // a new owner-specific slot without clearing either owner or v1.
+        store.save(restoredLegacy.copy(lastSuccessfulSync = "2026-09-04T00:00:00Z"))
+        val reopened = requireNotNull(EncryptedFinanceLocalStore(context).load(legacyOwner))
+        assertEquals(restoredLegacy.pendingMutations, reopened.pendingMutations)
+        assertEquals("2026-09-04T00:00:00Z", reopened.lastSuccessfulSync)
         assertEquals(originalCiphertext, context.financeOfflineDataStore.data.first()[legacyCiphertext])
     }
 
