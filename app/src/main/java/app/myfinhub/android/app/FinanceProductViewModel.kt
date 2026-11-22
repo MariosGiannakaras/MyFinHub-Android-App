@@ -1633,6 +1633,12 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 // unreadable, potentially never-sent financial changes.
                 serverReadBlocked = true
                 reloadWhenOnline = false
+                // Remove any previous in-memory owner snapshot as well: otherwise
+                // an offline entry could skip localStore.load() and reach an
+                // unsafe persist attempt despite the durable recovery hold.
+                lastServerDocument = null
+                pendingMutations = emptyList()
+                mutableLastSuccessfulSync.value = null
                 repository.clear()
                 mutableState.value = FinanceProductState.Failure(
                     "Η κρυπτογραφημένη τοπική αποθήκευση δεν ανακτήθηκε. Τα δεδομένα διατηρήθηκαν στη συσκευή. Μην διαγράψεις τα δεδομένα της εφαρμογής· απαιτείται έλεγχος ανάκτησης πριν από νέο συγχρονισμό.",
