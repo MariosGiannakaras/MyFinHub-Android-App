@@ -499,3 +499,35 @@ matched runtime error diagnostics is required. No backend data mutation,
 reclassification, destructive recovery, public release, or signed APK is
 authorized by this checkpoint. Physical Galaxy S24 Ultra W6.4 and D7/D8
 acceptance still block release.
+
+## 2026-11-23 D7 source correction: card-vault presentation on navigation
+
+**Finding (P1, source-backed):** the Cards wallet's `CreditCardStack`
+deliberately calls `onCardDetailOpened` when its active card changes and
+renders returned PAN/expiry/CVV on the selected card face under a sensitive
+window lease. On leaving that wallet face for another primary tab or a
+non-vault Money route, the existing `onHideCardSecrets` callback was not
+invoked anywhere by `MyFinHubAppContent`; in-memory `Revealed` could
+therefore remain attached to the controller while that face was absent.
+Secure card details already had an independent open/close disposal boundary.
+This finding concerns **stale loaded-secret lifetime**, not a claim of
+successful screen capture or of unauthorized data access.
+
+**Proposed mitigation on `android/d7-card-secret-route-boundary-20261123`:**
+limit retained card-secret presentation to `TopLevelDestination.MONEY` with
+either `AppRoute.Money` (selected card face) or
+`AppRoute.CardSecureDetails` (secure-details owner). All other routes and
+tabs call the already wired `CardSecretViewModel.hideSecrets()`, which
+revokes `Revealed` and increments the request generation to fence delayed
+vault GET results. Card-face behavior and secure-detail manual retry stay
+unchanged. A JVM policy test checks both allowed routes and every forbidden
+representative route; hosted Compose navigation regression switches primary
+tabs and asserts the hide callback is dispatched exactly once per departure.
+
+**Verification status:** source and tests authored; exact-final-head Android
+CI, screenshot regression, both S24 emulator shards and aggregate, tracking
+check, code review and squash merge **pending**. No new backend access,
+permission, finance write, public APK or signer change. Real owner Galaxy S24
+Recents/screen recording, in-place encrypted cache and Play Protect tests
+remain mandatory and unverified; D7 stays **6/8**, W6.4 **23/24**, source
+audit **7/8** reviewed, **0/8** release-cleared.
