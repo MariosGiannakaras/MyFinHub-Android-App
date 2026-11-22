@@ -278,14 +278,16 @@ internal fun MyFinHubAppContent(
         TopLevelDestination.INSIGHTS -> insightsBackStack
     }
     val activeRoute = activeBackStack.lastOrNull() as? AppRoute
+    val hideVaultForRoute = shouldHideCardSecretsForRoute(currentDestination, activeRoute)
+    // Frame-local guard: an outgoing Nav3 scene cannot render a prior wallet PAN/CVV
+    // after the active route changes, even before the asynchronous controller revoke.
+    val cardSecretStateForRoute = if (hideVaultForRoute) CardSecretUiState.Hidden()
+        else cardSecretState
 
-    // The selected wallet card face is allowed to show owner+AAL2 PAN/CVV.
-    // Retire that privilege on every other route, not just when a card-detail
-    // composable happens to be disposed. hideSecrets also fences late GET replies.
-    LaunchedEffect(currentDestination, activeRoute) {
-        if (shouldHideCardSecretsForRoute(currentDestination, activeRoute)) {
-            onHideCardSecrets()
-        }
+    // Keep the wallet card face and secure-card route behavior unchanged, but
+    // fence every late vault GET as soon as a different destination becomes active.
+    LaunchedEffect(hideVaultForRoute) {
+        if (hideVaultForRoute) onHideCardSecrets()
     }
 
     fun openFastExpense(backStack: NavBackStack<NavKey>) {
@@ -641,7 +643,7 @@ internal fun MyFinHubAppContent(
                         },
                         fullActivityIdCounts = fullActivityIdCounts,
                         onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
-                        cardSecretState = cardSecretState,
+                        cardSecretState = cardSecretStateForRoute,
                         onCardActiveChanged = onCardDetailOpened,
                         onDeleteCard = onDeleteCard,
                         onRestoreCard = onRestoreCard,
@@ -786,7 +788,7 @@ internal fun MyFinHubAppContent(
                     CanonicalCardSecureDetailsScreen(
                         cardId = route.cardId,
                         card = safeCard,
-                        secretState = if (hasUniqueCard) cardSecretState
+                        secretState = if (hasUniqueCard) cardSecretStateForRoute
                             else CardSecretUiState.Hidden(route.cardId),
                         serverAccessAllowed = hasUniqueCard && cardSecretAccessAllowed,
                         onReveal = {
