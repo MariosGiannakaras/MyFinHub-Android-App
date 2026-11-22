@@ -1,11 +1,20 @@
 package app.myfinhub.android.core.data
 
 import android.content.Context
+import android.util.Base64
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.myfinhub.android.core.security.AndroidKeystoreCipher
+import app.myfinhub.android.core.security.EncryptedPayload
+import app.myfinhub.android.core.security.SecureValueCipher
 import java.io.File
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
@@ -96,6 +105,132 @@ class EncryptedFinanceLocalStoreTest {
     }
 
     @Test
+    fun failedDecryptKeepsCiphertextAndPreventsSilentOverwriteEvenAfterRecreation() = runBlocking {
+        val original = FinanceLocalSnapshot(
+            userId = "owner-user", serverDocument = document("PENDING-DO-NOT-LOSE"),
+            pendingMutations = listOf(PendingCanonicalMutationIntent.fromMutation(
+                mutation = AppendCanonicalEvent(event("evt-pending", "Εκκρεμής κίνηση"), NOW),
+                intentId = "intent-do-not-lose",
+            )), lastSuccessfulSync = NOW,
+        )
+        store.save(original)
+        val originalPreferences = context.financeOfflineDataStore.data.first()
+        val slotHash = financeCacheOwnerSlotHash("owner-user")
+        val ivKey = stringPreferencesKey("finance_iv_owner_$slotHash")
+        val ciphertextKey = stringPreferencesKey("finance_ciphertext_owner_$slotHash")
+        val originalIv = requireNotNull(originalPreferences[ivKey])
+        val originalCiphertext = requireNotNull(originalPreferences[ciphertextKey])
+        val brokenCipher = object : SecureValueCipher {
+            override fun encrypt(plaintext: ByteArray): EncryptedPayload =
+                throw UnsupportedOperationException("Test must never encrypt with bad cipher")
+            override fun decrypt(payload: EncryptedPayload): ByteArray =
+                throw IllegalStateException("Injected decrypt failure")
+        }
+        val failingStore = EncryptedFinanceLocalStore(context, cipher = brokenCipher)
+        assertTrue(runCatching { failingStore.load("owner-user") }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        val afterFailure = context.financeOfflineDataStore.data.first()
+        assertEquals(originalIv, afterFailure[ivKey])
+        assertEquals(originalCiphertext, afterFailure[ciphertextKey])
+        assertEquals(true, afterFailure[booleanPreferencesKey("finance_recovery_hold_owner_$slotHash")])
+        // The safety hold is durable across store recreation and owner actions.
+        assertTrue(runCatching { EncryptedFinanceLocalStore(context).load("owner-user") }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        assertTrue(runCatching { store.save(original.copy(pendingMutations = emptyList())) }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        val afterRejectedSave = context.financeOfflineDataStore.data.first()
+        assertEquals(originalIv, afterRejectedSave[ivKey])
+        assertEquals(originalCiphertext, afterRejectedSave[ciphertextKey])
+    }
+
+    @Test
+    fun differentUsersCanSwitchWithoutOverwritingEachOthersUnsentFinancialWork() = runBlocking {
+        val alice = ownerSnapshot("owner-alice", "ALICE-PRIVATE", "evt-alice")
+        val bob = ownerSnapshot("owner-bob", "BOB-PRIVATE", "evt-bob")
+        store.save(alice)
+        assertNull(EncryptedFinanceLocalStore(context).load("owner-bob"))
+        store.save(bob)
+        val restoredAlice = EncryptedFinanceLocalStore(context).load("owner-alice")
+        val restoredBob = EncryptedFinanceLocalStore(context).load("owner-bob")
+        assertEquals(alice.serverDocument.raw, restoredAlice?.serverDocument?.raw)
+        assertEquals(alice.pendingMutations, restoredAlice?.pendingMutations)
+        assertEquals(bob.serverDocument.raw, restoredBob?.serverDocument?.raw)
+        assertEquals(bob.pendingMutations, restoredBob?.pendingMutations)
+        assertNull(EncryptedFinanceLocalStore(context).load("never-logged-in"))
+    }
+
+    @Test
+    fun installedLegacySingleSlotSurvivesAnotherOwnersFirstLoginAndSave() = runBlocking {
+        val legacyOwner = "legacy-owner"
+        val legacyId = "evt-legacy"
+        val legacyIv = stringPreferencesKey("finance_iv")
+        val legacyCiphertext = stringPreferencesKey("finance_ciphertext")
+        // Generate a genuine installed v1-format payload (legacy
+        // pendingTransactions rather than generic pendingMutations) using
+        // this installation's same non-exportable Android Keystore alias.
+        val legacyJson = JsonObject(mapOf(
+            "userId" to JsonPrimitive(legacyOwner),
+            "serverDocument" to document("LEGACY-PRIVATE").raw,
+            "pendingTransactions" to JsonArray(listOf(JsonObject(mapOf(
+                "event" to event(legacyId, "Ιστορική offline κίνηση"),
+                "nowIso" to JsonPrimitive(NOW),
+                "syncState" to JsonPrimitive("NEVER_SENT"),
+            )))),
+            "lastSuccessfulSync" to JsonPrimitive(NOW),
+        ))
+        val payload = AndroidKeystoreCipher("myfinhub.finance-offline.aes.v1")
+            .encrypt(legacyJson.toString().encodeToByteArray())
+        context.financeOfflineDataStore.edit { prefs ->
+            prefs[legacyIv] = Base64.encodeToString(payload.initializationVector, Base64.NO_WRAP)
+            prefs[legacyCiphertext] = Base64.encodeToString(payload.ciphertext, Base64.NO_WRAP)
+        }
+        val prior = context.financeOfflineDataStore.data.first()
+        val originalIv = requireNotNull(prior[legacyIv])
+        val originalCiphertext = requireNotNull(prior[legacyCiphertext])
+        assertNull(store.load("other-owner"))
+        store.save(ownerSnapshot("other-owner", "OTHER-PRIVATE", "evt-other"))
+        val after = context.financeOfflineDataStore.data.first()
+        assertEquals(originalIv, after[legacyIv])
+        assertEquals(originalCiphertext, after[legacyCiphertext])
+        val restoredLegacy = requireNotNull(EncryptedFinanceLocalStore(context).load(legacyOwner))
+        assertEquals(listOf("legacy-append-$legacyId"),
+            restoredLegacy.pendingMutations.map(PendingCanonicalMutationIntent::intentId))
+        assertEquals(PendingMutationKind.APPEND_EVENT, restoredLegacy.pendingMutations.single().kind)
+        assertEquals(PendingMutationSyncState.NEVER_SENT, restoredLegacy.pendingMutations.single().syncState)
+        assertEquals("other-owner", EncryptedFinanceLocalStore(context).load("other-owner")?.userId)
+
+        // The original owner can migrate the validated legacy queue into
+        // a new owner-specific slot without clearing either owner or v1.
+        store.save(restoredLegacy.copy(lastSuccessfulSync = "2026-09-04T00:00:00Z"))
+        val reopened = requireNotNull(EncryptedFinanceLocalStore(context).load(legacyOwner))
+        assertEquals(restoredLegacy.pendingMutations, reopened.pendingMutations)
+        assertEquals("2026-09-04T00:00:00Z", reopened.lastSuccessfulSync)
+        assertEquals(originalCiphertext, context.financeOfflineDataStore.data.first()[legacyCiphertext])
+    }
+
+    @Test
+    fun corruptedOwnerSlotDoesNotDeleteOtherOwnersIndependentSnapshot() = runBlocking {
+        val alice = ownerSnapshot("owner-alice", "ALICE", "evt-alice")
+        val bob = ownerSnapshot("owner-bob", "BOB", "evt-bob")
+        store.save(alice)
+        store.save(bob)
+        val failingStore = EncryptedFinanceLocalStore(context, cipher = object : SecureValueCipher {
+            override fun encrypt(plaintext: ByteArray): EncryptedPayload =
+                throw UnsupportedOperationException("Unexpected encrypt")
+            override fun decrypt(payload: EncryptedPayload): ByteArray =
+                throw IllegalStateException("Injected decrypt failure")
+        })
+        assertTrue(runCatching { failingStore.load(alice.userId) }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        assertEquals(bob.pendingMutations, store.load(bob.userId)?.pendingMutations)
+        assertTrue(runCatching { store.save(alice) }
+            .exceptionOrNull() is FinanceLocalRestoreException)
+        store.save(bob.copy(lastSuccessfulSync = "2026-09-05T00:00:00Z"))
+        assertEquals("2026-09-05T00:00:00Z",
+            EncryptedFinanceLocalStore(context).load(bob.userId)?.lastSuccessfulSync)
+    }
+
+    @Test
     fun snapshot_isScopedToAuthenticatedUser() = runBlocking {
         val document = CanonicalFinanceDocument(
             JsonObject(
@@ -118,6 +253,16 @@ class EncryptedFinanceLocalStoreTest {
         assertNull(EncryptedFinanceLocalStore(context).load("different-user"))
         assertEquals("owner-user", EncryptedFinanceLocalStore(context).load("owner-user")?.userId)
     }
+
+    private fun ownerSnapshot(owner: String, marker: String, eventId: String) =
+        FinanceLocalSnapshot(
+            userId = owner, serverDocument = document(marker),
+            pendingMutations = listOf(PendingCanonicalMutationIntent.fromMutation(
+                mutation = AppendCanonicalEvent(event(eventId, "Εκκρεμής εργασία"), NOW),
+                intentId = "pending-$eventId",
+            )),
+            lastSuccessfulSync = NOW,
+        )
 
     private fun document(marker: String): CanonicalFinanceDocument = CanonicalFinanceDocument(
         Json.parseToJsonElement(

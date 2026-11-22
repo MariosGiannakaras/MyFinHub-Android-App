@@ -1567,11 +1567,11 @@
     "merging_to_develop": "merged_0f49d12fce1acc329daa30fccd85a69918eea8d1"
   },
   "ux_journey_audit_2026_11_20": {
-    "stage": "03d_home_scheduled_attention_source_identity",
-    "source_branch": "android/ux-home-attention-source-identity-20261121",
-    "status": "source_and_regressions_authored_pending_hosted_exact_head_ci_merge",
-    "next_stage": "03e_integrated_deep_pre_apk_audit_and_s24_acceptance_evidence",
-    "summary": "PR #504 source-backed Activity and Home/Settings behavior passed all six exact-head checks at 277cfc1 and squash merged to develop cb3ac83, after fixing an unrelated hosted date-picker IME test race. During integrated 03d review, the active Home overdue scheduled attention surface and HomeAttention route still selected firstOrNull by ID and DismissAttention removed every row with that ID. When imported scheduled obligations collide (including one beyond Home's 2-row display cutoff), a user could inspect the wrong obligation or dismiss more than intended. Current source batch carries all canonical schedule ID counts to Home, enforces unique trim-stable live attention identity for row enablement and route/open/dismiss/action, and keeps ambiguous obligations visible but non-actionable with warning. Unit and real Compose navigation tests authored; exact-head hosted CI and merge pending. No production finance write, Web/backend edit, golden replacement or APK. Owner physical S24 D7 and protected release D8 pending.",
+    "stage": "03e_integrated_deep_pre_apk_audit",
+    "source_branch": "android/d7-integrated-preapk-audit-20261122",
+    "status": "offline_identity_recovery_and_owner_scoped_v1_migration_authored_pending_final_exact_head_ci_release_blocked",
+    "next_stage": "03f_resolve_P0_P1_integrated_device_acceptance",
+    "summary": "PR #505 merged with 6/6 exact-head CI (develop 9e23f4bf). Stage 03e integrated pre-APK audit has 7/8 domains source/previous-evidence reviewed and 0/8 release-cleared. In PR #506, source now rejects conflicting offline mutation IDs without dropping queued work, holds un-decryptable encrypted IV/ciphertext under durable recovery flag without clearing, blocks server sync and overwrite on a recovery hold, and uses SHA-256-fingerprinted owner-specific encrypted snapshots to preserve pending data across account changes while non-destructively reading old v1 legacy cache. Six JVM and additional Android instrumentation restore, tamper and owner-switch tests authored, final immutable head CI pending. Prior heads 4935c6b screenshot and 0565296 S24 shard1 dependencies hit Maven Central HTTP429 before tests; do not infer product failure or acceptance. Owner physical S24 rc19 secure Recents, live GET400 and unlinked historical card purchases remain P0, old signed release rc19 does not include current develop/PR. No APK, Web/backend or production money mutation, D7 remains 6/8, Web parity 5/6 23/24 and D8 independent.",
     "web_parity_changed": false,
     "device_acceptance": "pending",
     "rc20_release_independent": true,
@@ -1851,8 +1851,123 @@
         "NativeFinanceJourneysComposeTest opens a valid alert, simulates source collision and verifies detail/action revocation"
       ],
       "visual_golden_impact": "valid canonical Home fixtures unchanged; malformed or ambiguous source-only warning",
-      "status": "source_and_tests_authored_pending_ci",
-      "physical_s24_owner_acceptance": "pending"
+      "status": "integrated_into_develop_all_six_exact_head_gates_success",
+      "physical_s24_owner_acceptance": "pending",
+      "final_integration": {
+        "pr": 505,
+        "head": "e7e33faf006b308b2d882f1ecff8389b527be7bd",
+        "merged_commit": "9e23f4bf50407e38c08891361a9cd4d041973fc2",
+        "checks": [
+          "tracking-verify",
+          "android-verify",
+          "screenshot-regression",
+          "S24 emulator shard 0",
+          "S24 emulator shard 1",
+          "s24-ultra-target-instrumented"
+        ],
+        "physical_S24": "pending"
+      }
+    },
+    "pre_apk_deep_audit_03e": {
+      "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
+      "baseline_develop": "9e23f4bf50407e38c08891361a9cd4d041973fc2",
+      "status": "blocked_pre_release_offline_owner_slots_v1_legacy_and_recovery_hold_authored_final_head_ci_pending",
+      "reviewed_domains": 7,
+      "total_domains": 8,
+      "release_cleared_domains": 0,
+      "scope_domains": [
+        "native_navigation_user_journeys",
+        "compose_ui_ux_accessibility",
+        "canonical_finance_account_credit",
+        "encrypted_offline_queue_and_reconnect",
+        "auth_privacy_secret_capture",
+        "network_get_sync_authorization",
+        "installer_signing_permissions",
+        "real_s24_integrated_acceptance"
+      ],
+      "source_fix": {
+        "path": "app/src/main/java/app/myfinhub/android/core/data/OfflinePendingRestorePolicy.kt",
+        "consumer": "EncryptedFinanceLocalStore.load",
+        "tests": "app/src/test/java/app/myfinhub/android/core/data/OfflinePendingRestorePolicyTest.kt",
+        "status": "duplicate_guard_recovery_hold_owner_isolation_and_legacy_v1_compatibility_authored_pending_ci",
+        "behavior": "require distinct generic/legacy IDs separately, only exact cross-format migration overlap, monotonic NEEDS_REVIEW and deterministic replay ordering",
+        "additional_consumer": "FinanceProductViewModel.loadFresh and queueLocalMutation catch FinanceLocalRestoreException, halt sync and display local recovery hold; EncryptedFinanceLocalStore.save refuses overwrite if hold persisted",
+        "additional_test": "app/src/androidTest/java/app/myfinhub/android/core/data/EncryptedFinanceLocalStoreTest.kt::failedDecryptKeepsCiphertextAndPreventsSilentOverwriteEvenAfterRecreation",
+        "recovery_behavior": "Stored legacy v1 and SHA256-hashed per-owner slots never clear on decryption/replay failure. A persistent global legacy hold or owner-scoped hold preserves IV/ciphertext and blocks unsafe overwrites. ViewModel halts load and clears only volatile owner state; no automatic network retry. Source quarantine, not data recovery.",
+        "owner_scoped_storage": {
+          "path": "app/src/main/java/app/myfinhub/android/core/data/EncryptedFinanceLocalStore.kt",
+          "keying": "SHA-256 digest of authenticated user ID as stable namespace; no raw user ID in preference keys",
+          "migration": "When own slot absent, read installed legacy unscoped IV/ciphertext non-destructively; old owner still recovers pending work after another owner signs in and saves own slot",
+          "tests": [
+            "Different users can switch and retain distinct encrypted financial snapshots including never-sent pending mutations",
+            "Simulate old v1 bytes with genuine Android Keystore ciphertext; second user saves without replacing original bytes, original user loads and upgrades into own slot",
+            "A corrupted one-owner slot triggers durable hold without deleting another owner's valid snapshot",
+            "Injected owner-scoped decryption failure retains IV/ciphertext across restart and refuses overwrite"
+          ],
+          "status": "authored_exact_head_emulator_ci_pending"
+        }
+      },
+      "blockers": [
+        {
+          "severity": "P0",
+          "kind": "owner_physical_security",
+          "detail": "rc19 S24 recording/Recents secure card/vault privacy not verified"
+        },
+        {
+          "severity": "P0",
+          "kind": "canonical_finance",
+          "detail": "historical GET /api/data HTTP400 INVALID_DATA and two reported 2026-11-12 missing card purchase linkages unresolved"
+        },
+        {
+          "severity": "P1",
+          "kind": "offline_owner_switch",
+          "detail": "Per-owner encrypted IV/ciphertext namespace and non-destructive v1 owner migration implemented in source, plus Android owner-switch and legacy migration tests authored. Exact-head CI and physical installed-state continuity are pending; cannot mark release cleared."
+        },
+        {
+          "severity": "P1",
+          "kind": "source_version_gap",
+          "detail": "rc19 signed release pre-dates merged #502-505 and this source audit; no new signed APK permitted"
+        },
+        {
+          "severity": "P1",
+          "kind": "quarantined_offline_recovery",
+          "detail": "Restored invalid encrypted finance data retained behind durable hold; no approved owner-safe export or physical restoration workflow; original IV/ciphertext preserved by source and unexecuted emulator regression."
+        }
+      ],
+      "owner_acceptance": "pending",
+      "apk_release_allowed": false,
+      "ci_exact_head": "pending_new_head",
+      "next_action": "Complete source self-review of owner-scoped encrypted migration and recovery invariants. Require fresh exact-head 6-of-6 CI, both full emulator shards with new DataStore tests and unchanged 102 screenshot goldens, then merge PR #506. Physical S24 rc19 capture/Recents and live GET400/credit purchase validation independent and still blocked; do not publish signed APK.",
+      "initial_exact_head_ci": {
+        "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
+        "passed": [
+          "tracking-verify",
+          "android-verify",
+          "S24 emulator shard 0",
+          "S24 emulator shard 1",
+          "s24-ultra-target-instrumented"
+        ],
+        "failed": [
+          "screenshot-regression"
+        ],
+        "reason": "Maven Central HTTP429 resolving Kotlin Compose plugin before any screenshot comparisons; no evidence of changed golden pixels",
+        "next": "full exact-head check pass after same-PR source change; do not rerun obsolete SHA"
+      },
+      "prior_ci_second_head": {
+        "head": "05652968fb1101571c3e7f59961aee278aa47e4b",
+        "passed": [
+          "tracking-verify",
+          "android-verify",
+          "screenshot-regression",
+          "S24 emulator shard 0"
+        ],
+        "failed_first_attempt": [
+          "S24 emulator shard 1",
+          "s24-ultra-target-instrumented"
+        ],
+        "reason": "Maven Central HTTP429 dependency retrieval before executing shard 1 tests",
+        "targeted_rerun": "started but superseded by substantive additional owner-scoped storage changes; not merge evidence for new source"
+      }
     }
   }
 }

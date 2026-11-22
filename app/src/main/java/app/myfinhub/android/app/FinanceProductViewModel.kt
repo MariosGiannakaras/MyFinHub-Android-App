@@ -43,6 +43,7 @@ import app.myfinhub.android.core.data.RestoreCanonicalCard
 import app.myfinhub.android.core.data.DeleteCanonicalActivity
 import app.myfinhub.android.core.data.EditCanonicalActivity
 import app.myfinhub.android.core.data.EncryptedFinanceLocalStore
+import app.myfinhub.android.core.data.FinanceLocalRestoreException
 import app.myfinhub.android.core.data.FinanceLocalSnapshot
 import app.myfinhub.android.core.data.FinanceRepository
 import app.myfinhub.android.core.data.FinanceSyncState
@@ -1625,7 +1626,31 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val previous = (mutableState.value as? FinanceProductState.Ready)?.projection.takeIf { preserveUi }
 
         loadJob = viewModelScope.launch {
-            val cached = localStore.load(session.userId)
+            val cached = try {
+                localStore.load(session.userId)
+            } catch (_: FinanceLocalRestoreException) {
+                // Do not continue to a fresh GET or persist a new snapshot over
+                // unreadable, potentially never-sent financial changes.
+                serverReadBlocked = true
+                reloadWhenOnline = false
+                // Remove any previous in-memory owner snapshot as well: otherwise
+                // an offline entry could skip localStore.load() and reach an
+                // unsafe persist attempt despite the durable recovery hold.
+                lastServerDocument = null
+                pendingMutations = emptyList()
+                mutableLastSuccessfulSync.value = null
+                repository.clear()
+                mutableState.value = FinanceProductState.Failure(
+                    "Η κρυπτογραφημένη τοπική αποθήκευση δεν ανακτήθηκε. Τα δεδομένα διατηρήθηκαν στη συσκευή. Μην διαγράψεις τα δεδομένα της εφαρμογής· απαιτείται έλεγχος ανάκτησης πριν από νέο συγχρονισμό.",
+                    retryable = false,
+                )
+                mutableNotices.emit(UserNotice(
+                    message = "Απαιτείται ασφαλής ανάκτηση των τοπικών οικονομικών αλλαγών.",
+                    details = "Ενέργεια: Ανάκτηση τοπικής αποθήκευσης\nΚατηγορία: OFFLINE_CACHE_RECOVERY_HOLD",
+                    diagnosticCode = "MFH-OFFLINE-RECOVERY-HOLD",
+                ))
+                return@launch
+            }
             if (cached != null) {
                 lastServerDocument = cached.serverDocument
                 pendingMutations = cached.pendingMutations
@@ -1984,7 +2009,16 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutation: CanonicalFinanceMutation,
         previousProjection: CanonicalProductProjection,
     ): Boolean {
-        val serverDocument = lastServerDocument ?: localStore.load(session.userId)?.serverDocument
+        val serverDocument = lastServerDocument ?: try {
+            localStore.load(session.userId)?.serverDocument
+        } catch (_: FinanceLocalRestoreException) {
+            mutableNotices.emit(UserNotice(
+                message = "Οι τοπικές οικονομικές αλλαγές διατηρήθηκαν αλλά χρειάζονται ανάκτηση. Δεν επιτρέπεται νέα offline καταχώριση.",
+                details = "Ενέργεια: Offline καταχώριση\nΚατηγορία: OFFLINE_CACHE_RECOVERY_HOLD",
+                diagnosticCode = "MFH-OFFLINE-RECOVERY-HOLD",
+            ))
+            return false
+        }
         if (serverDocument == null) {
             mutableNotices.emit(
                 UserNotice(
