@@ -116,6 +116,61 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun offlineReadyWithSameBearerImmediatelyRevokesCardPanAndCvvAndRejectsWrites() = runBlocking {
+        val api = FakeCardApi()
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(1, api.serverSecretReadCalls)
+
+        vm.attachSession(session, allowServerAccess = false)
+        assertFalse(vm.matchesSensitivePresentationSession(session))
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+
+        vm.openCard("card-1")
+        vm.reveal()
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+
+        val pan = "4000000000000002".toCharArray()
+        val expiry = "09/31".toCharArray()
+        val cvv = "123".toCharArray()
+        vm.saveCardDetailsForCard("new-card", pan, expiry, cvv)
+        assertTrue(pan.all { it == '\u0000' })
+        assertTrue(expiry.all { it == '\u0000' })
+        assertTrue(cvv.all { it == '\u0000' })
+        assertEquals(0, api.serverSecretWriteCalls)
+
+        vm.attachSession(session, allowServerAccess = true)
+        assertTrue(vm.matchesSensitivePresentationSession(session))
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(2, api.serverSecretReadCalls)
+    }
+
+    @Test
+    fun delayedCardVaultReadCannotPublishAfterOfflineReadySameBearerTransition() = runBlocking {
+        val api = FakeCardApi().also { it.readDelayMillis = 260 }
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { api.serverSecretReadCalls == 1 }
+        vm.attachSession(session, allowServerAccess = false)
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+
+        delay(350)
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+        vm.attachSession(session, allowServerAccess = true)
+        delay(80)
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertEquals(1, api.serverSecretReadCalls)
+    }
+
+    @Test
     fun closeCardRedactsAlreadyRevealedSecretsOnNavigation() = runBlocking {
         val api = FakeCardApi()
         val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
