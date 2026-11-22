@@ -180,8 +180,11 @@ reads/writes or publish delayed responses without server revalidation.
 - Offline card requests do not contact the server. Mutations remain blocked,
   caller credential buffers continue to be zeroed and no automatic secret
   re-reveal occurs on reconnect until an explicit card open.
+- Owner transitions also clear hidden prior-owner card IDs, rather than only
+  the visible PAN/CVV, and pending cleanup cannot cross the owner boundary.
 - JVM and Android instrumented tests cover offline Ready masking, immediate
-  redaction, blocked reads/writes, and stale delayed server callbacks.
+  redaction, blocked reads/writes, stale delayed server callbacks and
+  old-owner card-pointer invalidation.
 
 **Status:** source and tests authored, final-head CI and merge pending.
 This is a source-level prevention measure, not proof of real Samsung
