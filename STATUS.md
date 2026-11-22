@@ -65,7 +65,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 OPEN 6/8. PR #517 head eae54b8 passed all six exact-head gates and squash merged develop 5a0ca1e (secure card Hidden shows explicit authorized recovery after reconnect). Current branch android/d7-card-vault-single-open-read-20261122 fixes duplicate initial remote PAN/CVV GET on secure-card route entry, with Compose regression authored; final-head CI/merge pending. Signed public rc20/10019 predates fixes. Actual S24 signer/Play Protect/Recents/recording and encrypted installed-data continuity, real GET400 and two missing historical credit-purchase links independently block release.
+Next: D7 OPEN 6/8; W6.4 remains pending (23/24 Web-parity subtasks). PR #518 immutable head ac982db passed all six exact-head gates after retrying S24 shard 1 (first attempt Maven Central HTTP429), with clean reviews/base, and squash merged develop 6c6d94c (single initial remote PAN/CVV GET). No additional source CI-pending D7 PR. Public signed rc20/10019 predates merged corrections. D7 owner acceptance still blocked by real Galaxy S24 Recents/screen recording privacy, in-place signer/Play Protect and encrypted cache continuity, live GET /api/data HTTP400 INVALID_DATA and two missing Nov 12 credit-purchase links. No signed release, production finance mutation, or D8 promotion authorized.
 
 
 ## Active Web parity progress
