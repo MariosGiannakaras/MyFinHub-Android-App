@@ -65,7 +65,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 OPEN 6/8. Live GitHub Releases now lists rc20/10019 (published 2026-11-19 23:56 UTC) as the newest signed prerelease; it is not confirmed installed or accepted on the owner's physical Galaxy S24 Ultra. Android develop PR #506 merged c306ab4 after 6/6 exact-head CI, adding offline mutation ID safety, durable recovery hold and per-owner encrypted v1 migration, but rc20's earlier release tag does NOT contain that newer code. Do not build/publish a new APK until the deep audit and independent owner physical D7 security, Play Protect, in-place preservation, real GET /api/data HTTP400 and historical credit-purchase evidence are resolved. W6.4 remains 5/6 (23/24), D8 protected release separate.
+Next: D7 OPEN 6/8. PR #509 passed six exact-head gates and merged 75a42a8. New branch android/d7-auth-transition-finance-metadata-boundary-20261122 corrects same-owner bearer/AAL finance presentation and in-memory IBAN/history authorization; CI/merge pending. Public rc20/10019 predates these changes and remains unverified on the owner's S24. Real GET400, missing credit linkage, signer/Play Protect, Recents/screen-recording and installed-data continuity block any new signed release.
 
 
 ## Active Web parity progress
