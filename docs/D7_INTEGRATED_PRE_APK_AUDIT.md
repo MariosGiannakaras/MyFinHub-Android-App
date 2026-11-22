@@ -396,7 +396,43 @@ request the required new read.
   button, and no fake loading spinner. No changes to persisted finance,
   backend, signing, permissions, or card-vault API.
 
-**Status:** source and UI regression authored; final-head six-gate CI and
-merge pending. Physical Galaxy S24 capture and Recents, in-place installed
-data and signer/Play Protect, real GET400 and two historic credit purchases
-are independent release blockers. No signed distributable APK authorized.
+**Integration:** PR #517 immutable head `eae54b8eccf715c7eb75452dacdc1eaceacd3c0f`
+passed all six required exact-head CI gates (Project Tracking, Android CI,
+screenshot regression, hosted S24 shards 0 and 1 and aggregate), without
+outstanding reviews or base drift. Squash merged to `develop` as
+`5a0ca1e72de9c2f17702c65d69b8beb47284257f`. Physical Galaxy S24
+privacy/capture, in-place encrypted data and signer/Play Protect, real GET400
+and two historical credit-purchase links remain unresolved release blockers.
+
+## 03e follow-up: duplicate card-vault GET on secure-details entry
+
+**Confirmed source-level duplicate remote secret read after PR #517.**
+The production `MyFinHubAppContent` card-secure route uses
+`DisposableEffect(route.cardId, hasUniqueCard)` to invoke
+`onCardDetailOpened(route.cardId)`, which maps to
+`CardSecretViewModel.openCard` and starts the initial authorized server
+PAN/CVV read. Independently, `CanonicalCardSecureDetailsScreen` had its
+own `LaunchedEffect(cardId, cardAvailable)` calling `onReveal` for the
+same card as soon as it was composed. That second callback maps to
+`CardSecretViewModel.reveal` and starts a second remote vault GET for
+the same navigation event, invalidating the first request generation.
+It also risks a new unsolicited read if a retained details route is
+recomposed after session authorization changes.
+
+**Correction on `android/d7-card-vault-single-open-read-20261122`:**
+- Keep the production route's existing `onCardDetailOpened` as the
+  *single* initial read owner and remove the child screen's automatic
+  duplicate `onReveal` launch. Preserve all controller owner/AAL2,
+  bearer, network and card identity checks; `openCard` already ignores
+  a duplicate open for the same Revealed card.
+- Maintain the explicit `Προβολή στοιχείων` button for authorized
+  Hidden state after network restoration and the explicit failure retry.
+  No re-reveal on connection recovery.
+- Host instrumented Compose regression verifies mounting the secure
+  details screen cannot trigger a second `onReveal` callback, including
+  when secret values already appear; pressing the button does trigger
+  exactly one. No new write, permissions, schema or signed APK.
+
+**Status:** source and tests authored; required exact-head six-gate CI and
+merge pending. Galaxy S24 real Recents/capture, installed cache/signature,
+Play Protect, historical finance GET400 and credit linkage remain blocked.

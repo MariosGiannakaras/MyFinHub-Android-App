@@ -1237,7 +1237,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 OPEN 6/8. PR #516 passed all six exact-head CI gates and squash merged develop 89addfc (card-vault PAN/CVV revoked on network OFFLINE/UNKNOWN). Current branch android/d7-card-vault-hidden-recovery-20261122 fixes stuck Hidden/loading secure-details screen after reconnect, adding explicit verified-online reveal action and Compose regression; final-head CI/merge pending. Public rc20/10019 predates source fixes. Physical Galaxy S24 signer/Play Protect/Recents/recording and encrypted installed-data continuity, live GET400 and two missing credit-purchase links independently block signed release.",
+    "next_action": "D7 OPEN 6/8. PR #517 head eae54b8 passed all six exact-head gates and squash merged develop 5a0ca1e (secure card Hidden shows explicit authorized recovery after reconnect). Current branch android/d7-card-vault-single-open-read-20261122 fixes duplicate initial remote PAN/CVV GET on secure-card route entry, with Compose regression authored; final-head CI/merge pending. Signed public rc20/10019 predates fixes. Actual S24 signer/Play Protect/Recents/recording and encrypted installed-data continuity, real GET400 and two missing historical credit-purchase links independently block release.",
     "stages": [
       {
         "id": "D1",
@@ -1873,8 +1873,8 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "89addfc1172ef3bc2da942961d7942ac46f64874",
-      "status": "blocked_release_secure_card_hidden_recovery_source_authored_ci_pending",
+      "baseline_develop": "5a0ca1e72de9c2f17702c65d69b8beb47284257f",
+      "status": "blocked_release_card_vault_duplicate_open_source_authored_ci_pending",
       "reviewed_domains": 7,
       "total_domains": 8,
       "release_cleared_domains": 0,
@@ -1986,13 +1986,18 @@
         {
           "severity": "P1",
           "kind": "secure_details_hidden_after_reconnect_indefinite_spinner",
-          "detail": "CardSecureDetails screen treated Hidden as a perpetual loading spinner. After PR516 network loss revoked PAN/CVV and reconnect did not re-fetch intentionally; user staying on route had no explicit recovery action. Branch android/d7-card-vault-hidden-recovery-20261122 displays offline explanation or authorized explicit reveal and preserves no-auto-reveal invariant; CI/merge and physical S24 pending."
+          "detail": "PR517 immutable head eae54b8 passed all six gates and squash merged develop 5a0ca1e. Secure card Hidden state offers verified-online explicit reveal action after reconnect and no infinite loading. Physical owner S24 still unverified."
+        },
+        {
+          "severity": "P1",
+          "kind": "secure_details_duplicate_remote_vault_get_on_initial_entry",
+          "detail": "MyFinHubAppContent secure-card route onCardDetailOpened already calls CardSecretViewModel.openCard to GET PAN/CVV. Child CanonicalCardSecureDetailsScreen LaunchedEffect independently calls onReveal, launching another GET and invalidating previous generation. Branch android/d7-card-vault-single-open-read-20261122 removes duplicate automatic reveal, retains initial route openCard + manual retry; final-head CI/merge and physical S24 pending."
         }
       ],
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
-      "ci_exact_head": "pr_516_01b11db_all_6_success_squash_merged_89addfc",
-      "next_action": "Verify six exact-head CI gates for branch android/d7-card-vault-hidden-recovery-20261122 (explicit card-vault reopen on validated online reconnect, no stuck Hidden spinner). Merge only with clean base/reviews. Physical S24 Recents/capture, installed signer/encrypted data, GET400 and credit purchase linkage remain unverified and block D7/D8.",
+      "ci_exact_head": "pr_517_eae54b8_all_6_success_squash_merged_5a0ca1e",
+      "next_action": "Verify all six exact-head checks for android/d7-card-vault-single-open-read-20261122 (remove duplicate secure-details PAN/CVV GET on initial compose), then merge only with clean reviews/base. Physical Galaxy S24, installed signer/cache and real GET400/credit purchase linkage remain independent D7/D8 release blockers.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -2234,6 +2239,26 @@
           "app/src/androidTest/java/app/myfinhub/android/feature/money/S6CardSurfaceTest.kt"
         ],
         "mitigation": "Pass fail-closed vaultSessionAuthorized to secure card screen; Hidden shows offline explanation if not authorized or manual reveal button when verified online. Loading spinner reserved for real Loading, and reconnection alone never re-triggers reveal.",
+        "status": "integrated_pr517_eae54b8_six_exact_head_checks_green_merge_5a0ca1e_physical_s24_pending",
+        "physical_s24": "not_verified",
+        "signed_release": "not_authorized",
+        "pr_517": {
+          "head": "eae54b8eccf715c7eb75452dacdc1eaceacd3c0f",
+          "merged_commit": "5a0ca1e72de9c2f17702c65d69b8beb47284257f",
+          "checks": "6_of_6_success"
+        }
+      },
+      "additional_card_vault_single_open": {
+        "finding": "The production secure-card route and child composable each triggered remote PAN/CVV read once on the same entry, causing two GETs and generation invalidation.",
+        "branch": "android/d7-card-vault-single-open-read-20261122",
+        "source_paths": [
+          "app/src/main/java/app/myfinhub/android/feature/money/CanonicalCardSecureDetailsScreen.kt",
+          "app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt"
+        ],
+        "tests": [
+          "app/src/androidTest/java/app/myfinhub/android/feature/money/S6CardSurfaceTest.kt"
+        ],
+        "mitigation": "Keep onCardDetailOpened->openCard as the only initial route read; remove child LaunchedEffect onReveal. Hidden after reconnection stays explicit user action, no additional remote reads.",
         "status": "source_authored_exact_head_ci_pending",
         "physical_s24": "not_verified",
         "signed_release": "not_authorized"

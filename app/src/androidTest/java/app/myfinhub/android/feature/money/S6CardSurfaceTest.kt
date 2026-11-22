@@ -631,6 +631,32 @@ class S6CardSurfaceTest {
     }
 
     @Test
+    fun secureCardDetailsOnlyFetchesOnExplicitRetryNotOnComposition() {
+        var loadCalls = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalCardSecureDetailsScreen(
+                    cardId = "credit",
+                    card = credit,
+                    secretState = CardSecretUiState.Hidden("credit"),
+                    serverAccessAllowed = true,
+                    onReveal = { loadCalls += 1 },
+                    onSaveServerSecrets = { pan, expiry ->
+                        pan.fill('\u0000')
+                        expiry.fill('\u0000')
+                    },
+                    onSaveCvv = { it.fill('\u0000') },
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Προβολή στοιχείων").assertIsDisplayed()
+        composeRule.runOnIdle { assertEquals(0, loadCalls) }
+        composeRule.onNodeWithText("Προβολή στοιχείων").performClick()
+        composeRule.runOnIdle { assertEquals(1, loadCalls) }
+    }
+
+    @Test
     fun cardDetails_showFullValues_withoutRevealGate() {
         var loadCalls = 0
         composeRule.setContent {
@@ -658,6 +684,8 @@ class S6CardSurfaceTest {
         assertTrue(
             runCatching { composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode() }.isFailure,
         )
-        composeRule.runOnIdle { assertEquals(1, loadCalls) }
+        // Navigation already issued the initial GET via onCardDetailOpened;
+        // rendering the secure details must not issue a second onReveal.
+        composeRule.runOnIdle { assertEquals(0, loadCalls) }
     }
 }
