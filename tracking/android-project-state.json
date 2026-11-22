@@ -1237,7 +1237,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 OPEN 6/8. PR #512 passed six exact-head CI gates and squash merged develop 77e65e1 (vault cleanup current-session guard integrated). D7 branch android/d7-finance-cache-disclosure-revalidation-20261122 corrects finance offline provenance on network loss and reconnect; final-head CI/merge pending. Public rc20/10019 predates source fixes. Physical Galaxy S24 signer/Play Protect/Recents/card recording and in-place encrypted local-data continuity, real GET400 and two missing card purchases remain release blockers.",
+    "next_action": "D7 OPEN 6/8. PR #513 passed all six exact-head CI gates and squash merged develop 861259a (network-loss finance cache provenance integrated). Current branch android/d7-finance-auth-offline-authority-20261122 fixes same-session server revalidation failure where auth Ready becomes offline while Android network remains online; final-head CI/merge pending. Public rc20/10019 predates source fixes. Physical Galaxy S24 signer/Play Protect/Recents/card recording and encrypted installed-data continuity, live GET400 and two missing credit-purchase links block a signed release.",
     "stages": [
       {
         "id": "D1",
@@ -1873,8 +1873,8 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "77e65e1944f7d78979d7a52645a4bd6ce6a75477",
-      "status": "blocked_release_finance_cache_reconnect_source_authored_ci_pending",
+      "baseline_develop": "861259a2326b702f90463aeac6681430e6da4561",
+      "status": "blocked_release_auth_offline_provenance_source_authored_ci_pending",
       "reviewed_domains": 7,
       "total_domains": 8,
       "release_cleared_domains": 0,
@@ -1966,13 +1966,18 @@
         {
           "severity": "P1",
           "kind": "finance_cache_network_disconnect_and_reconnect_provenance",
-          "detail": "FinanceProductViewModel network offline/unknown collector previously ignored disconnection so Ready could remain online, with reconnect skipping GET without pending work; revalidation GET set offline=false before accepted response. Branch android/d7-finance-cache-disclosure-revalidation-20261122 corrects offline presentation, reconnect GET and callback status; final CI/merge and real S24 pending."
+          "detail": "PR513 exact-head 5dabe3f passed six checks and merged develop 861259a. Network loss/reconnect cache provenance source corrected; physical S24 and live data remain unverified."
+        },
+        {
+          "severity": "P1",
+          "kind": "same_session_auth_validation_offline_finance_provenance",
+          "detail": "Auth Ready(same owner/bearer/AAL, offline=true) can follow failed server revalidation with connectivity still ONLINE. Existing finance Ready remains online and root permits stale pre-attach presentation. Branch android/d7-finance-auth-offline-authority-20261122 fences both attached validated-online authority and offline demotion; final-head CI and physical S24 pending."
         }
       ],
       "owner_acceptance": "pending",
       "apk_release_allowed": false,
-      "ci_exact_head": "pr_512_f5592eb_all_6_success_squash_merged_77e65e1",
-      "next_action": "Verify final-head six CI gates for D7 finance network-loss cache disclosure and reconnect revalidation branch android/d7-finance-cache-disclosure-revalidation-20261122. Merge only with clean base/reviews and six successful checks. Physical S24 signer/Recents/installed-data, historical GET400 and two card purchases remain unresolved; no new signed APK.",
+      "ci_exact_head": "pr_513_5dabe3f_all_6_success_squash_merged_861259a",
+      "next_action": "Verify all six exact-head CI gates for branch android/d7-finance-auth-offline-authority-20261122 (same-token auth Ready offline finance provenance and pre-attach root masking). Merge only after green checks, clean review and base. Physical S24, installed signer/Recents/data continuity, GET400 and missing credit purchases still independently block release.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -2131,6 +2136,27 @@
           "app/src/test/java/app/myfinhub/android/app/FinanceNetworkProvenanceTest.kt"
         ],
         "mitigation": "Reactive cache provenance downgrade on network loss, reloadWhenOnline signal independent of pending queue, cached display remains offline during GET, successful response after another loss keeps offline and schedules revalidation.",
+        "status": "integrated_pr513_5dabe3f_six_exact_head_checks_green_merge_861259a_physical_s24_pending",
+        "physical_s24": "not_verified",
+        "signed_release": "not_authorized",
+        "pr_513": {
+          "head": "5dabe3fa994cf57d5c5bb6fcd76693595a4fd3d6",
+          "merged_commit": "861259a2326b702f90463aeac6681430e6da4561",
+          "checks": "6_of_6_success"
+        }
+      },
+      "additional_finance_auth_offline_guard": {
+        "finding": "Same-session auth validation failure produced offline Ready without network loss; finance controller/Compose could retain prior online presentation until/after attachment.",
+        "branch": "android/d7-finance-auth-offline-authority-20261122",
+        "source_paths": [
+          "app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt",
+          "app/src/main/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundary.kt",
+          "app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt"
+        ],
+        "tests": [
+          "app/src/test/java/app/myfinhub/android/app/FinanceSessionAuthorizationBoundaryTest.kt"
+        ],
+        "mitigation": "Root exact online/offline authority matching plus immediate FinanceProductState.Ready offline downgrade on same-bearer auth validation failure, preserving durable cache and pending writes; force revalidation on online reattachment.",
         "status": "source_authored_exact_head_ci_pending",
         "physical_s24": "not_verified",
         "signed_release": "not_authorized"
