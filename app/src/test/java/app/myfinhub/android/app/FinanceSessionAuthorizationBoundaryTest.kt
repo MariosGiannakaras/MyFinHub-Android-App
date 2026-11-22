@@ -104,6 +104,16 @@ class FinanceSessionAuthorizationBoundaryTest {
         assertFalse(mayPublishRootServerSnapshot(first, AuthShellUiState.Login()))
     }
 
+    @Test fun delayedServerMetadataAndDeviceCallbacksRequireExactOnlineSession() {
+        assertTrue(sessionScopedFinanceCallbackAuthorized(first, first, true))
+        assertTrue(sessionScopedFinanceCallbackAuthorized(first.copy(refreshToken = "refreshed"), first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(null, first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(first.copy(userId = "another-owner"), first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(first.copy(accessToken = "new-token"), first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(first.copy(assuranceLevel = AssuranceLevel.AAL1), first, true))
+        assertFalse(sessionScopedFinanceCallbackAuthorized(first, first, false))
+    }
+
     @Test fun rotatingSameOwnerBearerStillIsBoundaryIfAssuranceChanges() {
         assertTrue(financeSessionAuthorizationChanged(first,first.copy(
             accessToken="synthetic-rotated-aal1",assuranceLevel=AssuranceLevel.AAL1,
