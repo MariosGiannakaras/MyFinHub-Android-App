@@ -171,6 +171,29 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun delayedNewCardWriteAfterOfflineRevalidationCannotCleanLocalVault() = runBlocking {
+        val api = FakeCardApi().also { it.writeDelayMillis = 280 }
+        val cvv = FakeCvvVault()
+        val details = FakeCardDetailsVault()
+        val vm = CardSecretViewModel(application, api, cvv, details)
+        vm.attachSession(session)
+        val pan = "4000000000000002".toCharArray()
+        val expiry = "09/31".toCharArray()
+        val code = "123".toCharArray()
+        vm.saveCardDetailsForCard("card-new", pan, expiry, code)
+        waitUntil { api.serverSecretWriteCalls == 1 }
+        vm.attachSession(session, allowServerAccess = false)
+        vm.attachSession(session, allowServerAccess = true)
+        delay(370)
+        assertEquals(CardSecretUiState.Hidden(), vm.state.value)
+        assertNull(details.deletedCardId)
+        assertNull(cvv.deletedCardId)
+        assertTrue(pan.all { it == '\u0000' })
+        assertTrue(expiry.all { it == '\u0000' })
+        assertTrue(code.all { it == '\u0000' })
+    }
+
+    @Test
     fun closeCardRedactsAlreadyRevealedSecretsOnNavigation() = runBlocking {
         val api = FakeCardApi()
         val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
@@ -638,6 +661,7 @@ private class FakeCardApi(
     var committedDeletionFailure: ApiFailureKind? = null,
 ) : MyFinHubApi {
     var readDelayMillis: Long = 0
+    var writeDelayMillis: Long = 0
     var committedDeleteDelayMillis: Long = 0
     var serverSecretReadCalls: Int = 0
         private set
@@ -671,6 +695,7 @@ private class FakeCardApi(
         update: CardSecretUpdate,
     ): ApiResult<CardSecretWriteReceipt> {
         serverSecretWriteCalls += 1
+        if (writeDelayMillis > 0) delay(writeDelayMillis)
         lastUpdate = update
         val current = serverSecrets
         serverSecrets = CardSecrets(
