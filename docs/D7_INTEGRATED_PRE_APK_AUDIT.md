@@ -186,8 +186,39 @@ reads/writes or publish delayed responses without server revalidation.
   redaction, blocked reads/writes, stale delayed server callbacks and
   old-owner card-pointer invalidation.
 
+**Integration:** PR #511 final head `ca3fad7fb6069a921d85fd33fc202c44c9cc3591`
+passed all six required exact-head checks and squash merged to `develop`
+as `2fdac0fb6edd0cba5bc4bde8000c00f481375f16`. These are hosted
+source/test results, not real Samsung screen-recording/Recents evidence,
+signer/Play Protect or installed-data continuity. Public rc20/10019 predates
+the changes; no new signed APK or backend mutation is authorized.
+
+## 03e follow-up: server-confirmed card cleanup in a pre-attachment frame
+
+**Confirmed source-level session race after PR #511.** The root
+`LaunchedEffect(authState, financeState, cardSecretCleanupState)` checked
+only whether the auth shell was online Ready at AAL2 before calling
+`FinanceProductViewModel.serverConfirmedPendingSecretCleanupIds()` and
+`CardSecretViewModel.purgeCard()`. Authentication changes can reach Ready
+for a new owner/bearer *before* the attachment effect has replaced the
+prior finance controller's server marker and the card-vault session.
+The previous rendered-state masks do not guard this non-rendering action.
+A stale card ID could therefore be selected for destructive vault cleanup.
+
+**Source mitigation on `android/d7-vault-cleanup-session-guard-20261122`:**
+- Gate automatic cleanup on **both** finance and card-vault ViewModels
+  matching the current authenticated owner, bearer and AAL, with online
+  AAL2 required and offline Ready rejected.
+- Key the cleanup effect on both attachment authorization booleans to
+  re-evaluate it after the controllers attach, without polling or
+  suppressing legitimate confirmed cleanup.
+- Independently reject explicit CardSecretViewModel purge initiation
+  without online AAL2 authority.
+- Add JVM transition cases and emulator-facing regressions proving
+  downgraded/offline purge is inert and does not delete local vault values.
+
 **Status:** source and tests authored, final-head CI and merge pending.
-This is a source-level prevention measure, not proof of real Samsung
-screen-recording/Recents behavior or installed-data continuity. The
-newest public rc20/10019 predates these fixes; no new signed APK,
-backend mutation or physical D7 acceptance is authorized.
+These checks cannot establish the installed device's Recents or
+screen-recording security, encrypted-cache preservation, live GET
+or historical purchase linkage. D7 and D8 remain blocked. No new signed
+APK, production finance changes or backend mutation.
