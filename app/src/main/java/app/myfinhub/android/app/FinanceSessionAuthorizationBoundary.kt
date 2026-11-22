@@ -74,6 +74,19 @@ internal fun financePresentationAfterAuthorizationChange(
     FinanceProductState.Idle
 } else observed
 
+/** Per-session server metadata is only valid for one owner/bearer/AAL and
+ * one validated online authority. Cached finance data is a separate contract.
+ */
+internal fun financeServerMetadataAuthorityChanged(
+    previous: AuthSession?,
+    incoming: AuthSession,
+    previousOnline: Boolean,
+    incomingOnline: Boolean,
+): Boolean = previous != null && (
+    financeSessionAuthorizationChanged(previous, incoming) ||
+        previousOnline != incomingOnline
+)
+
 /** Session-scoped server metadata, device lists and revocation callbacks must
  * never publish after an owner, access bearer, AAL or offline authority change.
  */

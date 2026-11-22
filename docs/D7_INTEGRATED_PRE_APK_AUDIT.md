@@ -287,7 +287,44 @@ online balances, while the auth shell had withdrawn server authority.
   owner and AAL, initial null attachment, and online/offline transition
   directions. No server schema, signing, installed data or permission changes.
 
-**Status:** source and tests authored; final-head CI and merge pending.
-Physical owner S24 and real finance contract acceptances remain blocked.
-Public rc20/10019 predates all recent D7 source fixes; no new signed APK,
-production finance mutation or backend change authorized.
+**Integration:** PR #514 final head `2bdf6606ce9ac2ebbd6db20e84e202e0863acce3`
+passed all six required exact-head checks (Project Tracking, Android CI,
+screenshot regression, both S24 emulator shards and aggregate) and
+squash merged to `develop` as `5621add63402fcd6189b680c03696abe92f79635`.
+Physical S24, installed data, GET400 and historic card linkage remain
+independent release blockers.
+
+## 03e follow-up: server-scoped device and provider metadata after auth revalidation
+
+**Confirmed source-level stale-state path after PR #514.**
+The same-owner, same-bearer, same-AAL online→offline auth revalidation
+transition updates `automaticSyncAllowed`, but previously retained
+`DeviceSessionsUiSnapshot(loaded=true, revokingSessionId=...)`,
+financial-provider catalog and recurring-service assets. The root masks them
+while offline, but once validated online authentication resumes with the
+unchanged bearer, `attachSession` may skip fresh metadata/device GET because
+the old records are still nonempty/loaded. An interrupted other-device revoke
+can therefore remain stuck in a permanent revoking state, even though the
+server might already have processed the request.
+
+**Source mitigation on `android/d7-session-metadata-revalidation-20261122`:**
+- Treat changes between validated online and offline auth, in either
+  direction, as a server-metadata authority transition even when owner,
+  bearer and AAL are unchanged. Refresh-token-only rotation does not
+  invalidate a still-validated session.
+- On same-session online→offline revalidation failure, cancel metadata,
+  recurring asset, device GET and revoke controller jobs; reset only the
+  in-memory server-scoped snapshots. Retain encrypted finance cache and the
+  durable pending money mutation queue.
+- On verified online reattachment, empty/unloaded snapshots trigger fresh
+  metadata/device GET, not an automatic retry of an ambiguous revoke POST.
+- Give every auth authority change a monotonically increasing metadata epoch
+  and check it (along with coroutine cancellation and exact owner/bearer/AAL)
+  before publishing delayed server callbacks. This also fences ABA transitions.
+- Add JVM cases for offline↔online, refresh-only, owner, bearer and AAL.
+  No backend mutation or new permissions.
+
+**Status:** source and regressions authored; final-head CI and merge pending.
+The physical Galaxy S24 Ultra, real GET400 and missing credit-purchase links,
+installed signer/Play Protect/Recents/capture and encrypted in-place update
+remain unverified and block a signed release.

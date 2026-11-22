@@ -132,6 +132,8 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -293,6 +295,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var recurringServiceAssetsJob: Job? = null
     private var deviceSessionsJob: Job? = null
     private var deviceRevokeJob: Job? = null
+    /** Invalidates late metadata/device callbacks across offline and bearer ABA transitions. */
+    private var serverMetadataAuthorityEpoch = 0L
 
     /** Check both the bearer identity and whether this attachment is online-validated. */
     fun matchesSensitivePresentationSession(
@@ -343,6 +347,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val onlineAuthorityRevoked = financeValidatedOnlineAuthorityRevoked(
             previous, session, automaticSyncAllowed, allowAutomaticSync,
         )
+        val metadataAuthorityChanged = financeServerMetadataAuthorityChanged(
+            previous, session, automaticSyncAllowed, allowAutomaticSync,
+        )
         // A refreshed bearer for the SAME owner is still a new authorization
         // boundary. An old in-flight GET/POST must never satisfy or block the
         // new token's load. Stable queued writes are already stored locally;
@@ -365,10 +372,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             serverReadBlocked = false
             repository.clear()
         }
-        if (previous?.userId != session.userId || previous.accessToken != session.accessToken) {
-            deviceRevokeJob?.cancel()
-            deviceRevokeJob = null
-            mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
+        if (metadataAuthorityChanged && !financeSessionAuthorizationChanged(previous, session)) {
+            // A failed server revalidation can revoke an online session without
+            // changing the bearer or connectivity. Drop stale device/metadata
+            // snapshots and abort a pending device revoke (never auto-replay it).
+            invalidateServerScopedMetadata()
         }
         currentSession = session
         automaticSyncAllowed = allowAutomaticSync
@@ -410,18 +418,6 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun clear() {
         cancelOperations()
         currentSession = null
-        providerCatalogJob?.cancel()
-        providerCatalogJob = null
-        mutableFinancialProviderCatalog.value = emptyList()
-        recurringServiceAssetsJob?.cancel()
-        recurringServiceAssetsJob = null
-        mutableRecurringServiceAssets.value = emptyList()
-        recurringServiceAssetsLoaded = false
-        deviceSessionsJob?.cancel()
-        deviceSessionsJob = null
-        deviceRevokeJob?.cancel()
-        deviceRevokeJob = null
-        mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
         automaticSyncAllowed = true
         mutablePresentationOnlineAuthority.value = null
         lastServerDocument = null
@@ -2398,7 +2394,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
-    private fun cancelOperations() {
+    private fun invalidateServerScopedMetadata() {
+        serverMetadataAuthorityEpoch += 1
         providerCatalogJob?.cancel()
         providerCatalogJob = null
         mutableFinancialProviderCatalog.value = emptyList()
@@ -2411,6 +2408,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         deviceRevokeJob?.cancel()
         deviceRevokeJob = null
         mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
+    }
+
+    private fun cancelOperations() {
+        invalidateServerScopedMetadata()
         loadJob?.cancel()
         mutationJob?.cancel()
         loadJob = null
@@ -2437,9 +2438,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         providerCatalogJob?.cancel()
         mutableFinancialProviderCatalog.value = emptyList()
         if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2) return
+        val epoch = serverMetadataAuthorityEpoch
         providerCatalogJob = viewModelScope.launch {
             val result = providerAwareApi.loadFinancialProviders(session)
-            if (!sessionScopedFinanceCallbackAuthorized(
+            if (epoch != serverMetadataAuthorityEpoch || !currentCoroutineContext().isActive ||
+                !sessionScopedFinanceCallbackAuthorized(
                     currentSession, session, automaticSyncAllowed,
                 )) return@launch
             mutableFinancialProviderCatalog.value =
@@ -2453,9 +2456,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutableRecurringServiceAssets.value = emptyList()
         recurringServiceAssetsLoaded = false
         if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2) return
+        val epoch = serverMetadataAuthorityEpoch
         recurringServiceAssetsJob = viewModelScope.launch {
             val result = providerAwareApi.loadRecurringServiceAssets(session)
-            if (!sessionScopedFinanceCallbackAuthorized(
+            if (epoch != serverMetadataAuthorityEpoch || !currentCoroutineContext().isActive ||
+                !sessionScopedFinanceCallbackAuthorized(
                     currentSession, session, automaticSyncAllowed,
                 )) return@launch
             recurringServiceAssetsLoaded = result is ApiResult.Success<*>
@@ -2477,9 +2482,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         deviceSessionsJob?.cancel()
         deviceSessionsJob = null
         mutableDeviceSessions.value = snapshot.copy(revokingSessionId = other.sessionId)
+        val epoch = serverMetadataAuthorityEpoch
         deviceRevokeJob = viewModelScope.launch {
             val result = providerAwareApi.revokeOtherDeviceSession(session, other.sessionId)
-            if (!sessionScopedFinanceCallbackAuthorized(
+            if (epoch != serverMetadataAuthorityEpoch || !currentCoroutineContext().isActive ||
+                !sessionScopedFinanceCallbackAuthorized(
                     currentSession, session, automaticSyncAllowed,
                 )) return@launch
             when (result) {
@@ -2507,7 +2514,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 is ApiResult.Failure -> {
                     // Never automatically retry the POST; GET safely reconciles an ambiguous result.
                     val reconciliation = providerAwareApi.loadDeviceSessions(session)
-                    if (!sessionScopedFinanceCallbackAuthorized(
+                    if (epoch != serverMetadataAuthorityEpoch || !currentCoroutineContext().isActive ||
+                        !sessionScopedFinanceCallbackAuthorized(
                             currentSession, session, automaticSyncAllowed,
                         )) return@launch
                     val records = (reconciliation as? ApiResult.Success<List<DeviceSessionRecord>>)?.value
@@ -2529,9 +2537,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
         if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2 ||
             deviceRevokeJob?.isActive == true) return
+        val epoch = serverMetadataAuthorityEpoch
         deviceSessionsJob = viewModelScope.launch {
             val fetched = providerAwareApi.loadDeviceSessions(session)
-            if (!sessionScopedFinanceCallbackAuthorized(
+            if (epoch != serverMetadataAuthorityEpoch || !currentCoroutineContext().isActive ||
+                !sessionScopedFinanceCallbackAuthorized(
                     currentSession, session, automaticSyncAllowed,
                 )) return@launch
             val records = (fetched as? ApiResult.Success<List<DeviceSessionRecord>>)?.value
