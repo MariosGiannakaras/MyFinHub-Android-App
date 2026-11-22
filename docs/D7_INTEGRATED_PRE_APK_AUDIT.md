@@ -361,8 +361,42 @@ recording evidence.
   reveal → transport-loss redaction → blocked reveal → reconnect requiring
   an explicit reopen. These are **authored tests, not passed CI yet**.
 
-**Status:** source and tests authored; six exact-head CI checks and merge
-pending. The above does not prove physical Samsung Recents or recording
-privacy, signer/data continuity, GET /api/data, historical purchases, or
-release safety. Public rc20/10019 predates all recent source fixes. No
-new distributable APK or live financial change authorized.
+**Integration:** PR #516 immutable head `01b11db5f2437e1ed505b021b26302618aef59fd`
+passed all six required exact-head CI gates (tracking, Android CI, screenshots,
+both S24 emulator shards, and aggregate) with no unresolved reviews or
+base drift. Squash merged to `develop` as
+`89addfc1172ef3bc2da942961d7942ac46f64874`. Physical privacy
+and live backend acceptance are still outstanding.
+
+## 03e follow-up: secure-card details screen after network reconnect
+
+**Source-level user journey regression after PR #516.** Card-secret protection
+correctly changes an already-revealed card to `CardSecretUiState.Hidden`
+when validated connectivity disappears. Reconnection does not auto-reveal,
+by design. However, `CanonicalCardSecureDetailsScreen` rendered its
+`Hidden` branch as an indefinite **"Φόρτωση στοιχείων κάρτας…"**
+spinner; its initial `LaunchedEffect(cardId, cardAvailable)` does not
+re-run merely because connectivity or controller authorization recovered.
+A user staying on the card's details route had no functional action to
+request the required new read.
+
+**Source correction on `android/d7-card-vault-hidden-recovery-20261122`:**
+- Pass the root's already fail-closed `vaultSessionAuthorized` through
+  `FinanceProductSurface` and `MyFinHubAppContent` to the secure card
+  screen, without creating a new authority policy or exposing PAN/CVV.
+- A `Hidden` card displays a precise "confirmed online session required"
+  message while authority is unavailable. Once authorized, it shows a
+  visible **"Προβολή στοιχείων"** action to explicitly request the vault
+  read. Only an actual `Loading` state shows a progress spinner.
+- Preserve the automatic one-time initial card-open behavior for already
+  authorized entry, but do not trigger a read solely on network reconnection.
+  The user controls reopening after a disconnected/unknown session.
+- Add hosted Compose regression: offline Hidden -> online Hidden without
+  automatic read -> explicit action -> offline once more with no retry
+  button, and no fake loading spinner. No changes to persisted finance,
+  backend, signing, permissions, or card-vault API.
+
+**Status:** source and UI regression authored; final-head six-gate CI and
+merge pending. Physical Galaxy S24 capture and Recents, in-place installed
+data and signer/Play Protect, real GET400 and two historic credit purchases
+are independent release blockers. No signed distributable APK authorized.

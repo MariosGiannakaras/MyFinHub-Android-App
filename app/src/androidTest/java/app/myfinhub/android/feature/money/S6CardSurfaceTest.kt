@@ -589,6 +589,48 @@ class S6CardSurfaceTest {
     }
 
     @Test
+    fun hiddenCardAfterNetworkLossOffersExplicitRetryOnlyWhenVaultIsAuthorized() {
+        var authorized by mutableStateOf(false)
+        var revealCalls = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalCardSecureDetailsScreen(
+                    cardId = "credit",
+                    card = credit,
+                    secretState = CardSecretUiState.Hidden("credit"),
+                    serverAccessAllowed = authorized,
+                    onReveal = { revealCalls += 1 },
+                    onSaveServerSecrets = { pan, expiry ->
+                        pan.fill('\u0000')
+                        expiry.fill('\u0000')
+                    },
+                    onSaveCvv = { it.fill('\u0000') },
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText(
+            "Απαιτείται επιβεβαιωμένη online σύνδεση για προβολή των ασφαλών στοιχείων.",
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText("Προβολή στοιχείων").assertDoesNotExist()
+        composeRule.onNodeWithText("Φόρτωση στοιχείων κάρτας…").assertDoesNotExist()
+        composeRule.runOnIdle {
+            assertEquals(0, revealCalls)
+            authorized = true
+        }
+
+        // Connectivity recovery alone never triggers another secret read.
+        composeRule.onNodeWithText("Προβολή στοιχείων").assertIsDisplayed()
+        composeRule.runOnIdle { assertEquals(0, revealCalls) }
+        composeRule.onNodeWithText("Προβολή στοιχείων").performClick()
+        composeRule.runOnIdle { assertEquals(1, revealCalls) }
+
+        composeRule.runOnIdle { authorized = false }
+        composeRule.onNodeWithText("Προβολή στοιχείων").assertDoesNotExist()
+        composeRule.runOnIdle { assertEquals(1, revealCalls) }
+    }
+
+    @Test
     fun cardDetails_showFullValues_withoutRevealGate() {
         var loadCalls = 0
         composeRule.setContent {

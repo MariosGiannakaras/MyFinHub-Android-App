@@ -159,6 +159,7 @@ internal fun MyFinHubAppContent(
     onChangeAccountSecurity: ((app.myfinhub.android.core.network.WebAccountSecurityChange) -> Unit)? = null,
     onRevokeDeviceSession: ((String) -> Unit)? = null,
     cardSecretState: CardSecretUiState = CardSecretUiState.Hidden(),
+    cardSecretAccessAllowed: Boolean = true,
     cardSecretCleanupState: CardSecretCleanupUiState = CardSecretCleanupUiState.Idle,
     onCardDetailOpened: (String) -> Unit = {},
     onCardDetailClosed: (String) -> Unit = {},
@@ -777,6 +778,7 @@ internal fun MyFinHubAppContent(
                         card = safeCard,
                         secretState = if (hasUniqueCard) cardSecretState
                             else CardSecretUiState.Hidden(route.cardId),
+                        serverAccessAllowed = hasUniqueCard && cardSecretAccessAllowed,
                         onReveal = {
                             if (moneyState.uniqueActiveCardForRoute(route.cardId) != null) {
                                 onRevealCardSecrets()
