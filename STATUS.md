@@ -65,7 +65,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 OPEN 6/8. PR #515 exact-head 1f23d83 passed 6/6 CI gates and squash merged to develop f98a2ca (revalidated device/provider metadata with epoch-fenced callbacks). Branch android/d7-card-vault-network-revocation-20261122 addresses PAN/CVV still visible when physical connectivity becomes OFFLINE/UNKNOWN while auth stays online Ready; final-head six-gate CI and merge pending. The latest public signed rc20/10019 predates these source changes. Physical Galaxy S24 signer/Play Protect/Recents/recording and in-place encrypted cache continuity, real GET400 and two missing credit-purchase links still block release.
+Next: D7 OPEN 6/8. PR #516 passed all six exact-head CI gates and squash merged develop 89addfc (card-vault PAN/CVV revoked on network OFFLINE/UNKNOWN). Current branch android/d7-card-vault-hidden-recovery-20261122 fixes stuck Hidden/loading secure-details screen after reconnect, adding explicit verified-online reveal action and Compose regression; final-head CI/merge pending. Public rc20/10019 predates source fixes. Physical Galaxy S24 signer/Play Protect/Recents/recording and encrypted installed-data continuity, live GET400 and two missing credit-purchase links independently block signed release.
 
 
 ## Active Web parity progress
