@@ -284,10 +284,14 @@ internal fun MyFinHubAppContent(
     val cardSecretStateForRoute = if (hideVaultForRoute) CardSecretUiState.Hidden()
         else cardSecretState
 
-    // Keep the wallet card face and secure-card route behavior unchanged, but
-    // fence every late vault GET as soon as a different destination becomes active.
-    LaunchedEffect(hideVaultForRoute) {
-        if (hideVaultForRoute) onHideCardSecrets()
+    // Revoke both exposed values and in-flight reads. Key this effect by whether
+    // the controller currently contains a reveal/pending read as well as the route:
+    // bearer refresh can start a new GET while the non-vault destination stays put.
+    val vaultNeedsRevocation = hideVaultForRoute &&
+        (cardSecretState is CardSecretUiState.Revealed ||
+            cardSecretState is CardSecretUiState.Loading)
+    LaunchedEffect(hideVaultForRoute, vaultNeedsRevocation) {
+        if (vaultNeedsRevocation) onHideCardSecrets()
     }
 
     fun openFastExpense(backStack: NavBackStack<NavKey>) {
