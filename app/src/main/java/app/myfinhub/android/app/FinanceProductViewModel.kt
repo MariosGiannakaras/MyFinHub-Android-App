@@ -335,9 +335,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     fun attachSession(session: AuthSession, allowAutomaticSync: Boolean = true) {
         val previous = currentSession
-        val onlineAuthorityRevoked = previous != null &&
-            automaticSyncAllowed && !allowAutomaticSync &&
-            !financeSessionAuthorizationChanged(previous, session)
+        val onlineAuthorityRevoked = financeValidatedOnlineAuthorityRevoked(
+            previous, session, automaticSyncAllowed, allowAutomaticSync,
+        )
         // A refreshed bearer for the SAME owner is still a new authorization
         // boundary. An old in-flight GET/POST must never satisfy or block the
         // new token's load. Stable queued writes are already stored locally;
