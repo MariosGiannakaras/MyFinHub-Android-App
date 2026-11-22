@@ -112,11 +112,10 @@ fun CanonicalCardSecureDetailsScreen(
         }
     }
 
-    LaunchedEffect(cardId, cardAvailable) {
-        // Reconnection is not a new screen opening: never auto-reveal after
-        // a network/auth downgrade. The Hidden state offers explicit retry.
-        if (cardAvailable && serverAccessAllowed) onReveal()
-    }
+    // The navigation owner opens the card exactly once on route entry. Do not
+    // call onReveal here as well: it would launch a second remote PAN/CVV GET,
+    // and could auto-reveal while the existing route is being reauthorized.
+    // Hidden after reconnect requires the explicit action below.
 
     fun closeDetailsSurface() {
         clipboard.clear()
