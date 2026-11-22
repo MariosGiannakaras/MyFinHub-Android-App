@@ -188,8 +188,11 @@ fun MyFinHubRoot(
     // Do not expose the old owner's finance, PAN/CVV or pending vault cleanup
     // even for one frame while a new owner/bearer/AAL has become authenticated.
     val activeAuthenticatedSession = (authState as? AuthShellUiState.Ready)?.session
-    val financeSessionAuthorized = activeAuthenticatedSession != null &&
-        financeViewModel.matchesSensitivePresentationSession(activeAuthenticatedSession)
+    val financeSessionAuthorized = (authState as? AuthShellUiState.Ready)?.let { ready ->
+        financeViewModel.matchesSensitivePresentationSession(
+            ready.session, allowAutomaticSync = !ready.offline,
+        )
+    } == true
     val vaultSessionAuthorized = cardVaultPresentationAllowed(
         authState,
         activeAuthenticatedSession != null &&
