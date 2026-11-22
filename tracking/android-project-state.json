@@ -1996,7 +1996,7 @@
         {
           "severity": "P1",
           "kind": "wallet_card_secret_presentation_retained_across_non_card_navigation",
-          "detail": "Wallet card face can load PAN/CVV, but existing onHideCardSecrets callback was never used at route changes. Scoped source correction on android/d7-card-secret-route-boundary-20261123 invalidates revealed contents and late GETs when switching primary tab or navigating to a non-vault Money route; exact-head CI/merge and real S24 privacy validation pending."
+          "detail": "Wallet card face is authorized to show PAN/CVV, but navigation previously never invoked the existing onHideCardSecrets callback. New route policy masks secrets synchronously outside wallet face/secure details and revokes Revealed/Loading, including late same-route bearer refresh, while retaining the root sensitive-window animation lease. Branch android/d7-card-secret-route-boundary-20261123 source+JVM/Compose regressions authored; final-head six-gate CI/merge and real S24 privacy remain pending."
         }
       ],
       "owner_acceptance": "pending",
@@ -2309,14 +2309,14 @@
         "finding": "The primary Cards wallet CreditCardStack invokes onCardDetailOpened on selecting its active card and may reveal remote PAN/CVV. The existing onHideCardSecrets callback was wired from Root but unused in MyFinHubAppContent: changing tabs or navigating from the wallet face to card profile/quick entry could retain loaded secrets in controller memory despite no authorized card-secret surface remaining.",
         "branch": "android/d7-card-secret-route-boundary-20261123",
         "status": "source_and_tests_authored_six_exact_head_ci_pending",
-        "mitigation": "Keep onCardDetailOpened card-face presentation unchanged. Tie existing Root onHideCardSecrets callback to current top-level destination and active navigation route; only Money wallet face or active CardSecureDetails may retain PAN/CVV. Navigation concealment calls CardSecretViewModel.hideSecrets to invalidate in-flight reads and purge revealed UI state.",
+        "mitigation": "Keep existing authorized wallet face and secure-details behavior. Mask secret state synchronously whenever current top-level destination/route is not Money face or CardSecureDetails; revoke Revealed and Loading via existing Root onHideCardSecrets. The reactive effect also fences newly started loads under an unchanged forbidden route after bearer refresh; root secure-window transition protection remains intact.",
         "source_paths": [
           "app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt",
           "app/src/main/java/app/myfinhub/android/app/AppNavigationPolicy.kt"
         ],
         "tests": [
-          "app/src/test/java/app/myfinhub/android/app/AppNavigationPolicyTest.kt",
-          "app/src/androidTest/java/app/myfinhub/android/app/CardSecretNavigationPrivacyTest.kt"
+          "app/src/test/java/app/myfinhub/android/app/AppNavigationPolicyTest.kt (allowed/forbidden route truth table)",
+          "app/src/androidTest/java/app/myfinhub/android/app/CardSecretNavigationPrivacyTest.kt (wallet->Home, late same-route Revealed, wallet->Activity with in-flight Loading)"
         ],
         "physical_s24": "not_verified",
         "signed_release": "not_authorized"
