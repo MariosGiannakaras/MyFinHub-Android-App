@@ -122,6 +122,23 @@ class FinanceSessionAuthorizationBoundaryTest {
         assertFalse(mayRunCardVaultCleanupForAuth(AuthShellUiState.Login(), true, true))
     }
 
+    @Test fun financePresentationRequiresExactOnlineOrOfflineAuthAuthority() {
+        assertTrue(financePresentationMatchesAuthority(first, first, true, true))
+        assertTrue(financePresentationMatchesAuthority(first, first, false, false))
+        assertTrue(financePresentationMatchesAuthority(
+            first.copy(refreshToken = "rotated-refresh"), first, true, true,
+        ))
+        assertFalse(financePresentationMatchesAuthority(first, first, true, false))
+        assertFalse(financePresentationMatchesAuthority(first, first, false, true))
+        assertFalse(financePresentationMatchesAuthority(
+            first.copy(accessToken = "different-bearer"), first, false, false,
+        ))
+        assertFalse(financePresentationMatchesAuthority(
+            first.copy(assuranceLevel = AssuranceLevel.AAL1), first, false, false,
+        ))
+        assertFalse(financePresentationMatchesAuthority(null, first, false, false))
+    }
+
     @Test fun delayedServerMetadataAndDeviceCallbacksRequireExactOnlineSession() {
         assertTrue(sessionScopedFinanceCallbackAuthorized(first, first, true))
         assertTrue(sessionScopedFinanceCallbackAuthorized(first.copy(refreshToken = "refreshed"), first, true))
