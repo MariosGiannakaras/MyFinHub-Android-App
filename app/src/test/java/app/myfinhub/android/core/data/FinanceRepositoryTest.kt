@@ -125,9 +125,9 @@ class FinanceRepositoryTest {
             load = { serverRace },
             save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
         )
-        val repository = repository(api)
-        repository.load(session)
-        val failure = (repository.state.value as FinanceSyncState.Error).failure
+        val firstRepository = repository(api)
+        firstRepository.load(session)
+        val failure = (firstRepository.state.value as FinanceSyncState.Error).failure
         assertEquals(ApiFailureKind.SERVER, failure.kind)
         assertEquals("DEVICE_REGISTRY_UNAVAILABLE", failure.serverCode)
         assertEquals(2, api.loadCalls)
