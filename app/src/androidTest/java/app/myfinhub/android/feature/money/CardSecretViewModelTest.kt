@@ -496,6 +496,79 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun partialLegacyMigrationRetainsUnreadablePanExpiryUntilLaterConfirmedUpload() = runBlocking {
+        val api = FakeCardApi(serverSecrets = null)
+        val local = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        ).also { it.failNextLoad = true }
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val vm = CardSecretViewModel(application, api, cvv, local)
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(1, api.serverSecretWriteCalls)
+        assertNull(api.lastUpdate?.pan)
+        assertNull(api.lastUpdate?.expiry)
+        assertEquals("321", api.lastUpdate?.cvv)
+        assertNull(local.deletedCardId)
+        assertEquals("card-1", cvv.deletedCardId)
+        val preserved = local.load("card-1")
+        assertEquals("4242424242424242", preserved?.pan?.concatToString())
+        assertEquals("12/30", preserved?.expiry?.concatToString())
+        preserved?.clear()
+
+        vm.closeCard("card-1")
+        vm.openCard("card-1")
+        waitUntil {
+            api.serverSecretWriteCalls == 2 &&
+                vm.state.value is CardSecretUiState.Revealed
+        }
+        assertEquals("4242424242424242", api.lastUpdate?.pan)
+        assertEquals("12/30", api.lastUpdate?.expiry)
+        assertNull(api.lastUpdate?.cvv)
+        assertEquals("card-1", local.deletedCardId)
+        assertEquals("4242424242424242", (vm.state.value as CardSecretUiState.Revealed).pan)
+        assertEquals("321", (vm.state.value as CardSecretUiState.Revealed).cvv)
+    }
+
+    @Test
+    fun partialLegacyMigrationRetainsUnreadableCvvUntilLaterConfirmedUpload() = runBlocking {
+        val api = FakeCardApi(serverSecrets = null)
+        val local = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        )
+        val cvv = FakeCvvVault(initial = "321".toCharArray()).also { it.failNextLoad = true }
+        val vm = CardSecretViewModel(application, api, cvv, local)
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(1, api.serverSecretWriteCalls)
+        assertEquals("4242424242424242", api.lastUpdate?.pan)
+        assertEquals("12/30", api.lastUpdate?.expiry)
+        assertNull(api.lastUpdate?.cvv)
+        assertEquals("card-1", local.deletedCardId)
+        assertNull(cvv.deletedCardId)
+        val retainedCvv = cvv.load("card-1")
+        assertEquals("321", retainedCvv?.concatToString())
+        retainedCvv?.fill('\u0000')
+
+        vm.closeCard("card-1")
+        vm.openCard("card-1")
+        waitUntil {
+            api.serverSecretWriteCalls == 2 &&
+                vm.state.value is CardSecretUiState.Revealed
+        }
+        assertNull(api.lastUpdate?.pan)
+        assertNull(api.lastUpdate?.expiry)
+        assertEquals("321", api.lastUpdate?.cvv)
+        assertEquals("card-1", cvv.deletedCardId)
+        assertEquals("4242424242424242", (vm.state.value as CardSecretUiState.Revealed).pan)
+        assertEquals("321", (vm.state.value as CardSecretUiState.Revealed).cvv)
+    }
+
+    @Test
     fun openCard_migratesLegacyLocalValuesWhenServerSecretIsMissing() = runBlocking {
         val api = FakeCardApi(serverSecrets = null)
         val cvvVault = FakeCvvVault(initial = "321".toCharArray())
@@ -700,6 +773,7 @@ private class FakeCardDetailsVault(
     initialExpiry: CharArray? = null,
 ) : CardDetailsVault {
     var loadDelayMillis: Long = 0
+    var failNextLoad = false
     var deleteDelayMillis: Long = 0
     var deleteStarted = false
         private set
@@ -713,6 +787,10 @@ private class FakeCardDetailsVault(
         private set
 
     override suspend fun load(cardId: String): LocalCardDetails? {
+        if (failNextLoad) {
+            failNextLoad = false
+            error("Simulated transient card-details decrypt failure")
+        }
         if (loadDelayMillis > 0) delay(loadDelayMillis)
         val pan = storedPan?.copyOf() ?: return null
         val expiry = storedExpiry?.copyOf() ?: run {
@@ -746,12 +824,19 @@ private class FakeCardDetailsVault(
 
 private class FakeCvvVault(initial: CharArray? = null) : CvvVault {
     private var stored: CharArray? = initial?.copyOf()
+    var failNextLoad = false
     var saved: CharArray? = null
         private set
     var deletedCardId: String? = null
         private set
 
-    override suspend fun load(cardId: String): CharArray? = stored?.copyOf()
+    override suspend fun load(cardId: String): CharArray? {
+        if (failNextLoad) {
+            failNextLoad = false
+            error("Simulated transient CVV decrypt failure")
+        }
+        return stored?.copyOf()
+    }
 
     override suspend fun save(cardId: String, cvv: CharArray) {
         saved?.fill('\u0000')

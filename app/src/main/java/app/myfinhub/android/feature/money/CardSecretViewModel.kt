@@ -654,8 +654,20 @@ class CardSecretViewModel internal constructor(
         return when (safeApiCall { api.saveCardSecrets(session, cardId, update) }) {
             is ApiResult.Success -> {
                 if (stillCurrent(session, cardId) && generation == detailRequestGeneration) {
-                    deleteLegacyLocalCopies(cardId)
-                    Triple(serverPan ?: localPan, serverExpiry ?: localExpiry, serverCvv ?: localCvvText)
+                    val migratedPan = serverPan ?: localPan
+                    val migratedExpiry = serverExpiry ?: localExpiry
+                    val migratedCvv = serverCvv ?: localCvvText
+                    // A partial successful server write proves only the fields it
+                    // included. Keep any unreadable local cipher (or a missing
+                    // counterpart of the PAN/expiry pair) until those fields
+                    // are independently confirmed present on the server.
+                    if (migratedPan != null && migratedExpiry != null) {
+                        runCatching { cardDetailsVault.delete(cardId) }
+                    }
+                    if (migratedCvv != null) {
+                        runCatching { cvvVault.delete(cardId) }
+                    }
+                    Triple(migratedPan, migratedExpiry, migratedCvv)
                 } else Triple(serverPan, serverExpiry, serverCvv)
             }
             is ApiResult.Failure -> Triple(serverPan ?: localPan, serverExpiry ?: localExpiry, serverCvv ?: localCvvText)
