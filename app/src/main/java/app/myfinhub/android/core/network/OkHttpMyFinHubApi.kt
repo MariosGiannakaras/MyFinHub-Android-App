@@ -312,7 +312,10 @@ class OkHttpMyFinHubApi(
         if (gate != null) return gate
         val normalizedCardId = cardId.trim()
         if (!CARD_ID_REGEX.matches(normalizedCardId)) return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
-        if (update.pan.isNullOrBlank() && update.expiry.isNullOrBlank() && update.cvv.isNullOrBlank()) {
+        // The ViewModel validates ordinary entry, but direct callers and
+        // future migrations must not bypass the Web v1.7 write contract.
+        // Reject invalid writes before constructing any HTTP request.
+        if (!CardSecretNewWriteContract.isValidNewWrite(update)) {
             return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
         }
 

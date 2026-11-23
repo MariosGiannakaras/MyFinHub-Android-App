@@ -149,6 +149,58 @@ class OkHttpMyFinHubApiMockWebServerTest {
     }
 
     @Test
+    fun cardSecretNewWritesRejectInvalidValuesBeforeAnyHttpRequest() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+            val invalidUpdates = listOf(
+                CardSecretUpdate(),
+                CardSecretUpdate(pan = "123456789012345"),
+                CardSecretUpdate(pan = "12345678901234567"),
+                CardSecretUpdate(pan = ""),
+                CardSecretUpdate(expiry = "01/2020"),
+                CardSecretUpdate(expiry = "13/2099"),
+                CardSecretUpdate(cvv = "1234"),
+                CardSecretUpdate(cvv = "  "),
+                CardSecretUpdate(cvv = "１２３"),
+                CardSecretUpdate(pan = "4242424242424242", cvv = "1234"),
+                CardSecretUpdate(pan = "4242424242424242", expiry = "01/2020"),
+            )
+
+            invalidUpdates.forEach { update ->
+                val result = api.saveCardSecrets(session, "card-1", update)
+                assertTrue("Invalid new card-vault write must fail: $update", result is ApiResult.Failure)
+                assertEquals(ApiFailureKind.INVALID_DATA, (result as ApiResult.Failure).kind)
+                assertEquals("No HTTP for rejected card-secret write", 0, server.requestCount)
+            }
+        }
+    }
+
+    @Test
+    fun cardSecretValidPartialNewWriteKeepsOnlySuppliedFieldAndOwnerBearer() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse.Builder().code(200).body(
+                """{"saved":true,"last4":null}""",
+            ).build())
+            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+
+            val result = api.saveCardSecrets(session, "card-1", CardSecretUpdate(cvv = "123"))
+            val request = server.takeRequest()
+            val payload = Json.parseToJsonElement(request.body!!.utf8()).jsonObject
+
+            assertTrue(result is ApiResult.Success)
+            assertEquals("PUT", request.method)
+            assertEquals("/api/card-secrets", request.url.encodedPath)
+            assertEquals("Bearer synthetic-bearer", request.headers["Authorization"])
+            assertFalse(request.headers.names().contains("Cookie"))
+            assertEquals(setOf("cardId", "cvv"), payload.keys)
+            assertEquals("123", payload["cvv"]?.toString()?.trim('"'))
+            assertEquals(1, server.requestCount)
+        }
+    }
+
+    @Test
     fun permanentCardCleanupUsesAtomicServerCommittedDeletionGuard() = runBlocking {
         MockWebServer().use { server ->
             server.start()
