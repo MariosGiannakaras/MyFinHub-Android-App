@@ -32,6 +32,38 @@ class DataStoreEncryptedCardDetailsVaultTest {
     }
 
     @Test
+    fun unreadableLegacyCardDetailsKeepCiphertextForLaterValidRead() = runBlocking {
+        val pan = "4242424242424242".toCharArray()
+        val expiry = "12/30".toCharArray()
+        vault.save(cardId, pan, expiry)
+        pan.fill('\u0000')
+        expiry.fill('\u0000')
+
+        val unavailable = DataStoreEncryptedCardDetailsVault(context, object : SecureValueCipher {
+            override fun encrypt(plaintext: ByteArray): EncryptedPayload =
+                error("Unexpected encryption")
+            override fun decrypt(payload: EncryptedPayload): ByteArray =
+                error("Simulated transient Keystore failure")
+        })
+        assertNull(unavailable.load(cardId))
+
+        val invalidPlaintext = DataStoreEncryptedCardDetailsVault(context, object : SecureValueCipher {
+            override fun encrypt(plaintext: ByteArray): EncryptedPayload =
+                error("Unexpected encryption")
+            override fun decrypt(payload: EncryptedPayload): ByteArray =
+                byteArrayOf(0, 1, 2)
+        })
+        assertNull(invalidPlaintext.load(cardId))
+
+        // The actual encrypted record is still intact after both failures.
+        val restored = vault.load(cardId)
+        assertNotNull(restored)
+        assertArrayEquals("4242424242424242".toCharArray(), restored!!.pan)
+        assertArrayEquals("12/30".toCharArray(), restored.expiry)
+        restored.clear()
+    }
+
+    @Test
     fun saveLoadDelete_roundTripsThroughKeystoreWithoutPlaintextAtRest() = runBlocking {
         val pan = "4242424242424242".toCharArray()
         val expiry = "12/30".toCharArray()
