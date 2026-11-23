@@ -650,6 +650,86 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun completeServerVaultReadDoesNotDeleteSecondLegacyStoreAfterNavigationHidesSecrets() = runBlocking {
+        val api = FakeCardApi(serverSecrets = CardSecrets("4242424242424242", "12/30", "321"))
+        val details = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        ).also { it.deleteDelayMillis = 240 }
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val vm = CardSecretViewModel(application, api, cvv, details)
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { details.deleteStarted }
+        vm.hideSecrets()
+        delay(320)
+
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertNull(cvv.deletedCardId)
+        val preservedCvv = cvv.load("card-1")
+        assertEquals("321", preservedCvv?.concatToString())
+        preservedCvv?.fill('\u0000')
+        assertEquals(0, api.serverSecretWriteCalls)
+    }
+
+    @Test
+    fun partialMigrationDoesNotDeleteSecondLegacyStoreAfterOfflineRevocation() = runBlocking {
+        val api = FakeCardApi(serverSecrets = CardSecrets("4242424242424242", "12/30", null))
+        val details = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        ).also { it.deleteDelayMillis = 240 }
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val vm = CardSecretViewModel(application, api, cvv, details)
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { api.serverSecretWriteCalls == 1 && details.deleteStarted }
+        assertNull(api.lastUpdate?.pan)
+        assertNull(api.lastUpdate?.expiry)
+        assertEquals("321", api.lastUpdate?.cvv)
+        vm.attachSession(session, allowServerAccess = false)
+        delay(320)
+
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        assertNull(cvv.deletedCardId)
+        val preservedCvv = cvv.load("card-1")
+        assertEquals("321", preservedCvv?.concatToString())
+        preservedCvv?.fill('\u0000')
+        assertEquals(1, api.serverSecretWriteCalls)
+    }
+
+    @Test
+    fun newCardServerSaveDoesNotDeleteSecondLegacyStoreAfterAssuranceDowngrade() = runBlocking {
+        val api = FakeCardApi()
+        val details = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        ).also { it.deleteDelayMillis = 240 }
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val vm = CardSecretViewModel(application, api, cvv, details)
+        vm.attachSession(session)
+
+        val pan = "4000000000000002".toCharArray()
+        val expiry = "09/31".toCharArray()
+        val code = "987".toCharArray()
+        vm.saveCardDetailsForCard("card-new", pan, expiry, code)
+        assertTrue(pan.all { it == '\u0000' })
+        assertTrue(expiry.all { it == '\u0000' })
+        assertTrue(code.all { it == '\u0000' })
+        waitUntil { api.serverSecretWriteCalls == 1 && details.deleteStarted }
+        vm.attachSession(session.copy(assuranceLevel = AssuranceLevel.AAL1))
+        delay(320)
+
+        assertTrue(vm.state.value === CardSecretUiState.AuthRejected)
+        assertNull(cvv.deletedCardId)
+        val preservedCvv = cvv.load("card-new")
+        assertEquals("321", preservedCvv?.concatToString())
+        preservedCvv?.fill('\u0000')
+        assertEquals(1, api.serverSecretWriteCalls)
+        assertEquals(0, api.serverSecretReadCalls)
+    }
+
+    @Test
     fun purgeCard_removesServerResidueAndBothDeviceLocalVaults() = runBlocking {
         val api = FakeCardApi()
         val cvvVault = FakeCvvVault(initial = "321".toCharArray())
