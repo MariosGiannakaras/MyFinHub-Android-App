@@ -171,7 +171,7 @@ fun CanonicalCardCreateScreen(
         ) {
             Text(
                 "Το προφίλ συγχρονίζεται με το MyFinHub. Αριθμός, λήξη και CVV φυλάσσονται " +
-                    "κρυπτογραφημένα στο κοινό ασφαλές card vault. Παλιά τοπικά στοιχεία διατηρούνται μόνο για ασφαλή μεταφορά.",
+                    "κρυπτογραφημένα στη συσκευή και εμφανίζονται μόνο στα ασφαλή στοιχεία κάρτας.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
