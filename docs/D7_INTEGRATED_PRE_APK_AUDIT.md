@@ -547,3 +547,7 @@ Separately, historical owner HTTP 400 `GET /api/data` and two Nov 12
 credit-purchase associations remain unresolved. Latest signed rc20/10019
 predates the merged source. D7 stays **6/8**, W6.4 **23/24**, source
 audit **7/8** reviewed, **0/8** release-cleared.
+
+## 2026-11-23 grouped PAN editor follow-up (source-only)
+
+Web v1.7 Card Vault strict new-write validation already existed in Android rc20; it is not replaced here. On branch `android/d7-card-pan-grouped-entry-20261123`, new-card PAN entry is visually grouped 4×4 while masked with password accessibility semantics, and protected secure-details PAN edit groups visible digits without mutating the raw backing input. Preserved legacy read lengths up to 32 digits remain visible only inside the protected details editor; writing still requires exactly 16 digits. Values longer than 16 cannot silently be truncated into valid writes. The obsolete device-only vault description on card creation is corrected. JVM regressions cover obfuscation, historical presentation and selection/cursor offset mapping. No backend/schema, live finance, release signer, permissions, APK or owner physical acceptance changes. CI/merge evidence remains pending for this branch.

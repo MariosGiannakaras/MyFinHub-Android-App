@@ -126,7 +126,7 @@ fun CanonicalCardSecureDetailsScreen(
 
     fun openEditor() {
         val revealed = relevantState as? CardSecretUiState.Revealed ?: return
-        panDraft = revealed.pan.orEmpty().filter(Char::isDigit).take(19)
+        panDraft = revealed.pan.orEmpty().filter { it in '0'..'9' }.take(32)
         expiryDraft = revealed.expiry.orEmpty()
         validation = null
         editorOpen = true
@@ -187,11 +187,12 @@ fun CanonicalCardSecureDetailsScreen(
                         MyFinHubOutlinedField(
                             value = panDraft,
                             onValueChange = { input ->
-                                panDraft = input.filter(Char::isDigit).take(19)
+                                panDraft = input.filter { it in '0'..'9' }.take(33)
                                 validation = null
                             },
                             label = "Αριθμός κάρτας",
                             modifier = Modifier.testTag("card_secure_pan_editor"),
+                            visualTransformation = GroupedCardPanVisualTransformation(masked = false),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
                         )
                         MyFinHubOutlinedField(

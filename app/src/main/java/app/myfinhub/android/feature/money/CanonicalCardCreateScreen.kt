@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.password
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
@@ -170,7 +171,7 @@ fun CanonicalCardCreateScreen(
         ) {
             Text(
                 "Το προφίλ συγχρονίζεται με το MyFinHub. Αριθμός, λήξη και CVV φυλάσσονται " +
-                    "κρυπτογραφημένα στη συσκευή και εμφανίζονται μόνο στα ασφαλή στοιχεία κάρτας.",
+                    "κρυπτογραφημένα στο κοινό ασφαλές card vault. Παλιά τοπικά στοιχεία διατηρούνται μόνο για ασφαλή μεταφορά.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -227,13 +228,13 @@ fun CanonicalCardCreateScreen(
             OutlinedTextField(
                 value = pan,
                 onValueChange = { input ->
-                    pan = input.filter(Char::isDigit).take(19)
+                    pan = input.filter { it in '0'..'9' }.take(19)
                     validation = null
                 },
-                modifier = Modifier.fillMaxWidth().testTag("card_create_pan"),
+                modifier = Modifier.fillMaxWidth().testTag("card_create_pan").semantics { password() },
                 label = { Text("Αριθμός κάρτας") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = GroupedCardPanVisualTransformation(masked = true),
                 singleLine = true,
                 enabled = submittedId == null,
             )

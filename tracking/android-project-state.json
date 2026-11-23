@@ -1237,7 +1237,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 OPEN 6/8; W6.4 23/24 Web-parity subtasks (5/6 implementations). PR #521 final head bd39ee0 passed all six exact-head gates and squash merged develop 8336deb; wallet PAN/CVV route-scope masking and late-read invalidation are integrated, not physically accepted. No other source correction PR pending. Latest signed rc20/10019 predates recent source fixes. Owner physical S24 same-signer in-place install, Play Protect, encrypted cache/PIN/biometric continuity, Recents/capture security and user journeys remain unverified. Live authenticated GET /api/data historical 400 INVALID_DATA and two Nov 12 unlinked expense/credit-purchase associations also remain unresolved. No new signed APK, production finance change, D7/W6.4 completion or D8 authorization.",
+    "next_action": "D7 OPEN 6/8; Web parity W6.4 23/24 (5/6 implementations). PR #521 route-scoped PAN/CVV privacy fix and tracking PR #522 merged into develop 8336deb and 8feeec7, respectively; physical acceptance still pending. Branch android/d7-card-pan-grouped-entry-20261123 adds four-digit grouping for masked new-card PAN and protected secure-detail editor, retaining raw backing values, strict Web v1.7 write validation and legacy reads; exact-head CI and integration not yet verified. Signed rc20/10019 predates these fixes. Real owner S24 same-signer in-place install, Play Protect, encrypted cache/PIN/biometric continuity, Recents/screen recording privacy, owner-authenticated GET /api/data and two Nov 12 credit-purchase links still block D7, W6.4 and D8. No signed APK, live finance mutation or production release.",
     "stages": [
       {
         "id": "D1",
