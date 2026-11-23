@@ -38,3 +38,11 @@ The device recording and privacy-safe acceptance contract is
 be filled only from a future actually published and independently verified APK,
 never by guessing from this marker. Production finance writes and signing
 material are explicitly outside this UI/device-readiness checkpoint.
+
+## D7 latest integrated source staged for an owner-tested signed candidate — 2026-11-24
+
+After exact-head six-check verification and squash merge of PR #530, Android `develop` is `86fdae72e9df1ae7c23230523008fe6b77ee55a4`, with its post-merge Android CI and Project Tracking passing. The last published same-signer rc20/10019 tag predates 37 commits of integrated Android corrections; it cannot be used to test those source changes on the real S24 Ultra.
+
+`android/d7-s24-latest-source-candidate-20261124` is a **source-only, no-functional-change** PR checkpoint pinned to that integrated source. The exact final head must pass `tracking-verify`, `android-verify`, `screenshot-regression`, both S24 emulator shards and `s24-ultra-target-instrumented`. **Leave the PR open and non-draft after green checks:** the separate protected production source gate requires a currently open same-repository `android/` PR targeting `develop`. Do not merge or close before an expressly authorized publisher consumes it.
+
+This checkpoint does not sign or publish APK/AAB, request a version number, write `.github/release-requests/production.json`, dispatch a workflow, modify finance data, change signer, or claim real-device acceptance. A new owner-test candidate would need a separately owner-authorized protected publisher and an honest disposition of the outstanding pre-APK D7 audit blockers. A successfully published prerelease is **a prerequisite for** new-source physical acceptance, not equivalent to W6.4/D7 approval, Play Protect clearance or D8 stable promotion. Preserve the previous installed encrypted cache and never uninstall or reset data as a test shortcut.
