@@ -75,7 +75,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 OPEN 6/8; W6.4 remains pending (23/24 Web-parity subtasks). PR #519 head af23ddb passed all six exact-head gates and merged develop b3e6709; mandatory UI checks now run for D7 tracking changes. 2026-11-22 read-only live Supabase: finance revision 499, 509 events and no selected structural leg/header anomalies; two 2026-11-12 expenses still lack credit-card linkage. This does not reproduce or clear owner-observed GET /api/data 400 INVALID_DATA. Public signed rc20/10019 predates source fixes. Owner real S24 privacy, in-place signer/Play Protect/encrypted cache continuity, live authenticated GET trace and credit-purchase reconciliation still block release. No backend write, new signed APK or D8 authorization.
+Next: D7 OPEN 6/8; W6.4 remains 23/24 Web parity subtasks. PR #520 head 07921b6 passed all six exact-head gates and merged develop 5f3e5de (read-only live finance forensic evidence, no backend writes). Current branch android/d7-card-secret-route-boundary-20261123 fixes stale PAN/CVV controller presentation on navigation away from wallet face/secure details; JVM route-policy and S24 Compose navigation regressions authored, exact-head CI/merge pending. Public signed rc20/10019 predates merged source corrections. Actual S24 signer, Play Protect, Recents/capture and encrypted installed-cache continuity, real GET /api/data 400 and two unlinked Nov 12 credit purchases independently block release. No new signed APK, finance mutation or D8 clearance.
 
 
 ## Active Web parity progress

@@ -277,6 +277,22 @@ internal fun MyFinHubAppContent(
         TopLevelDestination.PLAN -> planBackStack
         TopLevelDestination.INSIGHTS -> insightsBackStack
     }
+    val activeRoute = activeBackStack.lastOrNull() as? AppRoute
+    val hideVaultForRoute = shouldHideCardSecretsForRoute(currentDestination, activeRoute)
+    // Frame-local guard: an outgoing Nav3 scene cannot render a prior wallet PAN/CVV
+    // after the active route changes, even before the asynchronous controller revoke.
+    val cardSecretStateForRoute = if (hideVaultForRoute) CardSecretUiState.Hidden()
+        else cardSecretState
+
+    // Revoke both exposed values and in-flight reads. Key this effect by whether
+    // the controller currently contains a reveal/pending read as well as the route:
+    // bearer refresh can start a new GET while the non-vault destination stays put.
+    val vaultNeedsRevocation = hideVaultForRoute &&
+        (cardSecretState is CardSecretUiState.Revealed ||
+            cardSecretState is CardSecretUiState.Loading)
+    LaunchedEffect(hideVaultForRoute, vaultNeedsRevocation) {
+        if (vaultNeedsRevocation) onHideCardSecrets()
+    }
 
     fun openFastExpense(backStack: NavBackStack<NavKey>) {
         onQuickEntryAction(QuickEntryAction.Reset)
@@ -631,7 +647,7 @@ internal fun MyFinHubAppContent(
                         },
                         fullActivityIdCounts = fullActivityIdCounts,
                         onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
-                        cardSecretState = cardSecretState,
+                        cardSecretState = cardSecretStateForRoute,
                         onCardActiveChanged = onCardDetailOpened,
                         onDeleteCard = onDeleteCard,
                         onRestoreCard = onRestoreCard,
@@ -776,7 +792,7 @@ internal fun MyFinHubAppContent(
                     CanonicalCardSecureDetailsScreen(
                         cardId = route.cardId,
                         card = safeCard,
-                        secretState = if (hasUniqueCard) cardSecretState
+                        secretState = if (hasUniqueCard) cardSecretStateForRoute
                             else CardSecretUiState.Hidden(route.cardId),
                         serverAccessAllowed = hasUniqueCard && cardSecretAccessAllowed,
                         onReveal = {
@@ -998,7 +1014,6 @@ internal fun MyFinHubAppContent(
         }
     }
 
-    val activeRoute = activeBackStack.lastOrNull() as? AppRoute
     if (activeRoute?.showsGlobalNavigation == true) {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
