@@ -114,6 +114,60 @@ class FinanceRepositoryTest {
     }
 
     @Test
+    fun deviceSessionTouchFailure_retriesOneFinanceGetButNeverLoopsOrRetriesInvalidFinance() = runBlocking {
+        val serverRace = ApiResult.Failure(
+            kind = ApiFailureKind.SERVER,
+            retryable = true,
+            statusCode = 400,
+            serverCode = "DEVICE_REGISTRY_UNAVAILABLE",
+        )
+        val api = FakeFinanceApi(
+            load = { serverRace },
+            save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
+        )
+        val repository = repository(api)
+        repository.load(session)
+        val failure = (repository.state.value as FinanceSyncState.Error).failure
+        assertEquals(ApiFailureKind.SERVER, failure.kind)
+        assertEquals("DEVICE_REGISTRY_UNAVAILABLE", failure.serverCode)
+        assertEquals(2, api.loadCalls)
+
+        val invalidApi = FakeFinanceApi(
+            load = { ApiResult.Failure(ApiFailureKind.INVALID_DATA, statusCode = 400) },
+            save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
+        )
+        val invalidRepo = repository(invalidApi)
+        invalidRepo.load(session)
+        assertEquals(ApiFailureKind.INVALID_DATA,
+            (invalidRepo.state.value as FinanceSyncState.Error).failure.kind)
+        assertEquals(1, invalidApi.loadCalls)
+    }
+
+    @Test
+    fun deviceSessionTouchFailure_thenSuccessfulReadRecoversWithoutAnyFinanceWrite() = runBlocking {
+        var first = true
+        val api = FakeFinanceApi(
+            load = {
+                if (first) {
+                    first = false
+                    ApiResult.Failure(
+                        ApiFailureKind.SERVER,
+                        retryable = true,
+                        statusCode = 400,
+                        serverCode = "DEVICE_REGISTRY_UNAVAILABLE",
+                    )
+                } else ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved"))
+            },
+            save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
+        )
+        val repository = repository(api)
+        repository.load(session)
+        assertTrue(repository.state.value is FinanceSyncState.Ready)
+        assertEquals(2, api.loadCalls)
+        assertEquals(0, api.saveCalls)
+    }
+
+    @Test
     fun writeTransportFailure_isNeverAutomaticallyRetried() = runBlocking {
         val api = FakeFinanceApi(
             load = { ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved")) },
