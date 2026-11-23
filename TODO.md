@@ -75,7 +75,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 OPEN 6/8; W6.4 remains 23/24 Web parity subtasks. PR #520 head 07921b6 passed all six exact-head gates and merged develop 5f3e5de (read-only live finance forensic evidence, no backend writes). Current branch android/d7-card-secret-route-boundary-20261123 fixes stale PAN/CVV controller presentation on navigation away from wallet face/secure details; JVM route-policy and S24 Compose navigation regressions authored, exact-head CI/merge pending. Public signed rc20/10019 predates merged source corrections. Actual S24 signer, Play Protect, Recents/capture and encrypted installed-cache continuity, real GET /api/data 400 and two unlinked Nov 12 credit purchases independently block release. No new signed APK, finance mutation or D8 clearance.
+Next: D7 OPEN 6/8; W6.4 23/24 Web-parity subtasks (5/6 implementations). PR #521 final head bd39ee0 passed all six exact-head gates and squash merged develop 8336deb; wallet PAN/CVV route-scope masking and late-read invalidation are integrated, not physically accepted. No other source correction PR pending. Latest signed rc20/10019 predates recent source fixes. Owner physical S24 same-signer in-place install, Play Protect, encrypted cache/PIN/biometric continuity, Recents/capture security and user journeys remain unverified. Live authenticated GET /api/data historical 400 INVALID_DATA and two Nov 12 unlinked expense/credit-purchase associations also remain unresolved. No new signed APK, production finance change, D7/W6.4 completion or D8 authorization.
 
 
 ## Active Web parity progress
