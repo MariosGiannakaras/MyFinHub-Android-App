@@ -41,13 +41,13 @@ class DataStoreEncryptedCvvVault(
                 ),
             )
         }.getOrElse {
-            delete(normalizedCardId)
+            // Never erase ciphertext merely because decryption failed.
             return null
         }
 
         return try {
             if (plaintext.size !in 3..4 || plaintext.any { it < DIGIT_ZERO || it > DIGIT_NINE }) {
-                delete(normalizedCardId)
+                // Fail closed without destroying the encrypted legacy value.
                 null
             } else {
                 CharArray(plaintext.size) { index -> plaintext[index].toInt().toChar() }

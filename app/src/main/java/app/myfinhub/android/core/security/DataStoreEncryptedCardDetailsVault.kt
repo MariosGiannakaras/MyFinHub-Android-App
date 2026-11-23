@@ -49,14 +49,15 @@ class DataStoreEncryptedCardDetailsVault(
                 ),
             )
         }.getOrElse {
-            delete(normalizedCardId)
+            // Decryption failures (for example, temporarily unavailable Keystore
+            // material) must not destroy the only encrypted legacy copy.
             return null
         }
 
         try {
             val separator = plaintext.indexOf(0)
             if (separator !in 12..19 || separator >= plaintext.lastIndex) {
-                delete(normalizedCardId)
+                // Invalid plaintext is not a reason to erase stored ciphertext.
                 return null
             }
             val pan = CharArray(separator) { index -> plaintext[index].toInt().toChar() }
@@ -65,7 +66,7 @@ class DataStoreEncryptedCardDetailsVault(
             if (!validPan(pan) || !validExpiry(expiry)) {
                 pan.fill('\u0000')
                 expiry.fill('\u0000')
-                delete(normalizedCardId)
+                // Keep encrypted bytes for an explicit, reviewed recovery.
                 return null
             }
             return LocalCardDetails(pan, expiry)

@@ -32,6 +32,34 @@ class DataStoreEncryptedCvvVaultTest {
     }
 
     @Test
+    fun unreadableLegacyCvvKeepsCiphertextForLaterValidRead() = runBlocking {
+        val original = "321".toCharArray()
+        vault.save(cardId, original)
+        original.fill('\u0000')
+
+        val unavailable = DataStoreEncryptedCvvVault(context, object : SecureValueCipher {
+            override fun encrypt(plaintext: ByteArray): EncryptedPayload =
+                error("Unexpected encryption")
+            override fun decrypt(payload: EncryptedPayload): ByteArray =
+                error("Simulated transient Keystore failure")
+        })
+        assertNull(unavailable.load(cardId))
+
+        val invalidPlaintext = DataStoreEncryptedCvvVault(context, object : SecureValueCipher {
+            override fun encrypt(plaintext: ByteArray): EncryptedPayload =
+                error("Unexpected encryption")
+            override fun decrypt(payload: EncryptedPayload): ByteArray =
+                byteArrayOf(0, 1, 2)
+        })
+        assertNull(invalidPlaintext.load(cardId))
+
+        val restored = vault.load(cardId)
+        assertNotNull(restored)
+        assertArrayEquals("321".toCharArray(), restored!!)
+        restored.fill('\u0000')
+    }
+
+    @Test
     fun saveLoadDelete_roundTripsThroughKeystoreWithoutPlaintextAtRest() = runBlocking {
         val cvv = charArrayOf('1', '2', '3')
 
