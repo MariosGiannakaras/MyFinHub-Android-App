@@ -528,10 +528,22 @@ A JVM policy test covers allowed/forbidden routes; hosted Compose navigation
 regression covers tab departure, a late same-route secret and an in-flight
 read on a second departure.
 
-**Verification status:** source and tests authored; exact-final-head Android
-CI, screenshot regression, both S24 emulator shards and aggregate, tracking
-check, code review and squash merge **pending**. No new backend access,
-permission, finance write, public APK or signer change. Real owner Galaxy S24
-Recents/screen recording, in-place encrypted cache and Play Protect tests
-remain mandatory and unverified; D7 stays **6/8**, W6.4 **23/24**, source
+**Source integration verified 2026-11-23:** PR #521 final exact head
+`bd39ee00e17bf93274dadd5a4d0cfa048adee00b` passed Project Tracking,
+Android CI, screenshot regression, hosted S24 emulator shards 0/1 and the
+fail-closed S24 instrumentation aggregate (**6/6**); mergeable, base current
+and no review threads. Squash merged into `develop` as
+`8336deb1891e183ccbdbb1716cb18624934dd7dc`. Two earlier PR-head
+test failures were corrected before final-head validation: Compose nav
+selector semantics required the unmerged-tree parent; the subsequent test
+edit had an invalid `onNode` import. The integrated production change
+remains confined to card-secret presentation and in-flight read revocation.
+
+**Not an owner/device clearance:** no new backend access, permissions,
+finance write, public APK or signer change. Real Galaxy S24 Ultra
+Recents/screen recording, same-signer in-place encrypted-cache continuity,
+Play Protect, PIN/biometric and ordinary finance flows remain unverified.
+Separately, historical owner HTTP 400 `GET /api/data` and two Nov 12
+credit-purchase associations remain unresolved. Latest signed rc20/10019
+predates the merged source. D7 stays **6/8**, W6.4 **23/24**, source
 audit **7/8** reviewed, **0/8** release-cleared.
