@@ -462,7 +462,17 @@ class OkHttpMyFinHubApi(
                             requestId = requestId,
                         )
                     }
-                    status == 404 && notFoundKind != null -> ApiResult.Failure(notFoundKind, statusCode = status)
+                    status == 404 && notFoundKind != null -> {
+                        // Only an explicit canonical vault-absence code may
+                        // authorize legacy migration; status alone is insufficient.
+                        val (serverCode, requestId) = safeFinanceErrorMetadata(body)
+                        ApiResult.Failure(
+                            notFoundKind,
+                            statusCode = status,
+                            serverCode = serverCode,
+                            requestId = requestId,
+                        )
+                    }
                     status == 409 -> {
                         // The Web finance server rejects saves while card-secret cleanup is
                         // pending. That is not a revision mismatch; never offer a stale retry.
@@ -536,7 +546,7 @@ class OkHttpMyFinHubApi(
         val SAFE_FINANCE_ERROR_CODES = setOf(
             "INVALID_DATA", "INVALID_SCHEMA_VERSION", "INVALID_REVISION",
             "MFA_REQUIRED", "FORBIDDEN", "REVISION_CONFLICT",
-            "HISTORY_CURSOR_CONFLICT", "CARD_CLEANUP_INTENT_REQUIRED",
+            "HISTORY_CURSOR_CONFLICT", "CARD_CLEANUP_INTENT_REQUIRED", "CARD_SECRET_NOT_FOUND",
         )
         val SAFE_REQUEST_ID_REGEX = Regex("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
     }
