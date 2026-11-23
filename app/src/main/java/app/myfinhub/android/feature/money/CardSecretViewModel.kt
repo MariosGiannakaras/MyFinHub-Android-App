@@ -583,7 +583,14 @@ class CardSecretViewModel internal constructor(
                 }
                 is ApiResult.Failure -> {
                     if (!stillCurrent(session, cardId) || generation != detailRequestGeneration) return@launch
-                    if (result.kind == ApiFailureKind.INVALID_DATA) {
+                    // The Web vault's exact HTTP 404 CARD_SECRET_NOT_FOUND
+                    // response is the sole authority for creating a missing
+                    // server record from legacy encrypted local secrets.
+                    // Validation errors (400/422) or unrelated 404s may not write.
+                    if (result.kind == ApiFailureKind.INVALID_DATA &&
+                        result.statusCode == 404 &&
+                        result.serverCode == "CARD_SECRET_NOT_FOUND"
+                    ) {
                         val migrated = migrateMissingLegacyValues(session, cardId, generation, null, null, null)
                         if (!stillCurrent(session, cardId) || generation != detailRequestGeneration) return@launch
                         mutableState.value = CardSecretUiState.Revealed(

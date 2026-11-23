@@ -569,6 +569,44 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun validationErrorsAndUnrecognized404MustNotMigrateOrEraseLegacySecrets() = runBlocking {
+        val errors = listOf(
+            ApiResult.Failure(ApiFailureKind.INVALID_DATA, statusCode = 400),
+            ApiResult.Failure(ApiFailureKind.INVALID_DATA, statusCode = 422),
+            ApiResult.Failure(ApiFailureKind.INVALID_DATA, statusCode = 404),
+            ApiResult.Failure(
+                ApiFailureKind.INVALID_DATA,
+                statusCode = 404,
+                serverCode = "INVALID_DATA",
+            ),
+        )
+        for (failure in errors) {
+            val api = FakeCardApi(serverSecrets = null).also { it.serverReadFailure = failure }
+            val local = FakeCardDetailsVault(
+                initialPan = "4242424242424242".toCharArray(),
+                initialExpiry = "12/30".toCharArray(),
+            )
+            val cvv = FakeCvvVault(initial = "321".toCharArray())
+            val vm = CardSecretViewModel(application, api, cvv, local)
+            vm.attachSession(session)
+            vm.openCard("card-1")
+            waitUntil { vm.state.value is CardSecretUiState.Failure }
+            assertEquals(1, api.serverSecretReadCalls)
+            assertEquals(0, api.serverSecretWriteCalls)
+            assertNull(local.deletedCardId)
+            assertNull(cvv.deletedCardId)
+            val preserved = local.load("card-1")
+            assertEquals("4242424242424242", preserved?.pan?.concatToString())
+            assertEquals("12/30", preserved?.expiry?.concatToString())
+            preserved?.clear()
+            val preservedCvv = cvv.load("card-1")
+            assertEquals("321", preservedCvv?.concatToString())
+            preservedCvv?.fill('\u0000')
+            vm.clear()
+        }
+    }
+
+    @Test
     fun openCard_migratesLegacyLocalValuesWhenServerSecretIsMissing() = runBlocking {
         val api = FakeCardApi(serverSecrets = null)
         val cvvVault = FakeCvvVault(initial = "321".toCharArray())
@@ -859,6 +897,7 @@ private class FakeCardApi(
     var readDelayMillis: Long = 0
     var writeDelayMillis: Long = 0
     var committedDeleteDelayMillis: Long = 0
+    var serverReadFailure: ApiResult.Failure? = null
     var serverSecretReadCalls: Int = 0
         private set
     var serverSecretWriteCalls: Int = 0
@@ -882,7 +921,13 @@ private class FakeCardApi(
     override suspend fun loadCardSecrets(session: AuthSession, cardId: String): ApiResult<CardSecrets> {
         serverSecretReadCalls += 1
         if (readDelayMillis > 0) delay(readDelayMillis)
-        return serverSecrets?.let { ApiResult.Success(it) } ?: ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+        serverReadFailure?.let { return it }
+        return serverSecrets?.let { ApiResult.Success(it) }
+            ?: ApiResult.Failure(
+                ApiFailureKind.INVALID_DATA,
+                statusCode = 404,
+                serverCode = "CARD_SECRET_NOT_FOUND",
+            )
     }
 
     override suspend fun saveCardSecrets(

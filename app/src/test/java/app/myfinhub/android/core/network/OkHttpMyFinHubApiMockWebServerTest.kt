@@ -248,6 +248,36 @@ class OkHttpMyFinHubApiMockWebServerTest {
             val failure = result as ApiResult.Failure
             assertEquals(ApiFailureKind.INVALID_DATA, failure.kind)
             assertEquals(404, failure.statusCode)
+            assertEquals("CARD_SECRET_NOT_FOUND", failure.serverCode)
+        }
+    }
+
+    @Test
+    fun cardSecretValidationErrorsAndOther404NeverClaimMissingVault() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse.Builder().code(404).body(
+                """{"code":"API_NOT_FOUND","requestId":"unsafe","error":"secret"}""",
+            ).build())
+            server.enqueue(MockResponse.Builder().code(400).body(
+                """{"code":"INVALID_CARD_SECRET_REQUEST"}""",
+            ).build())
+            server.enqueue(MockResponse.Builder().code(422).body(
+                """{"code":"INVALID_DATA"}""",
+            ).build())
+            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+            val unrelated404 = api.loadCardSecrets(session, "card-1") as ApiResult.Failure
+            assertEquals(ApiFailureKind.INVALID_DATA, unrelated404.kind)
+            assertEquals(404, unrelated404.statusCode)
+            assertEquals(null, unrelated404.serverCode)
+            assertEquals(null, unrelated404.requestId)
+            for (status in listOf(400, 422)) {
+                val failure = api.loadCardSecrets(session, "card-1") as ApiResult.Failure
+                assertEquals(ApiFailureKind.INVALID_DATA, failure.kind)
+                assertEquals(status, failure.statusCode)
+                assertTrue(failure.serverCode != "CARD_SECRET_NOT_FOUND")
+            }
+            assertEquals(3, server.requestCount)
         }
     }
 
