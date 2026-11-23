@@ -455,15 +455,15 @@ class CardSecretViewModel internal constructor(
                     ),
                 )
             }
-            if (!serverAccessAllowed || generation != detailRequestGeneration ||
-                currentSession?.userId != session.userId ||
-                currentSession?.accessToken != session.accessToken ||
-                currentSession?.assuranceLevel != AssuranceLevel.AAL2
-            ) return@launch
+            if (!matchesVaultAuthority(session, generation)) return@launch
             when (result) {
                 is ApiResult.Success -> {
-                    deleteLegacyLocalCopies(normalizedCardId)
-                    if (currentCardId == normalizedCardId) {
+                    deleteLegacyLocalCopies(normalizedCardId) {
+                        matchesVaultAuthority(session, generation)
+                    }
+                    if (matchesVaultAuthority(session, generation) &&
+                        currentCardId == normalizedCardId
+                    ) {
                         loadServerDetails(normalizedCardId, "Τα στοιχεία της κάρτας συγχρονίστηκαν στο ασφαλές card vault.")
                     }
                 }
@@ -619,7 +619,9 @@ class CardSecretViewModel internal constructor(
         serverCvv: String?,
     ): Triple<String?, String?, String?> {
         if (serverPan != null && serverExpiry != null && serverCvv != null) {
-            deleteLegacyLocalCopies(cardId)
+            deleteLegacyLocalCopies(cardId) {
+                stillCurrent(session, cardId) && generation == detailRequestGeneration
+            }
             return Triple(serverPan, serverExpiry, serverCvv)
         }
 
@@ -671,7 +673,13 @@ class CardSecretViewModel internal constructor(
                     if (migratedPan != null && migratedExpiry != null) {
                         runCatching { cardDetailsVault.delete(cardId) }
                     }
-                    if (migratedCvv != null) {
+                    // The details deletion above may suspend; navigation,
+                    // offline transition or token rotation must revoke the
+                    // second local deletion even after a successful server PUT.
+                    if (migratedCvv != null &&
+                        stillCurrent(session, cardId) &&
+                        generation == detailRequestGeneration
+                    ) {
                         runCatching { cvvVault.delete(cardId) }
                     }
                     Triple(migratedPan, migratedExpiry, migratedCvv)
@@ -681,10 +689,25 @@ class CardSecretViewModel internal constructor(
         }
     }
 
-    private suspend fun deleteLegacyLocalCopies(cardId: String) {
+    private suspend fun deleteLegacyLocalCopies(
+        cardId: String,
+        stillAuthorized: () -> Boolean,
+    ) {
+        if (!stillAuthorized()) return
         runCatching { cardDetailsVault.delete(cardId) }
+        // The first DataStore mutation can suspend. Never touch the second
+        // encrypted store after owner/auth/navigation authority was revoked.
+        if (!stillAuthorized()) return
         runCatching { cvvVault.delete(cardId) }
     }
+
+    private fun matchesVaultAuthority(session: AuthSession, generation: Long): Boolean =
+        serverAccessAllowed &&
+            generation == detailRequestGeneration &&
+            currentSession?.userId == session.userId &&
+            currentSession?.accessToken == session.accessToken &&
+            currentSession?.assuranceLevel == AssuranceLevel.AAL2 &&
+            session.assuranceLevel == AssuranceLevel.AAL2
 
     private fun handleServerFailure(cardId: String, failure: ApiResult.Failure, message: String) {
         if (failure.kind == ApiFailureKind.AUTH_REQUIRED || failure.kind == ApiFailureKind.MFA_REQUIRED) {
