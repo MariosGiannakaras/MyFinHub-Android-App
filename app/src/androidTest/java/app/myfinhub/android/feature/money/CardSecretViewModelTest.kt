@@ -405,6 +405,53 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun cvvOnlySavePreservesUnmigratedLegacyPanAndExpiryAcrossReopen() = runBlocking {
+        // A 19-digit legacy PAN and expired expiry remain readable locally but
+        // cannot be uploaded under the strict new-write Card Vault contract.
+        val api = FakeCardApi(serverSecrets = null)
+        val legacyCvv = FakeCvvVault(initial = "1234".toCharArray())
+        val legacyDetails = FakeCardDetailsVault(
+            initialPan = "1234567890123456789".toCharArray(),
+            initialExpiry = "01/20".toCharArray(),
+        )
+        val vm = CardSecretViewModel(application, api, legacyCvv, legacyDetails)
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(0, api.serverSecretWriteCalls)
+
+        val newCvv = "987".toCharArray()
+        vm.saveCvv(newCvv)
+        assertTrue(newCvv.all { it == '\u0000' })
+        waitUntil {
+            api.serverSecretWriteCalls == 1 &&
+                (vm.state.value as? CardSecretUiState.Revealed)?.cvv == "987" &&
+                (vm.state.value as? CardSecretUiState.Revealed)?.cvvSaving == false
+        }
+        assertNull(api.lastUpdate?.pan)
+        assertNull(api.lastUpdate?.expiry)
+        assertEquals("987", api.lastUpdate?.cvv)
+        assertEquals("card-1", legacyCvv.deletedCardId)
+        assertNull(legacyCvv.load("card-1"))
+        assertNull(legacyDetails.deletedCardId)
+
+        val preserved = legacyDetails.load("card-1")
+        assertEquals("1234567890123456789", preserved?.pan?.concatToString())
+        assertEquals("01/20", preserved?.expiry?.concatToString())
+        preserved?.clear()
+
+        vm.closeCard("card-1")
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        val reopened = vm.state.value as CardSecretUiState.Revealed
+        assertEquals("1234567890123456789", reopened.pan)
+        assertEquals("01/20", reopened.expiry)
+        assertEquals("987", reopened.cvv)
+        assertEquals(1, api.serverSecretWriteCalls)
+        assertNull(legacyDetails.deletedCardId)
+    }
+
+    @Test
     fun incompatibleEncryptedLegacyCardCanStillBeReadWithoutUnsafeUploadOrLoss() = runBlocking {
         val api = FakeCardApi(serverSecrets = null)
         val legacyCvv = FakeCvvVault(initial = "1234".toCharArray())

@@ -527,7 +527,10 @@ class CardSecretViewModel internal constructor(
             ) return@launch
             when (result) {
                 is ApiResult.Success -> {
-                    deleteLegacyLocalCopies(cardId)
+                    // A CVV-only write cannot prove that legacy PAN/expiry were
+                    // migrated. Keep that encrypted pair until a separate
+                    // successful PAN+expiry migration or complete server read.
+                    runCatching { cvvVault.delete(cardId) }
                     val latest = mutableState.value as? CardSecretUiState.Revealed ?: return@launch
                     mutableState.value = latest.copy(
                         cvv = normalized,
