@@ -12,7 +12,12 @@ from pathlib import Path
 RELEASES = {
     "rc16": ("1.0.0-rc16", 10015, "199a263c6dadc67ec2c40b14671a6543b6a13e15d53425b14992d2e4fc2c2556"),
     "rc17": ("1.0.0-rc17", 10016, "b17d0963ad50aa761c52d130dd7aa61a89b86a940b7dfa223f2d5433ce51f117"),
+    "rc18": ("1.0.0-rc18", 10017, "40360b5678225300c7cd8f8fe1dd1f727cbb14dee9bd5dde2f33ace329fbdc0d"),
+    "rc20": ("1.0.0-rc20", 10019, "f64c3bc9c2e6972896ab1ca3429ea6ef6c29fdd1e2a58f4ab0cddc70f1b23f6f"),
+    "rc21": ("1.0.0-rc21", 10020, "68859f5076dc33235ab6d34b01e2410c07f1d2245d3c6f56dfcb2f0f6c924bc4"),
 }
+HARDENED_RELEASES = ("rc18", "rc20", "rc21")
+UNATTENDED_INSTALL_PERMISSION = "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"
 DISALLOWED = {
     "android.permission.READ_SMS", "android.permission.RECEIVE_SMS",
     "android.permission.SEND_SMS", "android.permission.READ_CALL_LOG",
@@ -99,6 +104,10 @@ def apk_check(path, release, expected_signer, aapt, apksigner):
     if not perms:
         raise AuditError("Unable to inspect APK permissions")
     unexpected = perms & DISALLOWED
+    # rc16/rc17 are historical evidence and predate the removal. Every
+    # inspected release after that security correction must lack this permission.
+    if code >= RELEASES["rc18"][1] and UNATTENDED_INSTALL_PERMISSION in perms:
+        unexpected.add(UNATTENDED_INSTALL_PERMISSION)
     if unexpected:
         raise AuditError("Unexpected dangerous APK permissions: " + ", ".join(sorted(unexpected)))
     output = run(apksigner, "verify", "--verbose", "--print-certs", str(path))
@@ -143,14 +152,16 @@ def zip_diff(older, newer):
 
 
 def report(a, b, diff=None):
+    older_label = a["version"].rsplit("-", 1)[-1]
+    newer_label = b["version"].rsplit("-", 1)[-1]
     if a["signer"] != b["signer"]:
-        raise AuditError("rc16 and rc17 are signed by different certificates")
+        raise AuditError(f"{older_label} and {newer_label} are signed by different certificates")
     added = sorted(set(b["perms"]) - set(a["perms"]))
     removed = sorted(set(a["perms"]) - set(b["perms"]))
     lines = [
-        "# Published MyFinHub APK audit — rc16 versus rc17", "",
+        f"# Published MyFinHub APK audit — {older_label} versus {newer_label}", "",
         "Read-only static checks passed for public GitHub Release APK bytes.", "",
-        "| Check | rc16 | rc17 |", "|---|---|---|",
+        f"| Check | {older_label} | {newer_label} |", "|---|---|---|",
     ]
     for label, key in [("Version", "version"), ("Size (bytes)", "size"), ("ZIP entries", "entries"), ("DEX files", "dex")]:
         lines.append(f"| {label} | {a[key]} | {b[key]} |")
@@ -164,29 +175,45 @@ def report(a, b, diff=None):
             (", ".join(diff["changed"][:30]) if diff["changed"] else "none"),
         ])
     lines += ["", "- Identical enrolled signer: " + a["signer"],
-              "- rc16 SHA-256: " + a["digest"], "- rc17 SHA-256: " + b["digest"],
+              f"- {older_label} SHA-256: " + a["digest"], f"- {newer_label} SHA-256: " + b["digest"],
               "- Added permissions: " + (", ".join(added) if added else "none"),
               "- Removed permissions: " + (", ".join(removed) if removed else "none"),
-              "- rc17 APK permissions: " + ", ".join(b["perms"]), "",
+              f"- {newer_label} APK permissions: " + ", ".join(b["perms"]), "",
               "These checks cannot determine malware absence, SDK runtime behavior, Play Protect classification "
-              "or physical Samsung S24 safety. The inspected APKs predate the later permissions hardening. "
+              "or physical Samsung S24 safety. Historical rc16/rc17 predate the permissions hardening; "
               "Do not bypass the warning; Google review and owner acceptance remain independent.", ""]
     return "\n".join(lines)
 
 
 def main():
     p = argparse.ArgumentParser()
-    for key in ("rc16", "rc17"):
-        p.add_argument("--" + key + "-apk", type=Path, required=True)
-        p.add_argument("--" + key + "-metadata", type=Path, required=True)
+    for key in RELEASES:
+        required = key not in HARDENED_RELEASES
+        p.add_argument("--" + key + "-apk", type=Path, required=required)
+        p.add_argument("--" + key + "-metadata", type=Path, required=required)
     p.add_argument("--aapt", required=True)
     p.add_argument("--apksigner", required=True)
     p.add_argument("--report", type=Path, required=True)
     args = p.parse_args()
     try:
-        older = inspect("rc16", args.rc16_apk, args.rc16_metadata, args.aapt, args.apksigner)
-        newer = inspect("rc17", args.rc17_apk, args.rc17_metadata, args.aapt, args.apksigner)
-        output = report(older, newer, zip_diff(args.rc16_apk, args.rc17_apk))
+        optional_paths = [
+            getattr(args, f"{key}_{suffix}")
+            for key in HARDENED_RELEASES
+            for suffix in ("apk", "metadata")
+        ]
+        if any(optional_paths) and not all(optional_paths):
+            raise AuditError("Provide all rc18, rc20 and rc21 APK/metadata pairs together")
+        keys = list(RELEASES) if all(optional_paths) else ["rc16", "rc17"]
+        apks = {key: getattr(args, key + "_apk") for key in keys}
+        results = {
+            key: inspect(key, apks[key], getattr(args, key + "_metadata"), args.aapt, args.apksigner)
+            for key in keys
+        }
+        pairs = [("rc16", "rc17")]
+        if all(optional_paths):
+            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21")]
+        output = "\n".join(report(results[older], results[newer], zip_diff(apks[older], apks[newer]))
+                           for older, newer in pairs)
         args.report.write_text(output, encoding="utf-8")
         print(output)
         return 0

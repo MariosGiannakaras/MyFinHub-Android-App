@@ -38,7 +38,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          for variant in "rc16 10015" "rc17 10016"; do
+          for variant in "rc16 10015" "rc17 10016" "rc18 10017" "rc20 10019" "rc21 10020"; do
             read -r label number <<< "$variant"
             mkdir -p "apk-audit/$label"
             gh release download "v1.0.0-$label" --repo "$GITHUB_REPOSITORY" \
@@ -55,6 +55,12 @@ jobs:
             --rc16-metadata apk-audit/rc16/release-metadata.json \
             --rc17-apk apk-audit/rc17/MyFinHub-1.0.0-rc17-10016.apk \
             --rc17-metadata apk-audit/rc17/release-metadata.json \
+            --rc18-apk apk-audit/rc18/MyFinHub-1.0.0-rc18-10017.apk \
+            --rc18-metadata apk-audit/rc18/release-metadata.json \
+            --rc20-apk apk-audit/rc20/MyFinHub-1.0.0-rc20-10019.apk \
+            --rc20-metadata apk-audit/rc20/release-metadata.json \
+            --rc21-apk apk-audit/rc21/MyFinHub-1.0.0-rc21-10020.apk \
+            --rc21-metadata apk-audit/rc21/release-metadata.json \
             --aapt "$ANDROID_HOME/build-tools/37.0.0/aapt" \
             --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner" \
             --report "$RUNNER_TEMP/published-apk-audit.md"
