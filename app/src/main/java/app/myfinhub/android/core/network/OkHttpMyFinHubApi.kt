@@ -488,8 +488,17 @@ class OkHttpMyFinHubApi(
                     status == 428 -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED, statusCode = status)
                     status == 400 || status == 422 -> {
                         val (serverCode, requestId) = safeFinanceErrorMetadata(body)
+                        // The Web device-session last_seen_at monotonicity guard can
+                        // reject a concurrent metadata touch as HTTP 400 before
+                        // finance data is read. Only this exact allowlisted code
+                        // is a transient server failure; actual finance validation
+                        // errors remain non-retryable and fail closed.
+                        val deviceSessionTouchFailed =
+                            status == 400 && serverCode == "DEVICE_REGISTRY_UNAVAILABLE"
                         ApiResult.Failure(
-                            ApiFailureKind.INVALID_DATA,
+                            kind = if (deviceSessionTouchFailed) ApiFailureKind.SERVER
+                                else ApiFailureKind.INVALID_DATA,
+                            retryable = deviceSessionTouchFailed,
                             statusCode = status,
                             serverCode = serverCode,
                             requestId = requestId,
@@ -547,6 +556,7 @@ class OkHttpMyFinHubApi(
             "INVALID_DATA", "INVALID_SCHEMA_VERSION", "INVALID_REVISION",
             "MFA_REQUIRED", "FORBIDDEN", "REVISION_CONFLICT",
             "HISTORY_CURSOR_CONFLICT", "CARD_CLEANUP_INTENT_REQUIRED", "CARD_SECRET_NOT_FOUND",
+            "DEVICE_REGISTRY_UNAVAILABLE",
         )
         val SAFE_REQUEST_ID_REGEX = Regex("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
     }

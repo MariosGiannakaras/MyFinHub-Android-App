@@ -293,10 +293,44 @@ class OkHttpMyFinHubApiMockWebServerTest {
             val failure = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
                 .loadFinanceData(session) as ApiResult.Failure
             assertEquals(ApiFailureKind.INVALID_DATA, failure.kind)
+            assertFalse(failure.retryable)
             assertEquals(400, failure.statusCode)
             assertEquals("INVALID_DATA", failure.serverCode)
             assertEquals(id, failure.requestId)
             assertFalse(failure.toString().contains(secret))
+        }
+    }
+
+    @Test
+    fun financeGet400DeviceSessionTouchRace_isSafeRetryableServerErrorWithBoundedMetadata() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            val requestId = "123e4567-e89b-42d3-a456-426614174000"
+            val secret = "token=synthetic-secret PAN 4242424242424242"
+            server.enqueue(MockResponse.Builder().code(400).body(
+                """{"code":"DEVICE_REGISTRY_UNAVAILABLE","requestId":"$requestId","error":"$secret"}""",
+            ).build())
+            // An attacker-controlled or mismatched HTTP status cannot grant
+            // the retry policy, even with an otherwise allowlisted code.
+            server.enqueue(MockResponse.Builder().code(422).body(
+                """{"code":"DEVICE_REGISTRY_UNAVAILABLE","requestId":"$requestId"}""",
+            ).build())
+            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+
+            val first = api.loadFinanceData(session) as ApiResult.Failure
+            assertEquals(ApiFailureKind.SERVER, first.kind)
+            assertTrue(first.retryable)
+            assertEquals(400, first.statusCode)
+            assertEquals("DEVICE_REGISTRY_UNAVAILABLE", first.serverCode)
+            assertEquals(requestId, first.requestId)
+            assertFalse(first.toString().contains(secret))
+            assertEquals("GET", server.takeRequest().method)
+
+            val unexpected422 = api.loadFinanceData(session) as ApiResult.Failure
+            assertEquals(ApiFailureKind.INVALID_DATA, unexpected422.kind)
+            assertFalse(unexpected422.retryable)
+            assertEquals(422, unexpected422.statusCode)
+            assertEquals(2, server.requestCount)
         }
     }
 
