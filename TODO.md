@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate and integrate rc21 read-only S24 preflight and tracking reconciliation on android/d7-rc21-preflight-tracking-20261124; do not claim owner acceptance from version metadata or CI.
-- [ ] Play Protect warning remains unresolved; no further screenshot requested and no speculative change or new APK. Review only new concrete evidence. Independently verified in-place encrypted data and pending queue continuity remain outstanding.
+- [ ] Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested.
+- [ ] Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion.
 - [ ] Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.
 
 ## Completed foundations
@@ -74,7 +74,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: Validate and integrate rc21 read-only S24 preflight and tracking reconciliation on android/d7-rc21-preflight-tracking-20261124; do not claim owner acceptance from version metadata or CI. Play Protect warning remains unresolved; no further screenshot requested and no speculative change or new APK. Review only new concrete evidence. Independently verified in-place encrypted data and pending queue continuity remain outstanding. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.
+Next: Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested. Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.
 
 
 ## Active Web parity progress
@@ -83,10 +83,10 @@ Next: Validate and integrate rc21 read-only S24 preflight and tracking reconcili
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/d7-rc21-preflight-tracking-20261124
-Current W6.4: rc21 published and owner-reported Play Protect warning; read-only version preflight and tracking reconciliation authored, exact-head CI pending.
+Issue #155, no open PR, branch android/d7-published-rc21-apk-audit-20261124
+Current W6.4: rc21 read-only S24 preflight #533 integrated and post-merge green; pinned actual released APK audit extension authored, exact-head CI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate and integrate rc21 read-only S24 preflight and tracking reconciliation on android/d7-rc21-preflight-tracking-20261124; do not claim owner acceptance from version metadata or CI. Play Protect warning remains unresolved; no further screenshot requested and no speculative change or new APK. Review only new concrete evidence. Independently verified in-place encrypted data and pending queue continuity remain outstanding. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.
+Next Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested. Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

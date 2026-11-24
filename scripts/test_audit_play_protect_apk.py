@@ -3,11 +3,13 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from audit_play_protect_apk import AuditError, metadata_check, report, validate_zip, signer_digests, zip_diff
+from audit_play_protect_apk import (AuditError, RELEASES, UNATTENDED_INSTALL_PERMISSION, apk_check,
+                                   metadata_check, report, validate_zip, signer_digests, zip_diff)
 
 
 class PublishedApkAuditTests(unittest.TestCase):
@@ -74,6 +76,35 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertEqual(["classes.dex"], difference["changed"])
         self.assertEqual([], difference["added"])
         self.assertEqual([], difference["removed"])
+
+    def test_hardened_release_rejects_unattended_install_permission(self):
+        for label in ("rc18", "rc20", "rc21"):
+            name, code, _ = RELEASES[label]
+            badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'"
+            permissions = f"uses-permission: name='{UNATTENDED_INSTALL_PERMISSION}'"
+            with self.subTest(label=label), patch("audit_play_protect_apk.run", side_effect=[badging, permissions]):
+                with self.assertRaisesRegex(AuditError, "Unexpected dangerous APK permissions"):
+                    apk_check(self.apk(), RELEASES[label], "a" * 64, "aapt", "apksigner")
+
+    def test_historical_rc17_retains_permission_evidence(self):
+        name, code, _ = RELEASES["rc17"]
+        badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'"
+        permissions = f"uses-permission: name='{UNATTENDED_INSTALL_PERMISSION}'"
+        signer = "a" * 64
+        with patch("audit_play_protect_apk.run", side_effect=[
+            badging, permissions, "Signer #1 certificate SHA-256 digest: " + signer,
+        ]):
+            self.assertEqual((signer, [UNATTENDED_INSTALL_PERMISSION]),
+                             apk_check(self.apk(), RELEASES["rc17"], signer, "aapt", "apksigner"))
+
+    def test_report_labels_actual_compared_releases(self):
+        a = {"signer": "a" * 64, "perms": [], "version": "1.0.0-rc18", "size": 1,
+             "entries": 2, "dex": 1, "digest": "a" * 64}
+        b = {**a, "version": "1.0.0-rc21", "digest": "b" * 64}
+        text = report(a, b)
+        self.assertIn("rc18 versus rc21", text)
+        self.assertIn("rc21 SHA-256: " + "b" * 64, text)
+        self.assertIn("cannot determine malware absence", text)
 
     def test_signer_continuity_required(self):
         a = {"signer": "a" * 64, "perms": [], "version": "rc16", "size": 1,

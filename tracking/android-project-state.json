@@ -12,10 +12,10 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "2026-11-24: Android PR #532 bounded GET-only DEVICE_REGISTRY_UNAVAILABLE retry passed six exact-head checks and merged develop 9284d9a08dfaf5590c8e6319945fd91cefc093d9. Web #663 monotonic device-session timestamp fix deployed production (main db2c0a600d34961d547dd817790881c6e543f05a); #664 forward-port merged Web develop e05fb3fe58f8a89566b616db056578fbd451f39e. Owner reported finance working on Android and Web; historical 2026-11-12 purchase associations remain unresolved without finance mutation. Protected rc21/10020 published from #531 head 90761631ea0a6b2638ef466d5407278008d7317d with all six exact-head source gates and successful publisher #45431863501. Owner reports successful install, sync, biometrics, card privacy and basic journeys, but Play Protect warning; classification, signer independently on phone, data/queue continuity and full physical acceptance remain unverified. No screenshot requested per owner. Comparison with rc18 (owner Play Protect pass) identifies no new manifest, Gradle or installer/verifier regression. Current source-only checkpoint refreshes read-only S24 preflight to recognize published rc21 exact version pair and retains fail-closed unknown/spoofed build checks. CI and integration pending. D7 6/8, W6.4 5/6 (23/24), audit 7/8 reviewed, 0/8 release-cleared; D8 separate. Historical evidence remains in prior commits and PRs.",
+    "summary": "2026-11-24: Android PR #532 bounded GET-only DEVICE_REGISTRY_UNAVAILABLE retry passed six exact-head checks and merged develop 9284d9a08dfaf5590c8e6319945fd91cefc093d9. Web #663 monotonic device-session timestamp fix deployed production (main db2c0a600d34961d547dd817790881c6e543f05a); #664 forward-port merged Web develop e05fb3fe58f8a89566b616db056578fbd451f39e. Owner reported finance working on Android and Web; historical 2026-11-12 purchase associations remain unresolved without finance mutation. Protected rc21/10020 published from #531 head 90761631ea0a6b2638ef466d5407278008d7317d with all six exact-head source gates and successful publisher #45431863501. Owner reports successful install, sync, biometrics, card privacy and basic journeys, but Play Protect warning; classification, signer independently on phone, data/queue continuity and full physical acceptance remain unverified. No screenshot requested per owner. Comparison with rc18 (owner Play Protect pass) identifies no new manifest, Gradle or installer/verifier regression. PR #533 refreshed read-only S24 preflight to recognize published rc21 exact version pair and retain fail-closed unknown/spoofed build checks; six exact-head gates passed on 30138a7, squash merged into develop 2fb7a90, both post-merge Android/tracking checks passed. Historical source gate #531 closed without merge. Current source-only checkpoint extends read-only static signed public APK audit to pinned rc18/rc20/rc21 actual bytes with signer continuity, permission and ZIP-member comparisons; no fresh publication, install, or Google verdict. Exact-head checks and integration pending. D7 6/8, W6.4 5/6 (23/24), audit 7/8 reviewed, 0/8 release-cleared; D8 separate. Historical evidence remains in prior commits and PRs.",
     "next": [
-      "Validate and integrate rc21 read-only S24 preflight and tracking reconciliation on android/d7-rc21-preflight-tracking-20261124; do not claim owner acceptance from version metadata or CI.",
-      "Play Protect warning remains unresolved; no further screenshot requested and no speculative change or new APK. Review only new concrete evidence. Independently verified in-place encrypted data and pending queue continuity remain outstanding.",
+      "Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested.",
+      "Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion.",
       "Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates."
     ]
   },
@@ -638,8 +638,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/d7-rc21-preflight-tracking-20261124",
-    "checkpoint": "rc21 published and owner-reported Play Protect warning; read-only version preflight and tracking reconciliation authored, exact-head CI pending.",
+    "branch": "android/d7-published-rc21-apk-audit-20261124",
+    "checkpoint": "rc21 read-only S24 preflight #533 integrated and post-merge green; pinned actual released APK audit extension authored, exact-head CI pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1228,7 +1228,7 @@
         ]
       }
     ],
-    "next_action": "Validate and integrate rc21 read-only S24 preflight and tracking reconciliation on android/d7-rc21-preflight-tracking-20261124; do not claim owner acceptance from version metadata or CI. Play Protect warning remains unresolved; no further screenshot requested and no speculative change or new APK. Review only new concrete evidence. Independently verified in-place encrypted data and pending queue continuity remain outstanding. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.",
+    "next_action": "Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested. Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": null,
     "current_subtask": "W6.4",
@@ -1236,7 +1236,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "Validate and integrate rc21 read-only S24 preflight and tracking reconciliation on android/d7-rc21-preflight-tracking-20261124; do not claim owner acceptance from version metadata or CI. Play Protect warning remains unresolved; no further screenshot requested and no speculative change or new APK. Review only new concrete evidence. Independently verified in-place encrypted data and pending queue continuity remain outstanding. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.",
+    "next_action": "Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested. Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.",
     "stages": [
       {
         "id": "D1",
@@ -1874,7 +1874,7 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "8336deb1891e183ccbdbb1716cb18624934dd7dc",
+      "baseline_develop": "2fb7a90ef47e988f07fdecaa74ad459443155a20",
       "status": "blocked_rc21_play_protect_and_remaining_physical_evidence",
       "reviewed_domains": 7,
       "total_domains": 8,
@@ -1922,12 +1922,12 @@
         {
           "severity": "P0",
           "kind": "owner_physical_security",
-          "detail": "rc19 and newly confirmed latest published rc20 on S24 lack verified card recording/Recents, Play Protect, signer and in-place preservation results."
+          "detail": "Owner rc21 reports in-place install, biometric, finance sync, card privacy and basic journeys OK; Play Protect warning, independent signer/data/queue continuity and full physical acceptance remain unresolved."
         },
         {
           "severity": "P0",
           "kind": "canonical_finance",
-          "detail": "Historical owner GET /api/data HTTP400 INVALID_DATA and two reported 2026-11-12 credit purchases remain unresolved. Read-only Supabase 2026-11-22: relational_v1 revision 499, 509 events, 10 card_purchase, 9 card_payment; rebuilt schema-v3 document and selected event/leg integrity checks show no anomaly, but cannot verify authenticated owner GET. Two 2026-11-12 expense rows remain without cardId/statementId/credit funding; not proven to be the owner's intended purchases. No backend writes authorized."
+          "detail": "Android/Web finance functionality owner-reported restored after Web #663 deployed device-session timestamp race correction; two historical November 12 purchase associations remain unresolved. Read-only source checks do not establish intended linkage; no finance write authorized."
         },
         {
           "severity": "P1",
@@ -1936,8 +1936,8 @@
         },
         {
           "severity": "P1",
-          "kind": "source_version_gap",
-          "detail": "Newest public rc20/10019 source tag 0285a87 predates develop merge PR506 c306ab4 and latest D7 audit source; no new APK without independent release and owner gate."
+          "kind": "published_apk_static_evidence",
+          "detail": "rc21 published from #531 exact source 9076163; #533 preflight recognizes rc21 and is merged. Actual rc21 APK byte audit pending; do not assume Google clearance."
         },
         {
           "severity": "P1",
@@ -2003,7 +2003,7 @@
       "owner_acceptance": "blocked",
       "apk_release_allowed": false,
       "ci_exact_head": "pr_521_bd39ee0_all_six_exact_head_gates_success_squash_merged_8336deb",
-      "next_action": "Validate and integrate rc21 read-only S24 preflight and tracking reconciliation on android/d7-rc21-preflight-tracking-20261124; do not claim owner acceptance from version metadata or CI. Play Protect warning remains unresolved; no further screenshot requested and no speculative change or new APK. Review only new concrete evidence. Independently verified in-place encrypted data and pending queue continuity remain outstanding. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.",
+      "next_action": "Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested. Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -2337,6 +2337,17 @@
         "owner_install": "reported_ok",
         "owner_basic_journeys": "reported_ok",
         "data_continuity": "not_independently_verified"
+      },
+      "rc21_published_apk_static_audit": {
+        "status": "authored_pending_ci",
+        "scope": [
+          "rc16",
+          "rc17",
+          "rc18",
+          "rc20",
+          "rc21"
+        ],
+        "limitations": "Static integrity, certificate and permission comparisons only; no installation, runtime, Google classification or device acceptance."
       }
     }
   }
