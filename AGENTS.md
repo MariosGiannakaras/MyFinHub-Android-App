@@ -14,6 +14,12 @@
 
 
 
+## Owner direction — autonomous continuation (2026-11-24)
+
+- The owner explicitly requests normal autonomous continuation without waiting for their confirmation. Do not repeatedly request routine approvals, screenshots, or previously requested physical observations; proceed with independently actionable in-scope source, tests, review, CI, integration and read-only investigation.
+- Keep unavailable physical-device observations, external classification and finance intent as explicit evidence limitations, not blockers to unrelated technical work. Owner authorization to proceed is not evidence that a physical test passed. Preserve D7/W6.4 physical acceptance, D8 protected release and stable-promotion requirements, production data and signer safety, and existing deferred-scope boundaries. Never invent a successful test or bypass a security gate.
+- When no independently actionable, evidence-backed task remains, report the actual blocked state without repeatedly asking for confirmation or creating speculative work. Resume on new evidence or a newly authorized task. This does not authorize background work.
+
 ## Owner-required completion reporting and final deep pre-APK audit — 2026-11-22
 
 - **Every substantive agent/chat response** must state the evidence-backed current stage and progress (deploy D completed/8, Web parity implementations/subtasks, and the current audit checkpoint completed/total when active), identify the live branch/PR, and separate source-only work, successful exact-head CI, merged code, and owner physical S24 acceptance. Do not use a made-up percentage. When an owner step is indispensable, explicitly say **"Απαιτείται δική σου ενέργεια"** with exact ordered instructions and the specific evidence to return; otherwise state that no owner action is required yet.

@@ -5,9 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested.
-- [ ] Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion.
-- [ ] Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.
+- [ ] Continue independently with newly evidenced in-scope technical defects, tests and CI; do not wait for repeated routine owner approval or request prior observations again. No concrete source correction currently identified.
+- [ ] D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes. No new APK or stable promotion without existing release gate evidence.
 
 ## Completed foundations
 
@@ -74,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested. Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.
+Next: Continue independently with newly evidenced in-scope technical defects, tests and CI; do not wait for repeated routine owner approval or request prior observations again. No concrete source correction currently identified. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes. No new APK or stable promotion without existing release gate evidence.
 
 
 ## Active Web parity progress
@@ -83,10 +82,10 @@ Next: Run and review pinned public APK static audit on android/d7-published-rc21
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/d7-published-rc21-apk-audit-20261124
-Current W6.4: rc21 read-only S24 preflight #533 integrated and post-merge green; pinned actual released APK audit extension authored, exact-head CI pending.
+Issue #155, no open PR, branch develop
+Current W6.4: PR #534 actual signed APK audit integrated and post-merge CI green; no further concrete source correction identified. Owner requests autonomous continuation; physical/external gate remains unverified.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run and review pinned public APK static audit on android/d7-published-rc21-apk-audit-20261124 (rc16/rc17 historical, rc18/rc20/rc21 new); exact-head CI and integration pending. No new APK or install. No screenshot requested. Play Protect warning and independent in-place encrypted data/pending queue continuity remain unresolved. Do not infer a verdict from APK byte integrity or CI. No speculative runtime change or stable promotion. Keep historical November 12 purchase associations unresolved pending authoritative owner intent/evidence; no production finance writes or speculative repair. D7/W6.4 and D8 remain separate gates.
+Next Continue independently with newly evidenced in-scope technical defects, tests and CI; do not wait for repeated routine owner approval or request prior observations again. No concrete source correction currently identified. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes. No new APK or stable promotion without existing release gate evidence.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
