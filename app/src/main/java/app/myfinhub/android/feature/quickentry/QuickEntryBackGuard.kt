@@ -5,6 +5,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -19,19 +20,33 @@ fun QuickEntryBackGuard(
     state: QuickEntryUiState,
     onAction: (QuickEntryAction) -> Unit,
     onExit: () -> Unit,
+    mutationInFlight: Boolean = false,
     content: @Composable (requestExit: () -> Unit) -> Unit,
 ) {
     var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
-    val hasUnsavedDraft = state.dirty && !state.persisted && !state.pendingSync
+    val saved = state.persisted || state.pendingSync
+    val hasUnsavedDraft = state.dirty && !saved
+    val submitPending = mutationInFlight && !saved
 
-    // Toolbar and Android system/predictive Back use one confirmation owner.
+    // A stale discard dialog must not survive a save starting or completing.
+    LaunchedEffect(submitPending, hasUnsavedDraft) {
+        if (submitPending || !hasUnsavedDraft) discardDialogOpen = false
+    }
+
+    // Toolbar and Android system/predictive Back share the same guard.
+    // The write cannot be cancelled by Reset; wait for durable enqueue/ack
+    // or failure. A confirmed save may still auto-exit via the screen effect.
     val requestExit: () -> Unit = {
-        if (hasUnsavedDraft) discardDialogOpen = true else onExit()
+        when {
+            submitPending -> Unit
+            hasUnsavedDraft -> discardDialogOpen = true
+            else -> onExit()
+        }
     }
     BackHandler(onBack = requestExit)
     content(requestExit)
 
-    if (discardDialogOpen) {
+    if (discardDialogOpen && hasUnsavedDraft && !submitPending) {
         AlertDialog(
             onDismissRequest = { discardDialogOpen = false },
             title = { Text("Απόρριψη νέας κίνησης;") },
@@ -40,8 +55,10 @@ fun QuickEntryBackGuard(
                 TextButton(
                     onClick = {
                         discardDialogOpen = false
-                        onAction(QuickEntryAction.Reset)
-                        onExit()
+                        if (!submitPending && hasUnsavedDraft) {
+                            onAction(QuickEntryAction.Reset)
+                            onExit()
+                        }
                     },
                 ) { Text("Απόρριψη αλλαγών") }
             },
