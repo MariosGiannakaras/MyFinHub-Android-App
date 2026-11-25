@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -331,24 +332,23 @@ private fun SecureValueRow(
     emptyLabel: String,
     onCopy: (String) -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, modifier = Modifier.width(MyFinHubDesignMetrics.secretValueLabelWidth), style = MaterialTheme.typography.labelMedium)
+    val isPan = label == "Αριθμός"
+    val expanded = isPan || LocalDensity.current.fontScale >= 1.3f
+    val displayValue = if (isPan && value != null) value.chunked(4).joinToString(" ")
+        else value ?: emptyLabel
+    val valueContent: @Composable (Modifier) -> Unit = { modifier ->
         Text(
-            value ?: emptyLabel,
-            modifier = Modifier.weight(1f).clearAndSetSemantics {
+            displayValue,
+            modifier = modifier.clearAndSetSemantics {
                 contentDescription = if (value == null) "$label. $emptyLabel" else "$label. Πλήρης τιμή εμφανίζεται."
             },
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
+    }
+    val copyAction: @Composable () -> Unit = {
         if (value != null) {
-            // TalkBack must identify the copied field, never announce PAN/CVV.
-            // Keep the visible compact label; don't expose the sensitive value
-            // through the button's accessibility semantics.
+            // Speech must identify the field, not announce the sensitive value.
             val description = when (label) {
                 "Αριθμός" -> "Αντιγραφή αριθμού"
                 "Λήξη" -> "Αντιγραφή λήξης"
@@ -359,6 +359,35 @@ private fun SecureValueRow(
                 onClick = { onCopy(value) },
                 modifier = Modifier.semantics { contentDescription = description },
             ) { Text("Αντιγραφή") }
+        }
+    }
+    if (expanded) {
+        // Full-width value keeps digit groups readable at enlarged font scales.
+        // Copy still receives the original, unformatted value.
+        Column(
+            modifier = Modifier.fillMaxWidth().testTag("card_secure_expanded_$label"),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
+                copyAction()
+            }
+            valueContent(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, modifier = Modifier.width(MyFinHubDesignMetrics.secretValueLabelWidth),
+                style = MaterialTheme.typography.labelMedium)
+            valueContent(Modifier.weight(1f))
+            copyAction()
         }
     }
 }

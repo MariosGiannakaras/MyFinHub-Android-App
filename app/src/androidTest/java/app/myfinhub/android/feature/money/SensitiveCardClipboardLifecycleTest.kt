@@ -3,6 +3,9 @@ package app.myfinhub.android.feature.money
 import android.content.Context
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
@@ -76,6 +79,33 @@ class SensitiveCardClipboardLifecycleTest {
         // Values remain in the secure visual field only, not in button speech.
         rule.onNodeWithContentDescription("Αντιγραφή $pan").assertDoesNotExist()
         rule.onNodeWithContentDescription("Αντιγραφή 321").assertDoesNotExist()
+    }
+
+    @Test fun enlargedSecureFieldsKeepRawCopyAndHideSecretsFromSemantics() {
+        val store = InMemorySensitiveClipboard()
+        val controller = SensitiveCardClipboard(context, port = store)
+        val pan = "4242424242424242"
+        rule.setContent { MyFinHubTheme {
+            val density = LocalDensity.current
+            CompositionLocalProvider(
+                LocalDensity provides Density(density.density, 1.5f),
+                LocalSensitiveClipboardController provides controller,
+            ) {
+                CanonicalCardSecureDetailsScreen(
+                    cardId = "card-1",
+                    card = syntheticMoneyCards().first().copy(id = "card-1"),
+                    secretState = CardSecretUiState.Revealed("card-1", pan, "12/30", "321"),
+                    onReveal = {}, onSaveServerSecrets = { _, _ -> }, onSaveCvv = {}, onBack = {},
+                )
+            }
+        } }
+        for (label in listOf("Αριθμός", "Λήξη", "CVV")) {
+            rule.onNodeWithTag("card_secure_expanded_$label").assertExists()
+        }
+        rule.onNodeWithText(pan, useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithText(pan.chunked(4).joinToString(" "), useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithContentDescription("Αντιγραφή αριθμού").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(pan, store.clip?.second) }
     }
 
     @Test fun expiryRemainsScheduledWhenNoComposeCoroutineSurvives() {
