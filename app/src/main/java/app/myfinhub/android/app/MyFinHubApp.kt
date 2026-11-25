@@ -569,6 +569,7 @@ internal fun MyFinHubAppContent(
                         state = quickEntryState,
                         onAction = onQuickEntryAction,
                         onExit = { activeBackStack.removeLastOrNull() },
+                        mutationInFlight = quickEntryMutationInFlight,
                     ) { requestExit ->
                         ProductionQuickEntryScreen(
                             state = quickEntryState,

@@ -1,9 +1,11 @@
 package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -33,7 +35,13 @@ class WebDynamicFinancialProviderPickerComposeTest {
         compose.onNodeWithTag("card_create_provider").performClick()
         compose.onNodeWithTag("card_create_provider_search").performTextInput("Νέα Τράπεζα")
         compose.onNodeWithTag("card_create_provider_owner-bank").performClick()
-        compose.onNodeWithText("Νέα Τράπεζα").assertIsDisplayed()
+        // Verify the selected issuer field, not the search text or outgoing sheet row.
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithTag("card_create_provider_search").fetchSemanticsNodes().isEmpty()
+        }
+        compose.onNodeWithTag("card_create_provider")
+            .assert(hasText("Νέα Τράπεζα"))
+            .assertIsDisplayed()
     }
 
     @Test fun dynamicProviderNamedCustomDoesNotCollideWithManualIssuerSentinel() {
@@ -51,7 +59,13 @@ class WebDynamicFinancialProviderPickerComposeTest {
         compose.onNodeWithTag("card_create_provider").performClick()
         compose.onNodeWithTag("card_create_provider_search").performTextInput("Custom Verified Bank")
         compose.onNodeWithTag("card_create_provider_custom").performClick()
-        compose.onNodeWithText("Custom Verified Bank").assertIsDisplayed()
+        // Verify the selected issuer field, not the search text or outgoing sheet row.
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithTag("card_create_provider_search").fetchSemanticsNodes().isEmpty()
+        }
+        compose.onNodeWithTag("card_create_provider")
+            .assert(hasText("Custom Verified Bank"))
+            .assertIsDisplayed()
     }
 
     @Test fun unknownCatalogRendersBundledOptionsInsteadOfUnverifiedThirdPartyMarks() {

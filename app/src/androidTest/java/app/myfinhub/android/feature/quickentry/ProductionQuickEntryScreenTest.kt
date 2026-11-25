@@ -1,5 +1,8 @@
 package app.myfinhub.android.feature.quickentry
 
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -7,6 +10,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithText
@@ -91,6 +95,85 @@ class ProductionQuickEntryScreenTest {
         }
 
         composeRule.onNodeWithText("Καταχώριση…").assertIsNotEnabled()
+    }
+
+    @Test
+    fun pendingSubmissionBlocksToolbarAndSystemBackThenAllowsDiscardAfterFailure() {
+        var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
+        var saving by mutableStateOf(false)
+        var exits = 0
+        var resets = 0
+        lateinit var dispatcher: OnBackPressedDispatcher
+        composeRule.setContent {
+            val owner = checkNotNull(LocalOnBackPressedDispatcherOwner.current)
+            SideEffect { dispatcher = owner.onBackPressedDispatcher }
+            MyFinHubTheme {
+                QuickEntryBackGuard(
+                    state = state,
+                    mutationInFlight = saving,
+                    onAction = { if (it == QuickEntryAction.Reset) resets++ },
+                    onExit = { exits++ },
+                ) { requestExit ->
+                    ProductionQuickEntryScreen(
+                        state = state, onAction = {}, onBack = requestExit,
+                        mutationInFlight = saving,
+                    )
+                }
+            }
+        }
+
+        // A discard confirmation opened just before submission must disappear.
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertExists()
+        composeRule.runOnIdle { saving = true }
+        composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.runOnIdle { dispatcher.onBackPressed() }
+        composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertDoesNotExist()
+        composeRule.runOnIdle {
+            assertEquals(0, exits)
+            assertEquals(0, resets)
+            saving = false
+            state = state.copy(validationMessage = "Αποτυχία αποθήκευσης")
+        }
+        composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertExists()
+        composeRule.onNodeWithText("Απόρριψη αλλαγών").performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, exits)
+            assertEquals(1, resets)
+        }
+    }
+
+    @Test
+    fun durableSaveStillAutomaticallyExitsEvenIfSavingFlagHasNotCleared() {
+        var state by mutableStateOf(validState(QuickEntryKind.EXPENSE))
+        var exits = 0
+        var resets = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                QuickEntryBackGuard(
+                    state = state,
+                    mutationInFlight = true,
+                    onAction = { if (it == QuickEntryAction.Reset) resets++ },
+                    onExit = { exits++ },
+                ) { requestExit ->
+                    ProductionQuickEntryScreen(
+                        state = state, onAction = {}, onBack = requestExit,
+                        mutationInFlight = true,
+                    )
+                }
+            }
+        }
+        composeRule.runOnIdle {
+            assertEquals(0, exits)
+            state = state.copy(persisted = true, dirty = false)
+        }
+        composeRule.runOnIdle {
+            assertEquals(1, exits)
+            assertEquals(0, resets)
+        }
     }
 
     @Test
