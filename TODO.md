@@ -5,8 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Require all six checks on the final PR #538 head and a clean develop baseline before merging the reviewed visual/accessibility correction.
-- [ ] Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts.
+- [ ] Require all six checks on the final PR #539 head, clean reviews and a green develop baseline before integrating the #536 Cards correction.
 - [ ] D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
 ## Completed foundations
@@ -74,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: Require all six checks on the final PR #538 head and a clean develop baseline before merging the reviewed visual/accessibility correction. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next: Require all six checks on the final PR #539 head, clean reviews and a green develop baseline before integrating the #536 Cards correction. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
 
 ## Active Web parity progress
@@ -83,10 +82,10 @@ Next: Require all six checks on the final PR #538 head and a clean develop basel
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #538, branch android/d7-accessibility-visual-corrections-20261125
-Current W6.4: PR #537 integrated with six checks passing. PR #538 adopts 15 reviewed official Compose references and three matching public Home mirrors from run #45554218015, artifact #14994986950. Final-head CI and integration pending.
+Issue #155, PR #539, branch android/d7-cards-contextual-entry-20261125
+Current W6.4: PR #538 passed all six checks at 5d8f099 and squash merged into develop 2e207a8. PR #539 Cards contextual entry, restore eligibility correction and three reviewed official references from artifact #15011541188. Final commit verification and integration pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Require all six checks on the final PR #538 head and a clean develop baseline before merging the reviewed visual/accessibility correction. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next Require all six checks on the final PR #539 head, clean reviews and a green develop baseline before integrating the #536 Cards correction. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

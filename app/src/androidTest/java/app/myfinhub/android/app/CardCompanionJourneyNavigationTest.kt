@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -18,8 +19,10 @@ import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.MoneyCard
 import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.VaultState
+import app.myfinhub.android.feature.money.syntheticMoneyCards
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
+import app.myfinhub.android.feature.quickentry.QuickEntryAccountOption
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.quickentry.reduceQuickEntry
 import org.junit.Assert.assertEquals
@@ -29,6 +32,101 @@ import org.junit.Test
 /** Actual native navigation: selected card -> detail -> purchase draft -> guarded Back -> Cards. */
 class CardCompanionJourneyNavigationTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun cardsPrimaryActionOpensPurchaseForTheSelectedCreditCard() {
+        val debit = syntheticMoneyCards().first().copy(canonicalKind = "debit")
+        val credit = syntheticMoneyCards().last().copy(canonicalKind = "credit")
+        var draft by mutableStateOf(QuickEntryUiState())
+        compose.setContent {
+            MyFinHubTheme {
+                MyFinHubAppContent(
+                    homeState = syntheticHomeUiState(),
+                    onHomeAction = {},
+                    moneyState = MoneyUiState(cards = listOf(debit, credit)),
+                    quickEntryState = draft,
+                    onQuickEntryAction = { draft = reduceQuickEntry(draft, it) },
+                )
+            }
+        }
+
+        compose.onNodeWithText("Κάρτες").performClick()
+        compose.onNodeWithTag("credit_card_dot_${credit.id}").performClick()
+        compose.onNodeWithText("Γενική καταχώριση κίνησης").assertIsDisplayed()
+        compose.onNodeWithText("Αγορά με πιστωτική").performClick()
+        compose.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
+        compose.runOnIdle {
+            assertEquals(QuickEntryKind.CARD_PURCHASE, draft.kind)
+            assertEquals(credit.id, draft.cardId)
+        }
+    }
+
+    @Test fun debitExpenseRequiresChoosingAnAccountDespiteAStaleSelection() {
+        val debit = syntheticMoneyCards().first().copy(canonicalKind = "debit", bankId = "shared-bank")
+        var draft by mutableStateOf(QuickEntryUiState(
+            accounts = listOf(
+                QuickEntryAccountOption("old-account", "Παλιός λογαριασμός", "bank"),
+                QuickEntryAccountOption("new-account", "Άλλος λογαριασμός", "bank"),
+            ),
+            accountId = "old-account",
+            defaultExpenseAccountId = "old-account",
+        ))
+        compose.setContent {
+            MyFinHubTheme {
+                MyFinHubAppContent(
+                    homeState = syntheticHomeUiState(),
+                    onHomeAction = {},
+                    moneyState = MoneyUiState(cards = listOf(debit)),
+                    quickEntryState = draft,
+                    onQuickEntryAction = { draft = reduceQuickEntry(draft, it) },
+                )
+            }
+        }
+
+        compose.onNodeWithText("Κάρτες").performClick()
+        compose.onNodeWithText("Έξοδο με χρεωστική").performClick()
+        compose.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
+        compose.runOnIdle {
+            assertEquals(QuickEntryKind.EXPENSE, draft.kind)
+            assertEquals("", draft.accountId)
+        }
+        compose.onNodeWithContentDescription("Από λογαριασμό: Επιλογή. Αλλαγή επιλογής")
+            .performScrollTo().performClick()
+        compose.onNodeWithText("Άλλος λογαριασμός").performClick()
+        compose.runOnIdle { assertEquals("new-account", draft.accountId) }
+    }
+
+    @Test fun archivedCollisionExposesOnlyGenericEntryAndProtectsAnInFlightDraft() {
+        val credit = syntheticMoneyCards().last().copy(canonicalKind = "credit")
+        var inFlight by mutableStateOf(true)
+        var draft by mutableStateOf(QuickEntryUiState())
+        compose.setContent {
+            MyFinHubTheme {
+                MyFinHubAppContent(
+                    homeState = syntheticHomeUiState(),
+                    onHomeAction = {},
+                    moneyState = MoneyUiState(
+                        cards = listOf(credit),
+                        archivedCards = listOf(credit.copy(archivedAt = "2026-11-24")),
+                    ),
+                    quickEntryState = draft,
+                    quickEntryMutationInFlight = inFlight,
+                    onQuickEntryAction = { draft = reduceQuickEntry(draft, it) },
+                )
+            }
+        }
+
+        compose.onNodeWithText("Κάρτες").performClick()
+        compose.onNodeWithText("Αγορά με πιστωτική").assertDoesNotExist()
+        compose.onNodeWithTag("card_companion_payment").assertDoesNotExist()
+        compose.onNodeWithText("Γενική καταχώριση κίνησης").assertIsNotEnabled()
+        compose.runOnIdle { inFlight = false }
+        compose.onNodeWithText("Γενική καταχώριση κίνησης").performClick()
+        compose.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
+        compose.runOnIdle {
+            assertEquals(QuickEntryKind.EXPENSE, draft.kind)
+            assertEquals(false, draft.debitExpenseRequiresAccountChoice)
+        }
+    }
 
     @Test fun anOpenCardDetailFailsClosedIfTheCatalogIntroducesADuplicateId() {
         val card = MoneyCard(

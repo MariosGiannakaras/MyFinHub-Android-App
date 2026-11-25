@@ -105,6 +105,7 @@ internal fun projectQuickEntryState(
     // source card or account. Keep the old ID invalid until the owner reselects.
     val preserveDirty = previous?.dirty == true && !previous.persisted && !previous.pendingSync
     val selectedAccount = base.accountId.takeIf(accountIds::contains)
+        ?: base.accountId.takeIf { base.debitExpenseRequiresAccountChoice }
         ?: base.accountId.takeIf { preserveDirty && base.kind.needsPrimaryAccount && it.isNotBlank() }
         ?: if (base.kind == QuickEntryKind.INCOME) defaultIncomeId else defaultExpenseId
     val selectedCard = base.cardId.takeIf(cardIds::contains)

@@ -151,6 +151,8 @@ data class QuickEntryUiState(
     /** True after a successful encrypted local enqueue and before server reconciliation. */
     val pendingSync: Boolean = false,
     val dirty: Boolean = false,
+    /** Debit cards carry no canonical account link. Preserve explicit choice across projection refreshes. */
+    val debitExpenseRequiresAccountChoice: Boolean = false,
 ) {
     val amount: Double?
         get() = amountText.toCurrencyCentsOrNull()?.div(100.0)
@@ -180,6 +182,7 @@ internal fun QuickEntryUiState.canSubmitDraft(): Boolean =
     validateAndPreview(this).validationMessage == null
 
 sealed interface QuickEntryAction {
+    data object StartDebitExpense : QuickEntryAction
     data class SelectKind(val kind: QuickEntryKind) : QuickEntryAction
     data class AmountChanged(val value: String) : QuickEntryAction
     data class DateChanged(val value: String) : QuickEntryAction
@@ -209,6 +212,9 @@ sealed interface QuickEntryAction {
 }
 
 fun reduceQuickEntry(state: QuickEntryUiState, action: QuickEntryAction): QuickEntryUiState = when (action) {
+    QuickEntryAction.StartDebitExpense -> selectKind(
+        resetDraft(state), QuickEntryKind.EXPENSE,
+    ).copy(accountId = "", debitExpenseRequiresAccountChoice = true, dirty = false)
     is QuickEntryAction.SelectKind -> selectKind(state, action.kind)
     is QuickEntryAction.AmountChanged -> state.changed(amountText = action.value)
     is QuickEntryAction.DateChanged -> state.changed(dateText = action.value, statementId = "")
@@ -328,6 +334,7 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
 
     return state.copy(
         kind = kind,
+        debitExpenseRequiresAccountChoice = false,
         amountText = state.amountText.takeIf { previousUsesAmount && newUsesAmount }.orEmpty(),
         category = category,
         subcategory = subcategory,
@@ -459,6 +466,10 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
     val categoryOptions = if (state.kind == QuickEntryKind.INCOME) state.incomeCategories else state.expenseCategories
     val category = categoryOptions.firstOrNull()?.name.orEmpty()
     return state.copy(
+        accountId = if (state.debitExpenseRequiresAccountChoice) {
+            state.defaultExpenseAccountId.takeIf { idExists(state, it) }.orEmpty()
+        } else state.accountId,
+        debitExpenseRequiresAccountChoice = false,
         amountText = "",
         dateText = LocalDate.now().toString(),
         note = "",

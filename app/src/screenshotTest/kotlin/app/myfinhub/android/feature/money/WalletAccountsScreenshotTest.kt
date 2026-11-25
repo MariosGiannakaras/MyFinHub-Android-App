@@ -76,9 +76,12 @@ fun WalletCardsLargeFontScreenshot() = WalletCardsFixture(darkTheme = false)
 
 @Composable
 private fun WalletCardsFixture(darkTheme: Boolean) {
+    val state = syntheticMoneyUiState()
     MyFinHubTheme(darkTheme = darkTheme) {
         CanonicalWalletScreen(
-            state = syntheticMoneyUiState(),
+            state = state.copy(cards = state.cards.map { card ->
+                if (card.id == "card-1") card.copy(canonicalKind = "debit") else card
+            }),
             cardsOnly = true,
             companionMode = true,
             cardSecretState = CardSecretUiState.Hidden(),

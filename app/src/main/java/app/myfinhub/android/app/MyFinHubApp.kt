@@ -53,6 +53,7 @@ import app.myfinhub.android.feature.money.CanonicalLoansScreen
 import app.myfinhub.android.feature.money.CanonicalNetPositionScreen
 import app.myfinhub.android.feature.money.CanonicalWalletScreen
 import app.myfinhub.android.feature.money.canOpenCreditStatementPayment
+import app.myfinhub.android.feature.money.canOpenDebitCardQuickEntry
 import app.myfinhub.android.feature.money.canOpenCreditCardQuickEntry
 import app.myfinhub.android.feature.money.CanonicalSavingsScreen
 import app.myfinhub.android.feature.money.CardSecretUiState
@@ -588,7 +589,18 @@ internal fun MyFinHubAppContent(
                         companionMode = true,
                         financeCacheMode = backupOffline,
                         pendingFinanceChanges = backupPendingChangeCount,
-                        onOpenQuickEntry = { openFastExpense(moneyBackStack) },
+                        transactionEntryEnabled = !quickEntryMutationInFlight,
+                        onOpenQuickEntry = {
+                            if (!quickEntryMutationInFlight) openFastExpense(moneyBackStack)
+                        },
+                        onAddDebitExpense = { cardId ->
+                            if (!quickEntryMutationInFlight &&
+                                canOpenDebitCardQuickEntry(moneyState.uniqueActiveCardForRoute(cardId))
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.StartDebitExpense)
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
+                        },
                         onOpenAccount = { accountId ->
                             if (moneyProviderState.uniqueAccountForRoute(accountId) != null) {
                                 moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId))
@@ -603,7 +615,7 @@ internal fun MyFinHubAppContent(
                             }
                         },
                         onPayCreditCard = { cardId ->
-                            if (canOpenCreditCardQuickEntry(
+                            if (!quickEntryMutationInFlight && canOpenCreditCardQuickEntry(
                                     moneyState.uniqueActiveCardForRoute(cardId), payment = true,
                                 )
                             ) {
@@ -614,7 +626,7 @@ internal fun MyFinHubAppContent(
                             }
                         },
                         onPayCreditStatement = { cardId, statementId, remaining ->
-                            if (canOpenCreditCardQuickEntry(
+                            if (!quickEntryMutationInFlight && canOpenCreditCardQuickEntry(
                                     moneyState.uniqueActiveCardForRoute(cardId), payment = true,
                                 ) && canOpenCreditStatementPayment(
                                     cardId, statementId, remaining,
@@ -631,7 +643,7 @@ internal fun MyFinHubAppContent(
                             }
                         },
                         onAddCreditPurchase = { cardId ->
-                            if (canOpenCreditCardQuickEntry(
+                            if (!quickEntryMutationInFlight && canOpenCreditCardQuickEntry(
                                     moneyState.uniqueActiveCardForRoute(cardId), payment = false,
                                 )
                             ) {

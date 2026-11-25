@@ -151,7 +151,7 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         } }
         rule.onNodeWithTag("card_companion_payment").assertDoesNotExist()
         rule.onNodeWithTag("card_companion_payment_unavailable_reason").assertExists()
-        rule.onNodeWithTag("card_companion_purchase").assertExists()
+        rule.onNodeWithText("Αγορά με πιστωτική").assertExists()
         rule.runOnIdle { assertEquals(0, payments) }
     }
 
