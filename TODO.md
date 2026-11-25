@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates.
+- [ ] Require all six checks on the final PR #538 head and a clean develop baseline before merging the reviewed visual/accessibility correction.
 - [ ] Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts.
 - [ ] D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
@@ -74,7 +74,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next: Require all six checks on the final PR #538 head and a clean develop baseline before merging the reviewed visual/accessibility correction. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
 
 ## Active Web parity progress
@@ -83,10 +83,10 @@ Next: Validate #536 visual/accessibility batch on android/d7-accessibility-visua
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/d7-accessibility-visual-corrections-20261125
-Current W6.4: Re-audit #536 Quick Entry correction #537 integrated with six green exact-head checks; visual/accessibility batch authored, official goldens and CI pending.
+Issue #155, PR #538, branch android/d7-accessibility-visual-corrections-20261125
+Current W6.4: PR #537 integrated with six checks passing. PR #538 adopts 15 reviewed official Compose references and three matching public Home mirrors from run #45554218015, artifact #14994986950. Final-head CI and integration pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next Require all six checks on the final PR #538 head and a clean develop baseline before merging the reviewed visual/accessibility correction. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
