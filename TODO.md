@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Require all six exact-head CI checks on PR #540 after adopting the reviewed official references; merge only with green checks and clean base/reviews, then resolve #536.
-- [ ] D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+- [ ] Validate all six exact-head checks on the open non-draft rc22 source PR from 626bcca2bb83afc73e4dcb6a6e8a76bb396ca165; keep it open until the existing guarded production publisher consumes the validated SHA. Owner explicitly authorizes rc22 as a test candidate.
+- [ ] After protected publication, record exact version/code, digest, enrolled signer and release assets; verify actual installed S24 behavior without bypassing Play Protect, uninstalling, clearing data or mutating historical finance associations. No stable/main promotion without real physical evidence.
 
 ## Completed foundations
 
@@ -69,11 +69,11 @@ Evidence-backed release milestones, not percent of code written.
 | D4 Activity and transaction management | completed |
 | D5 Plan, savings, obligations and Insights | completed |
 | D6 Settings, auth, secure sync/offline and backup | completed |
-| D7 Final integrated physical S24 owner acceptance | blocked |
+| D7 Final integrated physical S24 owner acceptance | in_progress |
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: Require all six exact-head CI checks on PR #540 after adopting the reviewed official references; merge only with green checks and clean base/reviews, then resolve #536. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next: Validate all six exact-head checks on the open non-draft rc22 source PR from 626bcca2bb83afc73e4dcb6a6e8a76bb396ca165; keep it open until the existing guarded production publisher consumes the validated SHA. Owner explicitly authorizes rc22 as a test candidate. After protected publication, record exact version/code, digest, enrolled signer and release assets; verify actual installed S24 behavior without bypassing Play Protect, uninstalling, clearing data or mutating historical finance associations. No stable/main promotion without real physical evidence.
 
 
 ## Active Web parity progress
@@ -82,10 +82,10 @@ Next: Require all six exact-head CI checks on PR #540 after adopting the reviewe
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #540, branch android/d7-privacy-terminology-20261125
-Current W6.4: PR #539 integrated into develop 42fb7e7 with green post-merge CI. PR #540 terminology/privacy-description correction and 18 reviewed official reference PNGs plus six mirrors adopted; exact-head validation and merge pending.
+Issue #155, no open PR, branch android/d7-rc22-owner-test-source-20261125
+Current W6.4: All #536 corrections integrated (#537–540); develop 626bcca post-merge CI green. Owner authorized new signed rc22 test candidate; source-only branch android/d7-rc22-owner-test-source-20261125; fresh exact-head checks and protected publisher pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Require all six exact-head CI checks on PR #540 after adopting the reviewed official references; merge only with green checks and clean base/reviews, then resolve #536. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next Validate all six exact-head checks on the open non-draft rc22 source PR from 626bcca2bb83afc73e4dcb6a6e8a76bb396ca165; keep it open until the existing guarded production publisher consumes the validated SHA. Owner explicitly authorizes rc22 as a test candidate. After protected publication, record exact version/code, digest, enrolled signer and release assets; verify actual installed S24 behavior without bypassing Play Protect, uninstalling, clearing data or mutating historical finance associations. No stable/main promotion without real physical evidence.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

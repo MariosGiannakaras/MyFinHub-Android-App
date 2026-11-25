@@ -38,3 +38,7 @@ The device recording and privacy-safe acceptance contract is
 be filled only from a future actually published and independently verified APK,
 never by guessing from this marker. Production finance writes and signing
 material are explicitly outside this UI/device-readiness checkpoint.
+
+## Owner-authorized rc22 physical-test source — 2026-11-25
+
+Based on integrated Android develop `626bcca2bb83afc73e4dcb6a6e8a76bb396ca165` (PR #540 and all prior source corrections; both post-merge checks passed). Issue #536 is closed. The owner explicitly authorizes a new signed test candidate to enable physical tests of the current source. Keep this Android-owned PR open and non-draft until all six exact-head checks pass and the existing protected publisher consumes its source. No runtime behavior, signer, permission or backend changes. The candidate is not a stable release or proof of physical acceptance; no Play Protect bypass, uninstall, cache clearing or historical financial mutation. Version code, digest and signing metadata must be obtained from the publisher only.
