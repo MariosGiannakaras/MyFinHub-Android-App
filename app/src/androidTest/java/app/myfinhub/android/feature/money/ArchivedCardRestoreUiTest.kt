@@ -1,5 +1,8 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -26,10 +29,11 @@ class ArchivedCardRestoreUiTest {
             vaultState = VaultState.LOCKED,
             canonicalKind = "credit", archivedAt = "2026-10-01T00:00:00Z",
         )
+        val cards = mutableStateOf(MoneyUiState(archivedCards = listOf(archived)))
         composeRule.setContent {
             MyFinHubTheme {
                 CanonicalWalletScreen(
-                    state = MoneyUiState(archivedCards = listOf(archived)),
+                    state = cards.value,
                     initiallyShowCards = true,
                     onOpenAccount = {}, onOpenNetPosition = {},
                     onOpenCard = {}, onAddCard = {},
@@ -44,8 +48,15 @@ class ArchivedCardRestoreUiTest {
         composeRule.onNodeWithText("Αρχειοθετημένες κάρτες").assertExists()
         composeRule.onNodeWithTag("wallet_list")
             .performScrollToNode(hasText("Επαναφορά"))
-        composeRule.onNodeWithTag("restore_archived_card_archived-credit").performClick()
-        assertEquals("archived-credit", restored)
+        val restore = composeRule.onNodeWithTag("restore_archived_card_archived-credit")
+        restore.assertIsEnabled().performClick()
+        composeRule.runOnIdle {
+            assertEquals("archived-credit", restored)
+            cards.value = cards.value.copy(cards = listOf(archived.copy(archivedAt = null)))
+        }
+        composeRule.onNodeWithTag("wallet_list")
+            .performScrollToNode(hasText("Επαναφορά"))
+        restore.assertIsNotEnabled()
         composeRule.onNodeWithText("4242 4242", substring = true).assertDoesNotExist()
     }
 }

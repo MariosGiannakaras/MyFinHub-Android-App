@@ -592,9 +592,12 @@ private fun LazyListScope.walletCardsContent(
     val allCardIdCounts = (state.cards + state.archivedCards)
         .groupingBy(MoneyCard::id).eachCount()
     val unsafeCardIds = (state.cards + state.archivedCards).filter { card ->
-        card.archivedAt != null || card.id.isBlank() || card.id != card.id.trim() ||
+        card.id.isBlank() || card.id != card.id.trim() ||
             allCardIdCounts[card.id] != 1
     }.mapTo(mutableSetOf(), MoneyCard::id)
+    // Archived records are ineligible for active actions but may be restored by unique ID.
+    val unsafeActiveCardIds = unsafeCardIds + state.cards
+        .filter { it.archivedAt != null }.map(MoneyCard::id)
     val displayedCard = if (selectedCardId == null) state.cards.firstOrNull()
         else state.cards.firstOrNull { it.id == selectedCardId }
     val contextualCard = displayedCard?.let { state.uniqueActiveCardForRoute(it.id) }
@@ -662,7 +665,7 @@ private fun LazyListScope.walletCardsContent(
                 onDeleteCard = onDeleteCard,
                 modifier = Modifier.fillMaxWidth(),
                 allowArchive = !companionMode,
-                unsafeCardIds = unsafeCardIds,
+                unsafeCardIds = unsafeActiveCardIds,
             )
         }
         if (companionMode) {
@@ -728,7 +731,7 @@ private fun LazyListScope.walletCardsContent(
         } else {
         item("card-workspace") {
             val active = state.cards.firstOrNull { it.id == selectedCardId } ?: state.cards.first()
-            if (active.id in unsafeCardIds) {
+            if (active.id in unsafeActiveCardIds) {
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
                     .testTag("inline_credit_card_identity_warning")) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
