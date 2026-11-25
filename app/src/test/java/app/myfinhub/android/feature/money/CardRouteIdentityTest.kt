@@ -30,6 +30,11 @@ class CardRouteIdentityTest {
         )).uniqueActiveCardForRoute("same"))
     }
 
+    @Test fun archivedCardInActiveListStillCannotOpen() {
+        val archived = card("archived").copy(archivedAt = "2026-11-19")
+        assertNull(MoneyUiState(cards = listOf(archived)).uniqueActiveCardForRoute(archived.id))
+    }
+
     @Test fun activeAndArchivedCollisionDoesNotExposeEitherRecord() {
         val original = card("collision")
         assertNull(MoneyUiState(

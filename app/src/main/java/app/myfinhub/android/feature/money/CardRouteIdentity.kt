@@ -9,5 +9,8 @@ fun MoneyUiState.uniqueActiveCardForRoute(cardId: String): MoneyCard? {
     if (cardId.isBlank() || cardId != cardId.trim()) return null
     val card = cards.singleOrNull { it.id == cardId } ?: return null
     if (archivedCards.any { it.id == cardId }) return null
-    return card
+    return card.takeIf { it.archivedAt == null }
 }
+
+internal fun canOpenDebitCardQuickEntry(card: MoneyCard?): Boolean =
+    card?.canonicalKind == "debit"

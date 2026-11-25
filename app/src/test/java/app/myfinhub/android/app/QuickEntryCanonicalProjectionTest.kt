@@ -19,6 +19,28 @@ import org.junit.Test
 
 class QuickEntryCanonicalProjectionTest {
     @Test
+    fun debitExpenseKeepsExplicitAccountChoiceAcrossFinanceRefreshes() {
+        val document = projectionFixture()
+        val date = LocalDate.parse("2026-09-02")
+        val previous = projectQuickEntryState(document, date, QuickEntryUiState(accountId = "bank-main"))
+        val draft = reduceQuickEntry(previous, QuickEntryAction.StartDebitExpense)
+        val refreshed = projectQuickEntryState(document, date, draft)
+        assertEquals("", refreshed.accountId)
+        assertTrue(refreshed.debitExpenseRequiresAccountChoice)
+        val withAmount = reduceQuickEntry(refreshed, QuickEntryAction.AmountChanged("12,50"))
+        assertFalse(withAmount.canSubmitDraft())
+
+        val chosen = reduceQuickEntry(withAmount, QuickEntryAction.AccountChanged("bank-main"))
+        val projectedChoice = projectQuickEntryState(document, date, chosen)
+        assertEquals("bank-main", projectedChoice.accountId)
+        assertTrue(projectedChoice.canSubmitDraft())
+
+        val reset = reduceQuickEntry(projectedChoice, QuickEntryAction.Reset)
+        assertFalse(reset.debitExpenseRequiresAccountChoice)
+        assertEquals(previous.defaultExpenseAccountId, reset.accountId)
+    }
+
+    @Test
     fun syncInvalidatedCreditAndExpenseTargetsAreNotSilentlyReplaced() {
         val original = projectionFixture()
         val date = LocalDate.parse("2026-09-02")
