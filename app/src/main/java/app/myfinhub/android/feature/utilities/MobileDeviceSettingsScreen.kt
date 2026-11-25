@@ -124,7 +124,7 @@ fun MobileDeviceSettingsScreen(
                         amountsVisible = visible
                         AmountVisibilityPreference.write(context, visible)
                     },
-                    supporting = "Απόκρυψη ή εμφάνιση στα οικονομικά στοιχεία.",
+                    supporting = "Η απόκρυψη καλύπτει ποσά, όχι γραφήματα ή την κατεύθυνση των μεταβολών.",
                 )
             }
 

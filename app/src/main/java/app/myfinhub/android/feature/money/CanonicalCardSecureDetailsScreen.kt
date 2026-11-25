@@ -181,7 +181,7 @@ fun CanonicalCardSecureDetailsScreen(
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text(
-                        "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στο κοινό card vault και συγχρονίζονται στις εγκεκριμένες εφαρμογές.",
+                        "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στον κοινό ασφαλή χώρο καρτών και συγχρονίζονται στις εγκεκριμένες εφαρμογές.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     if (editorOpen && vaultReadAuthorized) {
