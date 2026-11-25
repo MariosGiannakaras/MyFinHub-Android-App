@@ -63,7 +63,7 @@ class TopLevelParityTest {
         composeRule.onNodeWithTag("card_secure_details")
             .assertIsDisplayed().performClick()
         composeRule.onNodeWithText(
-            "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στο κοινό card vault και συγχρονίζονται στις εγκεκριμένες εφαρμογές.",
+            "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στον κοινό ασφαλή χώρο καρτών και συγχρονίζονται στις εγκεκριμένες εφαρμογές.",
         ).assertIsDisplayed()
         assertTrue(runCatching {
             composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode()

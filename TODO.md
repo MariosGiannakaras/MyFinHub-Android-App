@@ -82,8 +82,8 @@ Next: Review official Compose reference candidates for the #536 terminology/priv
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/d7-privacy-terminology-20261125
-Current W6.4: PR #539 passed all six checks at 75d7d07 and merged develop 42fb7e7; both post-merge checks passed. Final #536 terminology and amount-mask explanation corrections authored on android/d7-privacy-terminology-20261125; official screenshot evidence and integration pending.
+Issue #155, PR #540, branch android/d7-privacy-terminology-20261125
+Current W6.4: PR #539 passed all six checks at 75d7d07 and merged develop 42fb7e7; both post-merge checks passed. Final #536 terminology and amount-mask explanation corrections authored on android/d7-privacy-terminology-20261125; PR #540 initial tracking/Android CI passed; exact navigation assertion updated after shard 1 failure, screenshot and shard 0 dependency rate limiting recorded; official screenshot evidence and integration pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Review official Compose reference candidates for the #536 terminology/privacy-description batch on android/d7-privacy-terminology-20261125, adopt only affected PNGs, sync mirrors, and require all six exact-head checks before merge. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
