@@ -62,6 +62,45 @@ fun CanonicalCardSecureHiddenDarkScreenshot() = CardSecureFixture(darkTheme = tr
 @Composable
 fun CanonicalCardSecureHiddenLargeFontScreenshot() = CardSecureFixture(darkTheme = false)
 
+@PreviewTest
+@Preview(name = "canonical_card_secure_revealed_light", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun CanonicalCardSecureRevealedLightScreenshot() = CardSecureFixture(false, revealedFixture)
+
+@PreviewTest
+@Preview(name = "canonical_card_secure_revealed_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun CanonicalCardSecureRevealedDarkScreenshot() = CardSecureFixture(true, revealedFixture)
+
+@PreviewTest
+@Preview(name = "canonical_card_secure_revealed_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun CanonicalCardSecureRevealedLargeFontScreenshot() = CardSecureFixture(false, revealedFixture)
+
+@PreviewTest
+@Preview(name = "canonical_card_secure_offline_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun CanonicalCardSecureOfflineLargeFontScreenshot() = CardSecureFixture(false, serverAccessAllowed = false)
+
+@PreviewTest
+@Preview(name = "canonical_card_secure_loading_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun CanonicalCardSecureLoadingDarkScreenshot() = CardSecureFixture(true, CardSecretUiState.Loading(CARD_DETAIL_PREVIEW_ID))
+
+@PreviewTest
+@Preview(name = "canonical_card_secure_failure_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun CanonicalCardSecureFailureLargeFontScreenshot() = CardSecureFixture(false,
+    CardSecretUiState.Failure(CARD_DETAIL_PREVIEW_ID, "Δεν ήταν δυνατή η ανάκτηση των ασφαλών στοιχείων.", true))
+
+// Synthetic fixture only: never source screenshot data from a user vault.
+private val revealedFixture = CardSecretUiState.Revealed(
+    cardId = CARD_DETAIL_PREVIEW_ID,
+    pan = "5555444433330000",
+    expiry = "09/31",
+    cvv = "731",
+)
+
 @Composable
 private fun CardDetailFixture(darkTheme: Boolean) {
     MyFinHubTheme(darkTheme = darkTheme) {
@@ -74,17 +113,17 @@ private fun CardDetailFixture(darkTheme: Boolean) {
 }
 
 @Composable
-private fun CardSecureFixture(darkTheme: Boolean) {
+private fun CardSecureFixture(
+    darkTheme: Boolean,
+    state: CardSecretUiState = CardSecretUiState.Hidden(CARD_DETAIL_PREVIEW_ID),
+    serverAccessAllowed: Boolean = true,
+) {
     MyFinHubTheme(darkTheme = darkTheme) {
         CanonicalCardSecureDetailsScreen(
             cardId = CARD_DETAIL_PREVIEW_ID,
             card = canonicalCardDetailPreviewCard,
-            secretState = CardSecretUiState.Revealed(
-                cardId = CARD_DETAIL_PREVIEW_ID,
-                pan = "5555444433330000",
-                expiry = "09/31",
-                cvv = "731",
-            ),
+            secretState = state,
+            serverAccessAllowed = serverAccessAllowed,
             onReveal = {},
             onSaveServerSecrets = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
             onSaveCvv = { it.fill('\u0000') },

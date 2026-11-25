@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate and integrate #536 Quick Entry submit-navigation correction on android/d7-quick-entry-submit-navigation-20261124; preserve durable save auto-exit and failure retry/discard.
-- [ ] Address remaining #536 Home text contrast, secure-card responsive layout, Cards contextual entry, and accurate state screenshot coverage using official rendered golden updates; preserve current finance and privacy contracts.
+- [ ] Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates.
+- [ ] Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts.
 - [ ] D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
 ## Completed foundations
@@ -74,7 +74,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: Validate and integrate #536 Quick Entry submit-navigation correction on android/d7-quick-entry-submit-navigation-20261124; preserve durable save auto-exit and failure retry/discard. Address remaining #536 Home text contrast, secure-card responsive layout, Cards contextual entry, and accurate state screenshot coverage using official rendered golden updates; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next: Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
 
 ## Active Web parity progress
@@ -83,10 +83,10 @@ Next: Validate and integrate #536 Quick Entry submit-navigation correction on an
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/d7-quick-entry-submit-navigation-20261124
-Current W6.4: Owner-requested re-audit #536 identified actionable defects; first Quick Entry submit-navigation correction authored with regression tests, CI pending.
+Issue #155, no open PR, branch android/d7-accessibility-visual-corrections-20261125
+Current W6.4: Re-audit #536 Quick Entry correction #537 integrated with six green exact-head checks; visual/accessibility batch authored, official goldens and CI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate and integrate #536 Quick Entry submit-navigation correction on android/d7-quick-entry-submit-navigation-20261124; preserve durable save auto-exit and failure retry/discard. Address remaining #536 Home text contrast, secure-card responsive layout, Cards contextual entry, and accurate state screenshot coverage using official rendered golden updates; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -53,6 +53,7 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBrandMark
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubPalette
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
@@ -579,6 +580,13 @@ private fun HomeChartLegendMarker(label: String, color: Color, dashed: Boolean =
     }
 }
 
+/** Chart strokes keep their existing brand colors; small text needs its own contrast. */
+internal fun homeAccountDeltaTextColor(role: HomePrimaryRole?, dark: Boolean): Color = when (role) {
+    HomePrimaryRole.SAVINGS -> if (dark) Color(0xFF90B4FF) else Color(0xFF2463F4)
+    HomePrimaryRole.PAYROLL -> if (dark) Color(0xFFC9A5FF) else Color(0xFF7541B5)
+    else -> if (dark) MyFinHubPalette.darkPositive else MyFinHubPalette.lightPositive
+}
+
 @Composable
 private fun HomePrimaryAccountCard(
     account: HomeAccount,
@@ -596,6 +604,8 @@ private fun HomePrimaryAccountCard(
         account.primaryRole == HomePrimaryRole.PAYROLL -> Color(0xFFA15CFF)
         else -> Color(0xFF31C77B)
     }
+    val deltaTextColor = if ((delta ?: 0.0) < -.005) MaterialTheme.colorScheme.error
+        else homeAccountDeltaTextColor(account.primaryRole, MaterialTheme.colorScheme.surface.luminance() < .5f)
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             val deltaLabel = delta?.let { change ->
@@ -626,7 +636,7 @@ private fun HomePrimaryAccountCard(
                 }
                 if (!enlarged && deltaLabel != null) {
                     Text(deltaLabel, style = MaterialTheme.typography.labelSmall,
-                        color = if ((delta ?: 0.0) < -.005) MaterialTheme.colorScheme.error else color,
+                        color = deltaTextColor,
                         modifier = Modifier.testTag("home_account_delta_${account.id}")
                             .semantics {
                                 contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $deltaLabel"
@@ -636,7 +646,7 @@ private fun HomePrimaryAccountCard(
             }
             if (enlarged && deltaLabel != null) {
                 Text(deltaLabel, style = MaterialTheme.typography.labelMedium,
-                    color = if ((delta ?: 0.0) < -.005) MaterialTheme.colorScheme.error else color,
+                    color = deltaTextColor,
                     modifier = Modifier.testTag("home_account_delta_${account.id}")
                         .semantics {
                             contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $deltaLabel"

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-24",
+  "updated_at": "2026-11-25",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,10 +12,10 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "2026-11-24: Android PR #532 bounded GET-only DEVICE_REGISTRY_UNAVAILABLE retry passed six exact-head checks and merged develop 9284d9a08dfaf5590c8e6319945fd91cefc093d9. Web #663 monotonic device-session timestamp fix deployed production (main db2c0a600d34961d547dd817790881c6e543f05a); #664 forward-port merged Web develop e05fb3fe58f8a89566b616db056578fbd451f39e. Owner reported finance working on Android and Web; historical 2026-11-12 purchase associations remain unresolved without finance mutation. Protected rc21/10020 published from #531 head 90761631ea0a6b2638ef466d5407278008d7317d with all six exact-head source gates and successful publisher #45431863501. Owner reports successful install, sync, biometrics, card privacy and basic journeys, but Play Protect warning; classification, signer independently on phone, data/queue continuity and full physical acceptance remain unverified. No screenshot requested per owner. Comparison with rc18 (owner Play Protect pass) identifies no new manifest, Gradle or installer/verifier regression. PR #533 refreshed read-only S24 preflight to recognize published rc21 exact version pair and retain fail-closed unknown/spoofed build checks; six exact-head gates passed on 30138a7, squash merged into develop 2fb7a90, both post-merge Android/tracking checks passed. Historical source gate #531 closed without merge. PR #534 extended the read-only published APK audit and passed all seven exact-head gates at 55c81dd, including 11 standalone tests and actual artifact inspection run #45461000918. Squash merged develop afc137b138cb59098b784aec5a9fc8f7a8894d07; post-merge Android and tracking both passed. rc16/17/18/20/21 matched pinned hashes, ZIP integrity and enrolled signer; rc18/20/21 same six permissions, and rc20→rc21 nine changed CRC/size members with no additions/removals. No Play Protect classification or data continuity inferred. Owner directs autonomous continuation without repeated confirmation; independent work may proceed while physical/external evidence remains unverified. Owner-requested 2026-11-24 UI/UX re-audit (#536) inspected 24 committed synthetic Compose references and current production routes; confirmed Quick Entry pending-submit exit guard, Home delta text contrast, secure-card large-font row, Cards generic transaction context and hidden/revealed fixture mismatch. First correction checkpoint authors Quick Entry pending-submit Back/discard protection and focused Compose regression tests; no golden changes in this slice. Exact-head CI pending. Remaining visual/context findings require official renderer evidence. D7 6/8, W6.4 5/6 (23/24), audit 7/8 reviewed, 0/8 release-cleared; D8 separate. Historical evidence remains in prior commits and PRs.",
+    "summary": "2026-11-24: Android PR #532 bounded GET-only DEVICE_REGISTRY_UNAVAILABLE retry passed six exact-head checks and merged develop 9284d9a08dfaf5590c8e6319945fd91cefc093d9. Web #663 monotonic device-session timestamp fix deployed production (main db2c0a600d34961d547dd817790881c6e543f05a); #664 forward-port merged Web develop e05fb3fe58f8a89566b616db056578fbd451f39e. Owner reported finance working on Android and Web; historical 2026-11-12 purchase associations remain unresolved without finance mutation. Protected rc21/10020 published from #531 head 90761631ea0a6b2638ef466d5407278008d7317d with all six exact-head source gates and successful publisher #45431863501. Owner reports successful install, sync, biometrics, card privacy and basic journeys, but Play Protect warning; classification, signer independently on phone, data/queue continuity and full physical acceptance remain unverified. No screenshot requested per owner. Comparison with rc18 (owner Play Protect pass) identifies no new manifest, Gradle or installer/verifier regression. PR #533 refreshed read-only S24 preflight to recognize published rc21 exact version pair and retain fail-closed unknown/spoofed build checks; six exact-head gates passed on 30138a7, squash merged into develop 2fb7a90, both post-merge Android/tracking checks passed. Historical source gate #531 closed without merge. PR #534 extended the read-only published APK audit and passed all seven exact-head gates at 55c81dd, including 11 standalone tests and actual artifact inspection run #45461000918. Squash merged develop afc137b138cb59098b784aec5a9fc8f7a8894d07; post-merge Android and tracking both passed. rc16/17/18/20/21 matched pinned hashes, ZIP integrity and enrolled signer; rc18/20/21 same six permissions, and rc20→rc21 nine changed CRC/size members with no additions/removals. No Play Protect classification or data continuity inferred. Owner directs autonomous continuation without repeated confirmation; independent work may proceed while physical/external evidence remains unverified. Owner-requested 2026-11-24 UI/UX re-audit (#536) inspected 24 committed synthetic Compose references and current production routes; confirmed Quick Entry pending-submit exit guard, Home delta text contrast, secure-card large-font row, Cards generic transaction context and hidden/revealed fixture mismatch. PR #537 Quick Entry pending-submit Back/discard protection and focused Compose tests passed all six exact-head checks at 4ac982e after scoping an existing dynamic provider selection assertion to its selected field; squash merged develop c4a18fce1f8b3538f767d7f3f6750e7f43ccc7bc. Second checkpoint implements Home delta text contrast, expanded secure-card fields, genuine hidden/revealed/offline/loading/failure screenshot states, and contrast/raw-copy/privacy regressions. Official candidate renders and exact-head checks pending; no reference PNG fabricated or updated yet. D7 6/8, W6.4 5/6 (23/24), audit 7/8 reviewed, 0/8 release-cleared; D8 separate. Historical evidence remains in prior commits and PRs.",
     "next": [
-      "Validate and integrate #536 Quick Entry submit-navigation correction on android/d7-quick-entry-submit-navigation-20261124; preserve durable save auto-exit and failure retry/discard.",
-      "Address remaining #536 Home text contrast, secure-card responsive layout, Cards contextual entry, and accurate state screenshot coverage using official rendered golden updates; preserve current finance and privacy contracts.",
+      "Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates.",
+      "Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts.",
       "D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK."
     ]
   },
@@ -638,8 +638,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/d7-quick-entry-submit-navigation-20261124",
-    "checkpoint": "Owner-requested re-audit #536 identified actionable defects; first Quick Entry submit-navigation correction authored with regression tests, CI pending.",
+    "branch": "android/d7-accessibility-visual-corrections-20261125",
+    "checkpoint": "Re-audit #536 Quick Entry correction #537 integrated with six green exact-head checks; visual/accessibility batch authored, official goldens and CI pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1228,7 +1228,7 @@
         ]
       }
     ],
-    "next_action": "Validate and integrate #536 Quick Entry submit-navigation correction on android/d7-quick-entry-submit-navigation-20261124; preserve durable save auto-exit and failure retry/discard. Address remaining #536 Home text contrast, secure-card responsive layout, Cards contextual entry, and accurate state screenshot coverage using official rendered golden updates; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.",
+    "next_action": "Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": null,
     "current_subtask": "W6.4",
@@ -1236,7 +1236,7 @@
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "Validate and integrate #536 Quick Entry submit-navigation correction on android/d7-quick-entry-submit-navigation-20261124; preserve durable save auto-exit and failure retry/discard. Address remaining #536 Home text contrast, secure-card responsive layout, Cards contextual entry, and accurate state screenshot coverage using official rendered golden updates; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.",
+    "next_action": "Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.",
     "stages": [
       {
         "id": "D1",
@@ -1874,7 +1874,7 @@
     },
     "pre_apk_deep_audit_03e": {
       "document": "docs/D7_INTEGRATED_PRE_APK_AUDIT.md",
-      "baseline_develop": "59754719e85d0c45d37b717ecbd22a029a9586c4",
+      "baseline_develop": "c4a18fce1f8b3538f767d7f3f6750e7f43ccc7bc",
       "status": "blocked_rc21_play_protect_and_remaining_physical_evidence",
       "reviewed_domains": 7,
       "total_domains": 8,
@@ -2003,7 +2003,7 @@
       "owner_acceptance": "blocked",
       "apk_release_allowed": false,
       "ci_exact_head": "pr_521_bd39ee0_all_six_exact_head_gates_success_squash_merged_8336deb",
-      "next_action": "Validate and integrate #536 Quick Entry submit-navigation correction on android/d7-quick-entry-submit-navigation-20261124; preserve durable save auto-exit and failure retry/discard. Address remaining #536 Home text contrast, secure-card responsive layout, Cards contextual entry, and accurate state screenshot coverage using official rendered golden updates; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.",
+      "next_action": "Validate #536 visual/accessibility batch on android/d7-accessibility-visual-corrections-20261125; inspect official rendered candidates and update only reviewed affected reference PNGs, then require all exact-head CI gates. Address remaining #536 Cards contextual entry and evidence-based interaction consistency; preserve current finance and privacy contracts. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.",
       "initial_exact_head_ci": {
         "head": "4935c6bdbc79967e887ed84fa92f640f26a66b87",
         "passed": [
@@ -2361,24 +2361,26 @@
         "issue": 536,
         "baseline": "59754719e85d0c45d37b717ecbd22a029a9586c4",
         "reference_pngs_reviewed": 24,
-        "status": "first_correction_authored_pending_ci",
+        "status": "visual_correction_authored_pending_official_renders",
         "findings": [
           {
             "id": "01",
             "severity": "P1",
-            "status": "authored_pending_ci",
-            "scope": "Quick Entry pending-submit Back/discard and durable success auto-exit"
+            "status": "integrated_exact_head_ci_verified",
+            "scope": "Quick Entry pending-submit Back/discard and durable success auto-exit",
+            "pr": 537,
+            "merge_sha": "c4a18fce1f8b3538f767d7f3f6750e7f43ccc7bc"
           },
           {
             "id": "02",
             "severity": "P1",
-            "status": "open",
+            "status": "authored_pending_renderer_and_ci",
             "scope": "Home role delta text contrast"
           },
           {
             "id": "03",
             "severity": "P1",
-            "status": "open",
+            "status": "authored_pending_renderer_and_ci",
             "scope": "Secure card enlarged-font layout"
           },
           {
@@ -2390,7 +2392,7 @@
           {
             "id": "05",
             "severity": "P2",
-            "status": "open",
+            "status": "authored_pending_renderer_and_ci",
             "scope": "Accurate card vault state screenshot fixtures"
           },
           {
