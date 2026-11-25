@@ -86,11 +86,14 @@ class MobileDeviceSettingsJourneyTest {
                     MobileDeviceSettingsScreen(onBack = {}, onLogout = {})
                 }
             }
+            compose.onNodeWithText("Η απόκρυψη καλύπτει ποσά, όχι γραφήματα ή την κατεύθυνση των μεταβολών.")
+                .performScrollTo().assertIsDisplayed()
             compose.onNodeWithText("Εμφάνιση ποσών")
                 .performScrollTo().performClick()
             compose.runOnIdle {
                 assertEquals(true, AmountVisibilityPreference.read(context))
             }
+            compose.onNodeWithText("Η απόκρυψη καλύπτει ποσά, όχι γραφήματα ή την κατεύθυνση των μεταβολών.").assertIsDisplayed()
             compose.onNodeWithText("Εμφάνιση ποσών").performClick()
             compose.runOnIdle {
                 assertEquals(false, AmountVisibilityPreference.read(context))

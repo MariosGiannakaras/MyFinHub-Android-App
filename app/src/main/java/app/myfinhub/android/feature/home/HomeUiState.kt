@@ -210,7 +210,7 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
         HomeAttentionItem(
             id = "transaction-review",
             title = "2 κινήσεις για κατηγοριοποίηση",
-            reason = "Ολοκλήρωσε το Smart Review όταν έχεις χρόνο.",
+            reason = "Έλεγξε τις κινήσεις όταν έχεις χρόνο.",
             dueLabel = "Όποτε θέλεις",
             tone = HomeAttentionTone.INFO,
             action = HomeAttentionAction.ACTIVITY,
