@@ -1,0 +1,112 @@
+name: One-time PR 540 reviewed reference transfer
+on:
+  push:
+    branches:
+      - 'android/ci-pr540-reviewed-goldens-20261125'
+permissions:
+  contents: read
+jobs:
+  transfer:
+    if: github.repository == 'MariosGiannakaras/MyFinHub-Android-App' && github.ref == 'refs/heads/android/ci-pr540-reviewed-goldens-20261125'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Checkout exact reviewed PR head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: 'dea999d675b8f7292bde0131d92e2b315b5e8438'
+          fetch-depth: 1
+      - name: Transfer only hash-pinned reviewed references
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 2 --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/MariosGiannakaras/MyFinHub-Android-App/actions/artifacts/15028955187/zip" -o "$RUNNER_TEMP/pr540-reviewed.zip"
+          python3 - <<'PY'
+          import hashlib, json, os, subprocess, zipfile
+          from pathlib import Path, PurePosixPath
+          import sys
+          sys.path.insert(0, "scripts")
+          import verify_visual_reference_mirrors as mirrors
+          
+          approved = json.loads('{"UserNoticeSnackbarScreenshot":"c64a11ddf38b71bab3cfdd30519ab2fcdab67296","ProductionHomeAllAccountsDarkScreenshot":"26167a71e6048da56d0e8faf53b56e75712ff456","ProductionHomeAllAccountsLightScreenshot":"8ffd4f9d00b58f7b395aec524dc21138e6ed9b79","ProductionHomeCompactDarkScreenshot":"9128d96444e3dd0e47d4f4723ad3eef12c0c14bb","ProductionHomeCompactLargeFontScreenshot":"4fb86235905f78368c92fcdc0b4944a45726b5f1","ProductionHomeCompactLightScreenshot":"efbf595b37d8d0427493f864d58875c756af83cf","CanonicalCardSecureFailureLargeFontScreenshot":"f1644a47bf0dce70961a8d886343b91d3a84c99a","CanonicalCardSecureHiddenDarkScreenshot":"b6c228d4cfe6d4e6e558ddd189881981956294b3","CanonicalCardSecureHiddenLargeFontScreenshot":"a3741f4872df20ec6606eac0a10758ff3a967a45","CanonicalCardSecureHiddenLightScreenshot":"623e1a258a27741e8bb69cda7f109c209453b484","CanonicalCardSecureLoadingDarkScreenshot":"b298b1daf83bcca3a8e073ace9a53ca5da7bb861","CanonicalCardSecureOfflineLargeFontScreenshot":"1cba39bb2afcb508534e121fcf8a71336972fc45","CanonicalCardSecureRevealedDarkScreenshot":"30570cd5a02183bd0720fcb3fc718ee4b497c4fe","CanonicalCardSecureRevealedLargeFontScreenshot":"4f3f0d9629ccef1f174b7b628ae32f3ff63c1c11","CanonicalCardSecureRevealedLightScreenshot":"6bf0edb15bc695004f3ecb509862e9d6e8ceecf0","ProductionSettingsCompactDarkScreenshot":"23621997b7552f46aa4b8e9ed77dbd95bd267fc3","ProductionSettingsCompactLargeFontScreenshot":"4dc8a3c02d742280a8bbfeecf5b18b69a9d1ac54","ProductionSettingsCompactLightScreenshot":"20197153bc3f4500cd88695340db44affb75de8b"}')
+          archive = Path(os.environ["RUNNER_TEMP"]) / "pr540-reviewed.zip"
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == "2b867450649677e24f30b93297208eaf1d2f54392615acfc2bf11d22e3289151", "Artifact digest mismatch"
+          assert subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip() == "dea999d675b8f7292bde0131d92e2b315b5e8438"
+          assert not subprocess.check_output(["git", "status", "--porcelain"], text=True).strip()
+          def blob(data):
+              return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+          updates = {}
+          with zipfile.ZipFile(archive) as z:
+              for prefix, expected in approved.items():
+                  found = [n for n in z.namelist() if n.startswith("src/screenshotTestDebug/reference/") and PurePosixPath(n).name.startswith(prefix + "_") and n.endswith(".png")]
+                  assert len(found) == 1, (prefix, found)
+                  n = found[0]
+                  assert ".." not in PurePosixPath(n).parts and not n.startswith("/")
+                  data = z.read(n)
+                  target = Path("app") / n
+                  assert target.is_file() and not target.is_symlink()
+                  assert data.startswith(bytes.fromhex("89504e470d0a1a0a")) and blob(data) == expected, prefix
+                  updates[str(target)] = data
+          assert len(updates) == 18
+          public = {p: g for p, g in mirrors.MIRRORS.items() if g in updates}
+          assert set(public) == {"screenshots/home/home-compact.png", "screenshots/home/home-dark.png", "screenshots/home/home-large-font.png", "screenshots/utilities/settings-compact.png", "screenshots/utilities/settings-dark.png", "screenshots/utilities/settings-large-font.png"}
+          for p, data in updates.items():
+              Path(p).write_bytes(data)
+          mirrors.sync_mirrors()
+          assert not mirrors.verify_mirrors(), "Mirror integrity failure"
+          for p,g in public.items():
+              assert Path(p).read_bytes() == updates[g]
+          tracker = Path("tracking/android-project-state.json")
+          raw = tracker.read_text()
+          s = json.loads(raw)
+          w = s["active_workstream"]
+          r = s["reconciliation_workstream"]
+          d = s["deployment_progress"]
+          a = s["ux_journey_audit_2026_11_20"]["pre_apk_deep_audit_03e"]
+          assert r["pr"] == 540 and r["branch"] == "android/d7-privacy-terminology-20261125"
+          def replace_value(before, after):
+              global raw
+              old = json.dumps(before, ensure_ascii=False)
+              new = json.dumps(after, ensure_ascii=False)
+              assert raw.count(old) == 1, old[:100]
+              raw = raw.replace(old, new, 1)
+          old_summary = w["summary"]
+          summary = old_summary.replace("Official rendered references and final CI/integration pending.", "PR #540 head dea999d passed Android CI, Project Tracking and S24 emulator shard 1; shard 0 blocked by Maven Central HTTP 429 before tests. Official renderer identified 18 intended reference changes, reviewed from run #45625792589 artifact #15028955187 and approved in PR comment #7166441082. All 18 exact reviewed Git blob hashes and six public mirrors adopted by a one-time CI transfer; mirror integrity checked. Final exact-head CI and integration pending.")
+          assert old_summary != summary
+          replace_value(old_summary, summary)
+          new_first = "Require all six exact-head CI checks on PR #540 after adopting the reviewed official references; merge only with green checks and clean base/reviews, then resolve #536."
+          replace_value(w["next"][0], new_first)
+          replace_value(r["checkpoint"], "PR #539 integrated into develop 42fb7e7 with green post-merge CI. PR #540 terminology/privacy-description correction and 18 reviewed official reference PNGs plus six mirrors adopted; exact-head validation and merge pending.")
+          old_next = json.dumps(r["next_action"], ensure_ascii=False)
+          assert r["next_action"] == d["next_action"] == a["next_action"]
+          assert raw.count(old_next) == 3
+          new_next = json.dumps(new_first + " " + w["next"][1], ensure_ascii=False)
+          raw = raw.replace(old_next, new_next)
+          json.loads(raw)
+          tracker.write_text(raw)
+          subprocess.run(["python3", "scripts/render_project_tracking.py"], check=True)
+          subprocess.run(["python3", "scripts/render_project_tracking.py", "--check"], check=True)
+          subprocess.run(["python3", "scripts/verify_visual_reference_mirrors.py"], check=True)
+          subprocess.run(["git", "diff", "--check"], check=True)
+          allowed = set(updates) | set(public) | {"tracking/android-project-state.json", "STATUS.md", "TODO.md", "docs/CURRENT_HANDOFF.md"}
+          changed = set(subprocess.check_output(["git", "diff", "--name-only"], text=True).splitlines())
+          assert changed == allowed, (changed - allowed, allowed - changed)
+          subprocess.run(["git", "add", "--", *sorted(allowed)], check=True)
+          for path, data in updates.items():
+              assert subprocess.check_output(["git", "rev-parse", ":" + path], text=True).strip() == blob(data), path
+          for path, golden in public.items():
+              assert subprocess.check_output(["git", "rev-parse", ":" + path], text=True).strip() == blob(updates[golden]), path
+          print("Verified 18 approved references, 6 public mirrors, canonical generated files; only 28 permitted paths staged.")
+          PY
+          python3 -m unittest discover -s scripts -p 'test_project_tracking.py'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix(ui): adopt 18 approved official screenshot references"
+          test "$(git rev-parse HEAD^)" = "dea999d675b8f7292bde0131d92e2b315b5e8438"
+          git push origin HEAD:refs/heads/android/ci-pr540-reviewed-result-20261125
+          git rev-parse HEAD
