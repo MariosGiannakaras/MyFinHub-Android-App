@@ -6,6 +6,7 @@ on:
       - .github/workflows/audit-published-android-apks.yml
       - scripts/audit_play_protect_apk.py
       - scripts/test_audit_play_protect_apk.py
+      - scripts/verify_receipt_apk.py
   workflow_dispatch:
 
 permissions:
@@ -38,7 +39,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          for variant in "rc16 10015" "rc17 10016" "rc18 10017" "rc20 10019" "rc21 10020" "rc22 10021"; do
+          for variant in "rc16 10015" "rc17 10016" "rc18 10017" "rc20 10019" "rc21 10020" "rc22 10021" "rc23 10022"; do
             read -r label number <<< "$variant"
             mkdir -p "apk-audit/$label"
             gh release download "v1.0.0-$label" --repo "$GITHUB_REPOSITORY" \
@@ -63,9 +64,20 @@ jobs:
             --rc21-metadata apk-audit/rc21/release-metadata.json \
             --rc22-apk apk-audit/rc22/MyFinHub-1.0.0-rc22-10021.apk \
             --rc22-metadata apk-audit/rc22/release-metadata.json \
+            --rc23-apk apk-audit/rc23/MyFinHub-1.0.0-rc23-10022.apk \
+            --rc23-metadata apk-audit/rc23/release-metadata.json \
             --aapt "$ANDROID_HOME/build-tools/37.0.0/aapt" \
             --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner" \
             --report "$RUNNER_TEMP/published-apk-audit.md"
+          rc23=apk-audit/rc23/MyFinHub-1.0.0-rc23-10022.apk
+          "$ANDROID_HOME/build-tools/37.0.0/zipalign" -c -P 16 4 "$rc23"
+          {
+            printf '\n## rc23 published receipt assets and provider\n\n'
+            printf 'Actual receipt FileProvider is nonexported with explicit URI grants; rc22/rc23 permissions match. 16 KiB APK ZIP alignment passed.\n\n'
+            printf '\x60\x60\x60text\n'
+            python3 scripts/verify_receipt_apk.py "$rc23"
+            printf '\x60\x60\x60\n'
+          } | tee -a "$RUNNER_TEMP/published-apk-audit.md"
           cat "$RUNNER_TEMP/published-apk-audit.md" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload text report only, never APKs
         if: success()
