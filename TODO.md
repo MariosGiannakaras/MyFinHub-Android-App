@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run this read-only published-APK audit at the exact PR head; verify pinned rc23 bytes, real package/version/signer, unchanged permissions, private receipt provider, OCR model/native identities and 16 KiB alignment. No new release. Owner: in-place update rc23/10022, verify data/queue continuity, Activity category/subcategory icons and receipt camera/gallery/re-authentication, reviewed/cancelled/explicit-save flow, split and advisory duplicate behavior; report any Play Protect warning without bypass. Stable D8 remains pending.
+- [ ] Finish exact-head CI for receipt repair PR (tracking, Android build/lint/JVM, screenshot, both hosted S24 emulator shards/aggregate); do not merge on failure. Re-evaluate repair delta integrated source/hosted audit and publish a new higher-version signed physical-test prerelease via existing guarded publisher only when all gates pass. Owner re-test camera and picker launch, same-owner reauthentication, OCR review and explicit save/cancel; capture icons separately; Play Protect not cleared, stable D8 pending.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Run this read-only published-APK audit at the exact PR head; verify pinned rc23 bytes, real package/version/signer, unchanged permissions, private receipt provider, OCR model/native identities and 16 KiB alignment. No new release. Owner: in-place update rc23/10022, verify data/queue continuity, Activity category/subcategory icons and receipt camera/gallery/re-authentication, reviewed/cancelled/explicit-save flow, split and advisory duplicate behavior; report any Play Protect warning without bypass. Stable D8 remains pending.
+Next: Finish exact-head CI for receipt repair PR (tracking, Android build/lint/JVM, screenshot, both hosted S24 emulator shards/aggregate); do not merge on failure. Re-evaluate repair delta integrated source/hosted audit and publish a new higher-version signed physical-test prerelease via existing guarded publisher only when all gates pass. Owner re-test camera and picker launch, same-owner reauthentication, OCR review and explicit save/cancel; capture icons separately; Play Protect not cleared, stable D8 pending.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: Run this read-only published-APK audit at the exact PR head; verify pinned
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/rc23-published-apk-audit-20261126
-Current W6.4: Owner rc22 baseline D7 pass; W1–W6 6/6, 24/24; #543/#544 merged six gates each; rc23/10022 signed published, 7/8 delta audit source/hosted evidence, owner delta and independent published artifact audit pending.
+Issue #155, no open PR, branch android/rc23-receipt-launch-fix-20261126
+Current W6.4: Owner rc22 D7 pass retained; W1-W6 6/6 (24/24). rc23 actual published static APK comparison PASS, physical receipt launch FAIL. P1 correction source authored; exact-head hosted gates and new signed candidate physical retest pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run this read-only published-APK audit at the exact PR head; verify pinned rc23 bytes, real package/version/signer, unchanged permissions, private receipt provider, OCR model/native identities and 16 KiB alignment. No new release. Owner: in-place update rc23/10022, verify data/queue continuity, Activity category/subcategory icons and receipt camera/gallery/re-authentication, reviewed/cancelled/explicit-save flow, split and advisory duplicate behavior; report any Play Protect warning without bypass. Stable D8 remains pending.
+Next Finish exact-head CI for receipt repair PR (tracking, Android build/lint/JVM, screenshot, both hosted S24 emulator shards/aggregate); do not merge on failure. Re-evaluate repair delta integrated source/hosted audit and publish a new higher-version signed physical-test prerelease via existing guarded publisher only when all gates pass. Owner re-test camera and picker launch, same-owner reauthentication, OCR review and explicit save/cancel; capture icons separately; Play Protect not cleared, stable D8 pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
