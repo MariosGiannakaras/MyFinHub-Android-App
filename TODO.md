@@ -5,8 +5,9 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Use rc22/10021 via the existing private updater or the exact GitHub Release APK on the S24 Ultra; if Play Protect warns or blocks, stop and report the actual warning, do not bypass it. Verify in-place data/session continuity, Home/Activity/Cards/Quick Entry/Settings, offline queue/reconnect and biometric/privacy behavior without clearing data, uninstalling or modifying historical finance associations.
-- [ ] Complete the independent published APK static audit and record real S24 observations; retain D7/W6.4 open and no stable/main promotion until the physical and separate protected release requirements are satisfied.
+- [ ] Complete hosted final-head CI for the Activity actual Web artwork batch; verify real category/subcategory glyphs from five pinned packs, retain native fallback for unavailable keys, check screenshot evidence and merge only when green.
+- [ ] Implement native receipt capture/import and local Greek/English OCR, editable merchant/date/amount/category and duplicate purchase/split/currency review, then existing Quick Entry explicit save and offline enqueue. Preserve local-only images, no OCR uploads or automatic finance writes; validate privacy, permissions and failure paths before publication.
+- [ ] After both requested mobile additions are integrated and verified, publish a new explicitly authorized signed test candidate through the protected publisher; verify changed journeys on S24; D8 stable/main remains separate.
 
 ## Completed foundations
 
@@ -57,7 +58,7 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android deploy progress
 
-**Μέχρι deploy: 6/8 stages**
+**Μέχρι deploy: 7/8 stages**
 
 Evidence-backed release milestones, not percent of code written.
 
@@ -69,23 +70,23 @@ Evidence-backed release milestones, not percent of code written.
 | D4 Activity and transaction management | completed |
 | D5 Plan, savings, obligations and Insights | completed |
 | D6 Settings, auth, secure sync/offline and backup | completed |
-| D7 Final integrated physical S24 owner acceptance | in_progress |
+| D7 Final integrated physical S24 owner acceptance | completed |
 | D8 Production-signed release and deployment | pending |
 
-Current: D7
-Next: Use rc22/10021 via the existing private updater or the exact GitHub Release APK on the S24 Ultra; if Play Protect warns or blocks, stop and report the actual warning, do not bypass it. Verify in-place data/session continuity, Home/Activity/Cards/Quick Entry/Settings, offline queue/reconnect and biometric/privacy behavior without clearing data, uninstalling or modifying historical finance associations. Complete the independent published APK static audit and record real S24 observations; retain D7/W6.4 open and no stable/main promotion until the physical and separate protected release requirements are satisfied.
+Current: D8
+Next: Complete hosted final-head CI for the Activity actual Web artwork batch; verify real category/subcategory glyphs from five pinned packs, retain native fallback for unavailable keys, check screenshot evidence and merge only when green. Implement native receipt capture/import and local Greek/English OCR, editable merchant/date/amount/category and duplicate purchase/split/currency review, then existing Quick Entry explicit save and offline enqueue. Preserve local-only images, no OCR uploads or automatic finance writes; validate privacy, permissions and failure paths before publication. After both requested mobile additions are integrated and verified, publish a new explicitly authorized signed test candidate through the protected publisher; verify changed journeys on S24; D8 stable/main remains separate.
 
 
 ## Active Web parity progress
 
-**Implementations: 5/6 · Subtasks: 23/24**
+**Implementations: 6/6 · Subtasks: 24/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/d7-rc22-published-evidence-20261126
-Current W6.4: rc22/10021 protected publication succeeded; physical acceptance pending. Follow-up read-only preflight and independent published APK static comparison authored; exact-head CI pending.
+Issue #155, no open PR, branch android/activity-web-category-artwork-20261126
+Current W6.4: W1–W6 baseline accepted by owner on rc22; subsequent owner-requested Activity artwork and receipt input are a separate extension, awaiting CI and implementation.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Use rc22/10021 via the existing private updater or the exact GitHub Release APK on the S24 Ultra; if Play Protect warns or blocks, stop and report the actual warning, do not bypass it. Verify in-place data/session continuity, Home/Activity/Cards/Quick Entry/Settings, offline queue/reconnect and biometric/privacy behavior without clearing data, uninstalling or modifying historical finance associations. Complete the independent published APK static audit and record real S24 observations; retain D7/W6.4 open and no stable/main promotion until the physical and separate protected release requirements are satisfied.
+Next Complete hosted final-head CI for the Activity actual Web artwork batch; verify real category/subcategory glyphs from five pinned packs, retain native fallback for unavailable keys, check screenshot evidence and merge only when green. Implement native receipt capture/import and local Greek/English OCR, editable merchant/date/amount/category and duplicate purchase/split/currency review, then existing Quick Entry explicit save and offline enqueue. Preserve local-only images, no OCR uploads or automatic finance writes; validate privacy, permissions and failure paths before publication. After both requested mobile additions are integrated and verified, publish a new explicitly authorized signed test candidate through the protected publisher; verify changed journeys on S24; D8 stable/main remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -94,7 +95,7 @@ Next Use rc22/10021 via the existing private updater or the exact GitHub Release
 | W3 Events, statements and mutation semantics | 4/4 | Complete |
 | W4 Recurring, forecast, savings and reporting | 4/4 | Complete |
 | W5 Providers, API, security and settings | 4/4 | Complete |
-| W6 Parity validation, cleanup and device acceptance | 3/4 | W6.4 Owner physical acceptance and release isolation (pending) |
+| W6 Parity validation, cleanup and device acceptance | 4/4 | Complete |
 
 ### Subtasks
 
@@ -121,7 +122,7 @@ Next Use rc22/10021 via the existing private updater or the exact GitHub Release
 - [x] W6.1 Golden cross-client fixture tests — completed
 - [x] W6.2 Real Compose accessibility/visual verification — completed
 - [x] W6.3 Exact-head CI, deduplication and tracking handoff — completed
-- [ ] W6.4 Owner physical acceptance and release isolation — pending
+- [x] W6.4 Owner physical acceptance and release isolation — completed
 
 ### Blockers
 

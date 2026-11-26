@@ -31,6 +31,9 @@ jobs:
       - name: Verify read-only physical S24 preflight
         run: python3 -m unittest discover -s scripts -p 'test_s24_physical_preflight.py'
 
+      - name: Verify pinned local Web category artwork
+        run: python3 -m unittest discover -s scripts -p 'test_web_category_catalog.py'
+
       - name: Require canonical-state update on product/release PRs
         if: github.event_name == 'pull_request'
         run: python3 scripts/render_project_tracking.py --check --enforce-pr-tracking-change

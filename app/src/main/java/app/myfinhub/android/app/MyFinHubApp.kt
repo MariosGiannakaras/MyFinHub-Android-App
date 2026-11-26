@@ -470,6 +470,8 @@ internal fun MyFinHubAppContent(
                             categoryIconColors = planState.categoryIconColors,
                             subcategoryIconColors = planState.subcategoryIconColors,
                             categoryGlyphOverrides = planState.categoryGlyphOverrides,
+                            categoryCatalogPack = planState.categoryIconPack,
+                            categoryCatalogGlyphOverrides = planState.activityCatalogGlyphOverrides,
                             onAction = onActivityAction,
                             onOpenDetail = { eventId ->
                                 if (activityState.isUniqueMutationTarget(eventId)) {
@@ -549,6 +551,8 @@ internal fun MyFinHubAppContent(
                         categoryIconColors = planState.categoryIconColors,
                         subcategoryIconColors = planState.subcategoryIconColors,
                         categoryGlyphOverrides = planState.categoryGlyphOverrides,
+                        categoryCatalogPack = planState.categoryIconPack,
+                        categoryCatalogGlyphOverrides = planState.activityCatalogGlyphOverrides,
                         state = activityState.forCategories(
                             categories = route.categories.ifEmpty { listOf(route.category) },
                             label = route.category,

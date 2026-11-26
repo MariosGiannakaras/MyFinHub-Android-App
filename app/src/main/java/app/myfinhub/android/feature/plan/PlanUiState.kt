@@ -280,6 +280,8 @@ data class PlanUiState(
     val categoryBudgetMessage: String? = null,
     /** Web forecastScenarios.ts what-if: immutable real 30/60/90-day baselines, never FinanceData writes. */
     val forecastScenarioBaselines: Map<Int, CanonicalCashFlowForecast> = emptyMap(),
+    /** Exact local Web catalog references for Activity, separate from the legacy native editor. */
+    val activityCatalogGlyphOverrides: Map<String, String> = emptyMap(),
 )
 
 sealed interface PlanAction {
