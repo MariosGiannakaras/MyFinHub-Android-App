@@ -15,8 +15,9 @@ RELEASES = {
     "rc18": ("1.0.0-rc18", 10017, "40360b5678225300c7cd8f8fe1dd1f727cbb14dee9bd5dde2f33ace329fbdc0d"),
     "rc20": ("1.0.0-rc20", 10019, "f64c3bc9c2e6972896ab1ca3429ea6ef6c29fdd1e2a58f4ab0cddc70f1b23f6f"),
     "rc21": ("1.0.0-rc21", 10020, "68859f5076dc33235ab6d34b01e2410c07f1d2245d3c6f56dfcb2f0f6c924bc4"),
+    "rc22": ("1.0.0-rc22", 10021, "3e79ed72455e4b23b46ecc0c516cff3c9d731787d6c577c71272bd7e9ea5b41d"),
 }
-HARDENED_RELEASES = ("rc18", "rc20", "rc21")
+HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22")
 UNATTENDED_INSTALL_PERMISSION = "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"
 DISALLOWED = {
     "android.permission.READ_SMS", "android.permission.RECEIVE_SMS",
@@ -202,7 +203,7 @@ def main():
             for suffix in ("apk", "metadata")
         ]
         if any(optional_paths) and not all(optional_paths):
-            raise AuditError("Provide all rc18, rc20 and rc21 APK/metadata pairs together")
+            raise AuditError("Provide all rc18, rc20, rc21 and rc22 APK/metadata pairs together")
         keys = list(RELEASES) if all(optional_paths) else ["rc16", "rc17"]
         apks = {key: getattr(args, key + "_apk") for key in keys}
         results = {
@@ -211,7 +212,7 @@ def main():
         }
         pairs = [("rc16", "rc17")]
         if all(optional_paths):
-            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21")]
+            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22")]
         output = "\n".join(report(results[older], results[newer], zip_diff(apks[older], apks[newer]))
                            for older, newer in pairs)
         args.report.write_text(output, encoding="utf-8")

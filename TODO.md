@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Require all six exact-head CI checks on PR #540 after adopting the reviewed official references; merge only with green checks and clean base/reviews, then resolve #536.
-- [ ] D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+- [ ] Use rc22/10021 via the existing private updater or the exact GitHub Release APK on the S24 Ultra; if Play Protect warns or blocks, stop and report the actual warning, do not bypass it. Verify in-place data/session continuity, Home/Activity/Cards/Quick Entry/Settings, offline queue/reconnect and biometric/privacy behavior without clearing data, uninstalling or modifying historical finance associations.
+- [ ] Complete the independent published APK static audit and record real S24 observations; retain D7/W6.4 open and no stable/main promotion until the physical and separate protected release requirements are satisfied.
 
 ## Completed foundations
 
@@ -69,11 +69,11 @@ Evidence-backed release milestones, not percent of code written.
 | D4 Activity and transaction management | completed |
 | D5 Plan, savings, obligations and Insights | completed |
 | D6 Settings, auth, secure sync/offline and backup | completed |
-| D7 Final integrated physical S24 owner acceptance | blocked |
+| D7 Final integrated physical S24 owner acceptance | in_progress |
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: Require all six exact-head CI checks on PR #540 after adopting the reviewed official references; merge only with green checks and clean base/reviews, then resolve #536. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next: Use rc22/10021 via the existing private updater or the exact GitHub Release APK on the S24 Ultra; if Play Protect warns or blocks, stop and report the actual warning, do not bypass it. Verify in-place data/session continuity, Home/Activity/Cards/Quick Entry/Settings, offline queue/reconnect and biometric/privacy behavior without clearing data, uninstalling or modifying historical finance associations. Complete the independent published APK static audit and record real S24 observations; retain D7/W6.4 open and no stable/main promotion until the physical and separate protected release requirements are satisfied.
 
 
 ## Active Web parity progress
@@ -82,10 +82,10 @@ Next: Require all six exact-head CI checks on PR #540 after adopting the reviewe
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #540, branch android/d7-privacy-terminology-20261125
-Current W6.4: PR #539 integrated into develop 42fb7e7 with green post-merge CI. PR #540 terminology/privacy-description correction and 18 reviewed official reference PNGs plus six mirrors adopted; exact-head validation and merge pending.
+Issue #155, no open PR, branch android/d7-rc22-published-evidence-20261126
+Current W6.4: rc22/10021 protected publication succeeded; physical acceptance pending. Follow-up read-only preflight and independent published APK static comparison authored; exact-head CI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Require all six exact-head CI checks on PR #540 after adopting the reviewed official references; merge only with green checks and clean base/reviews, then resolve #536. D7/W6.4 physical acceptance remains blocked: Play Protect warning unresolved, independent encrypted data/pending queue continuity unverified. Historical November 12 purchase associations remain unresolved; no speculative production finance changes or new APK.
+Next Use rc22/10021 via the existing private updater or the exact GitHub Release APK on the S24 Ultra; if Play Protect warns or blocks, stop and report the actual warning, do not bypass it. Verify in-place data/session continuity, Home/Activity/Cards/Quick Entry/Settings, offline queue/reconnect and biometric/privacy behavior without clearing data, uninstalling or modifying historical finance associations. Complete the independent published APK static audit and record real S24 observations; retain D7/W6.4 open and no stable/main promotion until the physical and separate protected release requirements are satisfied.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

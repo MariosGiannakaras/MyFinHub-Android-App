@@ -78,7 +78,7 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertEqual([], difference["removed"])
 
     def test_hardened_release_rejects_unattended_install_permission(self):
-        for label in ("rc18", "rc20", "rc21"):
+        for label in ("rc18", "rc20", "rc21", "rc22"):
             name, code, _ = RELEASES[label]
             badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'"
             permissions = f"uses-permission: name='{UNATTENDED_INSTALL_PERMISSION}'"
@@ -100,10 +100,10 @@ class PublishedApkAuditTests(unittest.TestCase):
     def test_report_labels_actual_compared_releases(self):
         a = {"signer": "a" * 64, "perms": [], "version": "1.0.0-rc18", "size": 1,
              "entries": 2, "dex": 1, "digest": "a" * 64}
-        b = {**a, "version": "1.0.0-rc21", "digest": "b" * 64}
+        b = {**a, "version": "1.0.0-rc22", "digest": "b" * 64}
         text = report(a, b)
-        self.assertIn("rc18 versus rc21", text)
-        self.assertIn("rc21 SHA-256: " + "b" * 64, text)
+        self.assertIn("rc18 versus rc22", text)
+        self.assertIn("rc22 SHA-256: " + "b" * 64, text)
         self.assertIn("cannot determine malware absence", text)
 
     def test_signer_continuity_required(self):
