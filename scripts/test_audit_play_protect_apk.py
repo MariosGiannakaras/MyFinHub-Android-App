@@ -9,7 +9,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from audit_play_protect_apk import (AuditError, RELEASES, UNATTENDED_INSTALL_PERMISSION, apk_check,
-                                   metadata_check, report, validate_zip, signer_digests, zip_diff)
+                                   metadata_check, report, validate_zip, signer_digests, zip_diff,
+                                   receipt_provider_check)
 
 
 class PublishedApkAuditTests(unittest.TestCase):
@@ -78,7 +79,7 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertEqual([], difference["removed"])
 
     def test_hardened_release_rejects_unattended_install_permission(self):
-        for label in ("rc18", "rc20", "rc21", "rc22"):
+        for label in ("rc18", "rc20", "rc21", "rc22", "rc23"):
             name, code, _ = RELEASES[label]
             badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'"
             permissions = f"uses-permission: name='{UNATTENDED_INSTALL_PERMISSION}'"
@@ -105,6 +106,36 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertIn("rc18 versus rc22", text)
         self.assertIn("rc22 SHA-256: " + "b" * 64, text)
         self.assertIn("cannot determine malware absence", text)
+
+    def test_receipt_provider_is_private_and_grant_scoped(self):
+        xml = """    E: provider (line=42)
+      A: android:name(0x01010003)="androidx.core.content.FileProvider" (Raw: "androidx.core.content.FileProvider")
+      A: android:authorities(0x01010018)="app.myfinhub.android.receipt" (Raw: "app.myfinhub.android.receipt")
+      A: android:exported(0x01010010)=(type 0x12)0x0
+      A: android:grantUriPermissions(0x0101001b)=(type 0x12)0xffffffff
+      E: meta-data (line=44)
+        A: android:name(0x01010003)="android.support.FILE_PROVIDER_PATHS"
+    E: receiver (line=48)
+"""
+        receipt_provider_check(xml)
+        for invalid in (
+            xml.replace("0x0\n", "0xffffffff\n"),
+            xml.replace("0xffffffff", "0x0"),
+            xml.replace(".receipt", ".wrong"),
+            xml.replace("androidx.core.content.FileProvider", "untrusted.Provider"),
+            xml + xml,
+        ):
+            with self.subTest(invalid=invalid), self.assertRaises(AuditError):
+                receipt_provider_check(invalid)
+
+    def test_rc23_permissions_must_match_rc22(self):
+        a = {"signer": "a" * 64, "perms": ["android.permission.INTERNET"],
+             "version": "1.0.0-rc22", "size": 1, "entries": 2,
+             "dex": 1, "digest": "a" * 64}
+        b = {**a, "version": "1.0.0-rc23"}
+        self.assertIn("Added permissions: none", report(a, b))
+        with self.assertRaisesRegex(AuditError, "permission set differs"):
+            report(a, {**b, "perms": a["perms"] + ["android.permission.CAMERA"]})
 
     def test_signer_continuity_required(self):
         a = {"signer": "a" * 64, "perms": [], "version": "rc16", "size": 1,

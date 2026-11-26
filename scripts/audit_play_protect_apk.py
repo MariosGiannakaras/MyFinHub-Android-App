@@ -16,8 +16,9 @@ RELEASES = {
     "rc20": ("1.0.0-rc20", 10019, "f64c3bc9c2e6972896ab1ca3429ea6ef6c29fdd1e2a58f4ab0cddc70f1b23f6f"),
     "rc21": ("1.0.0-rc21", 10020, "68859f5076dc33235ab6d34b01e2410c07f1d2245d3c6f56dfcb2f0f6c924bc4"),
     "rc22": ("1.0.0-rc22", 10021, "3e79ed72455e4b23b46ecc0c516cff3c9d731787d6c577c71272bd7e9ea5b41d"),
+    "rc23": ("1.0.0-rc23", 10022, "3d4562188737d0281f0f2184eb4126e1b06c1183c2625243f940330b76b77b86"),
 }
-HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22")
+HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22", "rc23")
 UNATTENDED_INSTALL_PERMISSION = "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"
 DISALLOWED = {
     "android.permission.READ_SMS", "android.permission.RECEIVE_SMS",
@@ -94,6 +95,40 @@ def signer_digests(output):
         r"certificate SHA-256 digest:\s*([a-fA-F0-9]{64})", output, re.IGNORECASE)]
 
 
+def receipt_provider_check(output):
+    """Require the actual APK receipt FileProvider to be private and grant-scoped."""
+    blocks = []
+    current = None
+    for line in output.splitlines():
+        stripped = line.lstrip()
+        indent = len(line) - len(stripped)
+        if stripped.startswith("E: "):
+            if current is not None and indent <= current[0]:
+                blocks.append(current[1])
+                current = None
+            if stripped.startswith("E: provider "):
+                current = (indent, [])
+        elif current is not None and indent == current[0] + 2 and stripped.startswith("A: "):
+            current[1].append(stripped)
+    if current is not None:
+        blocks.append(current[1])
+
+    def attribute(block, name):
+        return next((line for line in block if line.startswith("A: android:" + name + "(")), "")
+
+    matches = [block for block in blocks if re.search(
+        r'="app\.myfinhub\.android\.receipt"(?:\s|$)', attribute(block, "authorities"))]
+    if len(matches) != 1:
+        raise AuditError("Missing or ambiguous receipt FileProvider authority")
+    block = matches[0]
+    if not re.search(r'="androidx\.core\.content\.FileProvider"(?:\s|$)', attribute(block, "name")):
+        raise AuditError("Unexpected receipt provider class")
+    if not re.search(r'=\(type 0x12\)0x0+(?:\s|$)', attribute(block, "exported")):
+        raise AuditError("Receipt FileProvider is not explicitly nonexported")
+    if not re.search(r'=\(type 0x12\)0x(?:ffffffff|1)(?:\s|$)', attribute(block, "grantUriPermissions")):
+        raise AuditError("Receipt FileProvider lacks explicit URI grants")
+
+
 def apk_check(path, release, expected_signer, aapt, apksigner):
     name, code, _ = release
     badging = run(aapt, "dump", "badging", str(path))
@@ -111,6 +146,8 @@ def apk_check(path, release, expected_signer, aapt, apksigner):
         unexpected.add(UNATTENDED_INSTALL_PERMISSION)
     if unexpected:
         raise AuditError("Unexpected dangerous APK permissions: " + ", ".join(sorted(unexpected)))
+    if code == RELEASES["rc23"][1]:
+        receipt_provider_check(run(aapt, "dump", "xmltree", str(path), "AndroidManifest.xml"))
     output = run(apksigner, "verify", "--verbose", "--print-certs", str(path))
     # apksigner may print the same certificate for multiple signing schemes;
     # duplicate identical digests are not multiple different signing identities.
@@ -159,6 +196,8 @@ def report(a, b, diff=None):
         raise AuditError(f"{older_label} and {newer_label} are signed by different certificates")
     added = sorted(set(b["perms"]) - set(a["perms"]))
     removed = sorted(set(a["perms"]) - set(b["perms"]))
+    if older_label == "rc22" and newer_label == "rc23" and (added or removed):
+        raise AuditError("rc23 permission set differs from rc22; investigate before acceptance")
     lines = [
         f"# Published MyFinHub APK audit — {older_label} versus {newer_label}", "",
         "Read-only static checks passed for public GitHub Release APK bytes.", "",
@@ -203,7 +242,7 @@ def main():
             for suffix in ("apk", "metadata")
         ]
         if any(optional_paths) and not all(optional_paths):
-            raise AuditError("Provide all rc18, rc20, rc21 and rc22 APK/metadata pairs together")
+            raise AuditError("Provide all rc18, rc20, rc21, rc22 and rc23 APK/metadata pairs together")
         keys = list(RELEASES) if all(optional_paths) else ["rc16", "rc17"]
         apks = {key: getattr(args, key + "_apk") for key in keys}
         results = {
@@ -212,7 +251,7 @@ def main():
         }
         pairs = [("rc16", "rc17")]
         if all(optional_paths):
-            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22")]
+            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22"), ("rc22", "rc23"), ("rc18", "rc23")]
         output = "\n".join(report(results[older], results[newer], zip_diff(apks[older], apks[newer]))
                            for older, newer in pairs)
         args.report.write_text(output, encoding="utf-8")

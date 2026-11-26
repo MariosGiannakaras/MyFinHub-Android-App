@@ -5,8 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete six exact-head checks for the native receipt batch, including actual OCR models/ABI alignment and real synthetic bitmap S24 emulator test. Resolve any failures before merge.
-- [ ] After receipt integration, audit the icon/receipt delta and release compatibility, then publish the owner-authorized signed S24 physical test candidate through the protected workflow. D8 stable/main remains separate.
+- [ ] Run this read-only published-APK audit at the exact PR head; verify pinned rc23 bytes, real package/version/signer, unchanged permissions, private receipt provider, OCR model/native identities and 16 KiB alignment. No new release. Owner: in-place update rc23/10022, verify data/queue continuity, Activity category/subcategory icons and receipt camera/gallery/re-authentication, reviewed/cancelled/explicit-save flow, split and advisory duplicate behavior; report any Play Protect warning without bypass. Stable D8 remains pending.
 
 ## Completed foundations
 
@@ -73,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Complete six exact-head checks for the native receipt batch, including actual OCR models/ABI alignment and real synthetic bitmap S24 emulator test. Resolve any failures before merge. After receipt integration, audit the icon/receipt delta and release compatibility, then publish the owner-authorized signed S24 physical test candidate through the protected workflow. D8 stable/main remains separate.
+Next: Run this read-only published-APK audit at the exact PR head; verify pinned rc23 bytes, real package/version/signer, unchanged permissions, private receipt provider, OCR model/native identities and 16 KiB alignment. No new release. Owner: in-place update rc23/10022, verify data/queue continuity, Activity category/subcategory icons and receipt camera/gallery/re-authentication, reviewed/cancelled/explicit-save flow, split and advisory duplicate behavior; report any Play Protect warning without bypass. Stable D8 remains pending.
 
 
 ## Active Web parity progress
@@ -82,10 +81,10 @@ Next: Complete six exact-head checks for the native receipt batch, including act
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/native-receipt-import-20261126
-Current W6.4: Owner-approved rc22 W1–W6/D7 baseline; Activity actual Web artwork merged #543; native receipt entry source and tests authored, required exact-head CI pending.
+Issue #155, no open PR, branch android/rc23-published-apk-audit-20261126
+Current W6.4: Owner rc22 baseline D7 pass; W1–W6 6/6, 24/24; #543/#544 merged six gates each; rc23/10022 signed published, 7/8 delta audit source/hosted evidence, owner delta and independent published artifact audit pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete six exact-head checks for the native receipt batch, including actual OCR models/ABI alignment and real synthetic bitmap S24 emulator test. Resolve any failures before merge. After receipt integration, audit the icon/receipt delta and release compatibility, then publish the owner-authorized signed S24 physical test candidate through the protected workflow. D8 stable/main remains separate.
+Next Run this read-only published-APK audit at the exact PR head; verify pinned rc23 bytes, real package/version/signer, unchanged permissions, private receipt provider, OCR model/native identities and 16 KiB alignment. No new release. Owner: in-place update rc23/10022, verify data/queue continuity, Activity category/subcategory icons and receipt camera/gallery/re-authentication, reviewed/cancelled/explicit-save flow, split and advisory duplicate behavior; report any Play Protect warning without bypass. Stable D8 remains pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
