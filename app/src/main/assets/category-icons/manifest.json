@@ -1,0 +1,25 @@
+{
+  "web_commit": "e05fb3fe58f8a89566b616db056578fbd451f39e",
+  "packs": {
+    "lucide": {
+      "count": 1876,
+      "source_blob": "f084da8d48bdf45afb995686ba77863abbb785c2"
+    },
+    "tabler": {
+      "count": 5166,
+      "source_blob": "d2c2b790d4ceb83164dc5934b99091b42ffc3712"
+    },
+    "phosphor": {
+      "count": 1512,
+      "source_blob": "80a99a0525646030d080ddbdf6321ac6b0eb8507"
+    },
+    "heroicons": {
+      "count": 322,
+      "source_blob": "d28d5dd2b1ca98ef6cadceaaf3f15ebfa86154f0"
+    },
+    "bootstrap": {
+      "count": 1404,
+      "source_blob": "2172deff4afc170f480df8d1f11bcadcedc1f8bd"
+    }
+  }
+}

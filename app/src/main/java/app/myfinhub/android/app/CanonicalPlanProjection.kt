@@ -21,6 +21,7 @@ import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
 import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.canonicalExplicitNativeCategoryIcon
 import app.myfinhub.android.core.data.CANONICAL_CATEGORY_ICON_PACKS
+import app.myfinhub.android.designsystem.WebCategoryIconPolicy
 import app.myfinhub.android.core.data.canonicalCounterpartyDirectory
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.canonicalScheduledManagementOrder
@@ -160,6 +161,50 @@ internal fun projectCanonicalPlanState(
     val subcategoryIconLegacy = iconTextMap("subcategoryIcons")
     val categoryIconSelections = iconSelections("categoryIconPackSelections")
     val subcategoryIconSelections = iconSelections("subcategoryIconPackSelections")
+    val activityCatalogGlyphOverrides = buildMap<String, String> {
+        val pack = iconSettings.string("categoryIconPack")
+        for ((legacy, selections) in listOf(categoryIconLegacy to categoryIconSelections, subcategoryIconLegacy to subcategoryIconSelections)) {
+            for (key in legacy.keys + selections.keys) {
+                WebCategoryIconPolicy.explicit(pack, legacy[key], selections[key])?.let { put(key, it) }
+            }
+        }
+        // Historic rows may retain old category labels after a non-destructive rename/move.
+        // Resolve the remembered glyph using the identity record's current label and parent.
+        val records = iconSettings.obj("categoryIdentities").mapNotNull { (id, raw) ->
+            (raw as? JsonObject)?.let { id to it }
+        }.toMap()
+        fun labels(record: JsonObject): List<String> = listOfNotNull(record.string("label")) +
+            record.array("aliases").mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
+        val resolvedAliases = mutableMapOf<String, MutableSet<String>>()
+        for ((_, record) in records) {
+            val kind = record.string("kind") ?: continue
+            if (kind !in listOf("expense", "income")) continue
+            val label = record.string("label") ?: continue
+            val parentId = record.string("parentId")
+            if (parentId == null) {
+                get("$kind:$label")?.let { glyph ->
+                    labels(record).forEach { old ->
+                        resolvedAliases.getOrPut("$kind:$old") { mutableSetOf() }.add(glyph)
+                    }
+                }
+            } else {
+                val parent = records[parentId] ?: continue
+                val parentLabel = parent.string("label") ?: continue
+                val glyph = get("$kind:$parentLabel:$label") ?: get("$kind:$parentLabel") ?: continue
+                val parents = listOf(parentId) + record.array("parentAliases")
+                    .mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
+                for (oldParent in parents.mapNotNull(records::get).flatMap(::labels)) {
+                    for (oldLabel in labels(record)) {
+                        resolvedAliases.getOrPut("$kind:$oldParent:$oldLabel") { mutableSetOf() }.add(glyph)
+                    }
+                }
+            }
+        }
+        // Ambiguous aliases are never used to assign a confident icon.
+        for ((key, glyphs) in resolvedAliases) {
+            if (glyphs.size == 1 && key !in this) put(key, glyphs.single())
+        }
+    }
     val nativeGlyphOverrides = buildMap<String, String> {
         for (kind in listOf("expense", "income")) {
             val treeField = if (kind == "expense") "expenseCategoryTree" else "incomeCategoryTree"
@@ -381,6 +426,7 @@ internal fun projectCanonicalPlanState(
         incomeTaxonomy = document.canonicalCategoryTaxonomy("income"),
         categoryIconPack = nativeIconPack,
         categoryGlyphOverrides = nativeGlyphOverrides,
+        activityCatalogGlyphOverrides = activityCatalogGlyphOverrides,
         categoryIconColors = document.settingsObject().obj("categoryIconColors")
             .mapNotNull { (key, value) ->
                 (value as? JsonPrimitive)?.contentOrNull?.let { key to it }

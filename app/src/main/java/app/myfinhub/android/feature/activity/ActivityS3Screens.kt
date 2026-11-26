@@ -73,6 +73,8 @@ import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
+import app.myfinhub.android.designsystem.WebCategoryIconPolicy
+import app.myfinhub.android.designsystem.rememberWebCategoryIcon
 import app.myfinhub.android.core.data.moneyToCents
 import app.myfinhub.android.core.ui.FinanceCacheNotice
 import app.myfinhub.android.feature.quickentry.DateEntryField
@@ -178,6 +180,8 @@ fun ActivityLedgerScreen(
     categoryGlyphOverrides: Map<String, String> = emptyMap(),
     financeCacheMode: Boolean = false,
     pendingFinanceChanges: Int = 0,
+    categoryCatalogPack: String? = null,
+    categoryCatalogGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -521,6 +525,8 @@ fun ActivityLedgerScreen(
                                 categoryIconColors = categoryIconColors,
                                 subcategoryIconColors = subcategoryIconColors,
                                 categoryGlyphOverrides = categoryGlyphOverrides,
+                                categoryCatalogPack = categoryCatalogPack,
+                                categoryCatalogGlyphOverrides = categoryCatalogGlyphOverrides,
                                 onClick = {
                                     if (state.isUniqueMutationTarget(item.id)) onOpenDetail(item.id)
                                 },
@@ -874,6 +880,8 @@ private fun ActivityFlatLedgerRow(
     categoryIconColors: Map<String, String>,
     subcategoryIconColors: Map<String, String>,
     categoryGlyphOverrides: Map<String, String>,
+    categoryCatalogPack: String?,
+    categoryCatalogGlyphOverrides: Map<String, String>,
     onClick: () -> Unit,
 ) {
     val tone = item.s3Tone()
@@ -907,19 +915,25 @@ private fun ActivityFlatLedgerRow(
     val selectedColor = preferredHex?.takeIf { Regex("^#[0-9A-Fa-f]{6}$").matches(it) }
         ?.let { Color(("FF" + it.drop(1)).toLong(16).toInt()) }
 
+    val fallbackIcon = myFinHubCategoryIcon(
+        item.category, item.kind.s3Icon(),
+        categoryGlyphOverrides[
+            (if (item.canonicalKind == "income") "income" else "expense") +
+                ":" + item.category.orEmpty() +
+                (item.subcategory?.takeIf(String::isNotBlank)?.let { ":" + it } ?: "")
+        ] ?: categoryGlyphOverrides[
+            (if (item.canonicalKind == "income") "income" else "expense") +
+                ":" + item.category.orEmpty()
+        ],
+    )
+    val candidates = categoryCatalogPack?.let { pack ->
+        WebCategoryIconPolicy.candidates(item.canonicalKind, item.category, item.subcategory, pack, categoryCatalogGlyphOverrides)
+    }.orEmpty()
+    val ledgerIcon = rememberWebCategoryIcon(candidates, fallbackIcon)
+
     Column(modifier = Modifier.fillMaxWidth()) {
     MyFinHubFinanceRow(
-        icon = myFinHubCategoryIcon(
-            item.category, item.kind.s3Icon(),
-            categoryGlyphOverrides[
-                (if (item.canonicalKind == "income") "income" else "expense") +
-                    ":" + item.category.orEmpty() +
-                    (item.subcategory?.takeIf(String::isNotBlank)?.let { ":" + it } ?: "")
-            ] ?: categoryGlyphOverrides[
-                (if (item.canonicalKind == "income") "income" else "expense") +
-                    ":" + item.category.orEmpty()
-            ],
-        ),
+        icon = ledgerIcon,
         categoryAccent = selectedColor,
         iconDescription = null,
         title = item.nativeLedgerDisplayTitle(),
