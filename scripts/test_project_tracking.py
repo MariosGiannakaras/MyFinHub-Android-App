@@ -124,8 +124,16 @@ class CurrentAgentHandoffTests(unittest.TestCase):
 
     def test_brief_handoff_shows_actual_counters_without_duplicate_tables(self):
         handoff = tracking.rendered(self.state)[tracking.ROOT / "docs/CURRENT_HANDOFF.md"]
-        self.assertIn("Deploy: **6/8**", handoff)
-        self.assertIn("Web parity: **5/6 implementations · 23/24 subtasks**", handoff)
+        deployment = self.state["deployment_progress"]["stages"]
+        web = self.state["reconciliation_workstream"]["stages"]
+        deploy_done = sum(stage["status"] == "completed" for stage in deployment)
+        web_done = sum(all(sub["status"] == "completed" for sub in stage["subtasks"])
+                       for stage in web)
+        subtasks = [sub for stage in web for sub in stage["subtasks"]]
+        sub_done = sum(sub["status"] == "completed" for sub in subtasks)
+        self.assertIn(f"Deploy: **{deploy_done}/{len(deployment)}**", handoff)
+        self.assertIn(f"Web parity: **{web_done}/{len(web)} implementations · "
+                      f"{sub_done}/{len(subtasks)} subtasks**", handoff)
         self.assertNotIn("## Active Web parity progress", handoff)
         self.assertNotIn("## Android redesign progress", handoff)
         self.assertNotIn("### Subtasks", handoff)
@@ -134,11 +142,22 @@ class CurrentAgentHandoffTests(unittest.TestCase):
         self.assertNotIn("recent merged PRs and relevant workflow results", handoff)
 
     def test_native_software_acceptance_leaves_physical_gates_open(self):
+        # Native integration is synthetic here; actual owner acceptance may advance
+        # independently in canonical state without requiring stale test constants.
         stages = self.state["reconciliation_workstream"]["stages"]
-        self.assertTrue(all(
-            sub["status"] == "completed" and sub["evidence"]
-            for stage in stages[:5] for sub in stage["subtasks"]
-        ))
+        for stage in stages:
+            for sub in stage["subtasks"]:
+                sub.update(status="completed", evidence=["Synthetic native validation"])
+        stages[5]["subtasks"][3].update(status="pending", evidence=[])
+        self.state["reconciliation_workstream"]["current_subtask"] = "W6.4"
+        deployment = self.state["deployment_progress"]
+        for stage in deployment["stages"]:
+            stage.update(status="completed", evidence=["Synthetic native validation"])
+        for stage in deployment["stages"][6:]:
+            stage.update(status="pending", evidence=[])
+        deployment["current_stage"] = "D7"
+        tracking.validate_reconciliation(self.state)
+        tracking.validate_deployment(self.state)
         self.assertEqual(
             ["W6.4"],
             [sub["id"] for sub in stages[5]["subtasks"] if sub["status"] != "completed"],
@@ -151,6 +170,24 @@ class CurrentAgentHandoffTests(unittest.TestCase):
         detail = "\n".join(tracking.reconciliation_lines(self.state))
         self.assertIn("Implementations: 5/6 · Subtasks: 23/24", detail)
         self.assertIn("W6.4", detail)
+
+    def test_owner_physical_completion_is_separate_from_stable_deployment(self):
+        stages = self.state["reconciliation_workstream"]["stages"]
+        for stage in stages:
+            for sub in stage["subtasks"]:
+                sub.update(status="completed", evidence=["Synthetic native validation"])
+        stages[5]["subtasks"][3]["evidence"] = ["Synthetic owner D7 pass"]
+        deployment = self.state["deployment_progress"]
+        for stage in deployment["stages"][:7]:
+            stage.update(status="completed", evidence=["Synthetic acceptance"])
+        deployment["stages"][6]["evidence"] = ["Synthetic owner D7 pass"]
+        deployment["stages"][7].update(status="pending", evidence=[])
+        deployment["current_stage"] = "D8"
+        tracking.validate_reconciliation(self.state)
+        tracking.validate_deployment(self.state)
+        handoff = tracking.rendered(self.state)[tracking.ROOT / "docs/CURRENT_HANDOFF.md"]
+        self.assertIn("Deploy: **7/8**", handoff)
+        self.assertIn("Web parity: **6/6 implementations · 24/24 subtasks**", handoff)
 
     def test_merged_pr_cannot_render_as_open_or_none_literal(self):
         self.state["reconciliation_workstream"]["pr"] = None
