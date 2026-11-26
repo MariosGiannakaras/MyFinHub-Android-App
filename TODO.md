@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete six exact-head checks for the native receipt batch, including actual OCR models/ABI alignment and real synthetic bitmap S24 emulator test. Resolve any failures before merge.
-- [ ] After receipt integration, audit the icon/receipt delta and release compatibility, then publish the owner-authorized signed S24 physical test candidate through the protected workflow. D8 stable/main remains separate.
+- [ ] Validate the new Android-owned rc23 source-only PR (all six exact-head checks; stable base, clean reviews). Keep it open and non-draft for protected publisher, not merge.
+- [ ] When green, change only .github/release-requests/production.json on trusted develop and let existing protected publisher plan versionCode, sign and verify exact source and publish immutable prerelease. Record actual results; independently audit signed APK bytes and request physical S24 delta tests. D8 stable/main remains pending.
 
 ## Completed foundations
 
@@ -73,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Complete six exact-head checks for the native receipt batch, including actual OCR models/ABI alignment and real synthetic bitmap S24 emulator test. Resolve any failures before merge. After receipt integration, audit the icon/receipt delta and release compatibility, then publish the owner-authorized signed S24 physical test candidate through the protected workflow. D8 stable/main remains separate.
+Next: Validate the new Android-owned rc23 source-only PR (all six exact-head checks; stable base, clean reviews). Keep it open and non-draft for protected publisher, not merge. When green, change only .github/release-requests/production.json on trusted develop and let existing protected publisher plan versionCode, sign and verify exact source and publish immutable prerelease. Record actual results; independently audit signed APK bytes and request physical S24 delta tests. D8 stable/main remains pending.
 
 
 ## Active Web parity progress
@@ -82,10 +82,10 @@ Next: Complete six exact-head checks for the native receipt batch, including act
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/native-receipt-import-20261126
-Current W6.4: Owner-approved rc22 W1–W6/D7 baseline; Activity actual Web artwork merged #543; native receipt entry source and tests authored, required exact-head CI pending.
+Issue #155, no open PR, branch android/rc23-owner-s24-test-20261126
+Current W6.4: Owner-approved rc22 W1–W6/D7 baseline; #543 actual Activity Web icon artwork and #544 native receipt OCR integrated, both six exact-head gates PASS. Delta source/hosted audit reviewed 7/8 domains; new signed S24 test candidate source gate pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete six exact-head checks for the native receipt batch, including actual OCR models/ABI alignment and real synthetic bitmap S24 emulator test. Resolve any failures before merge. After receipt integration, audit the icon/receipt delta and release compatibility, then publish the owner-authorized signed S24 physical test candidate through the protected workflow. D8 stable/main remains separate.
+Next Validate the new Android-owned rc23 source-only PR (all six exact-head checks; stable base, clean reviews). Keep it open and non-draft for protected publisher, not merge. When green, change only .github/release-requests/production.json on trusted develop and let existing protected publisher plan versionCode, sign and verify exact source and publish immutable prerelease. Record actual results; independently audit signed APK bytes and request physical S24 delta tests. D8 stable/main remains pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

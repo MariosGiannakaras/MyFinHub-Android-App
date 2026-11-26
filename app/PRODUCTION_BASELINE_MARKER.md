@@ -38,3 +38,7 @@ The device recording and privacy-safe acceptance contract is
 be filled only from a future actually published and independently verified APK,
 never by guessing from this marker. Production finance writes and signing
 material are explicitly outside this UI/device-readiness checkpoint.
+
+## Owner-authorized rc23 physical-test source — 2026-11-26
+
+Based on integrated Android develop `a712eae2a65426826a060879ca1be4c275a082ac`: PR #543 actual Web category/subcategory artwork and PR #544 native local Greek/English receipt OCR with human review both passed all six exact-head CI gates. The receipt build verified bundled models and 64-bit 16 KiB APK/native alignment; both S24 emulator shards executed 443 tests. The accepted rc22 baseline and detailed delta audit are recorded in canonical tracking, with physical camera/picker/OCR, install/continuity and Play Protect evidence still outstanding. This marker contains no product behavior or release secrets. Keep the Android-owned PR open/non-draft until six fresh exact-head checks succeed and the existing protected publisher consumes the source. Candidate is for owner physical testing only; do not guess versionCode, digest or signer, bypass Play Protect, or promote stable/main.
