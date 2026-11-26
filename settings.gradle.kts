@@ -16,7 +16,7 @@ dependencyResolutionManagement {
                 maven { url = uri("https://jitpack.io") }
             }
             filter {
-                includeModule("com.github.adaptech-cz.Tesseract4Android", "tesseract4android")
+                includeModule("cz.adaptech.tesseract4android", "tesseract4android")
             }
         }
     }

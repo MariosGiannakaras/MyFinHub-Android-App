@@ -246,7 +246,7 @@ dependencies {
     testImplementation(okhttpBom)
 
     implementation("androidx.activity:activity-compose:1.13.0")
-    implementation("com.github.adaptech-cz.Tesseract4Android:tesseract4android:4.9.0")
+    implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.navigation3:navigation3-runtime:1.1.6")
