@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Finish exact-head CI for receipt repair PR (tracking, Android build/lint/JVM, screenshot, both hosted S24 emulator shards/aggregate); do not merge on failure. Re-evaluate repair delta integrated source/hosted audit and publish a new higher-version signed physical-test prerelease via existing guarded publisher only when all gates pass. Owner re-test camera and picker launch, same-owner reauthentication, OCR review and explicit save/cancel; capture icons separately; Play Protect not cleared, stable D8 pending.
+- [ ] Independently audit signed rc24 APK bytes (pinned hash, enrolled signer, unchanged permissions, receipt assets/provider, 16 KiB alignment and executable DEX delta from rc23). Owner S24 in-place update and receipt camera/photo picker, reauthentication, review/cancel/explicit Save, Activity icons and data continuity retest remain pending. Report actual Play Protect result without bypass; stable D8 pending.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Finish exact-head CI for receipt repair PR (tracking, Android build/lint/JVM, screenshot, both hosted S24 emulator shards/aggregate); do not merge on failure. Re-evaluate repair delta integrated source/hosted audit and publish a new higher-version signed physical-test prerelease via existing guarded publisher only when all gates pass. Owner re-test camera and picker launch, same-owner reauthentication, OCR review and explicit save/cancel; capture icons separately; Play Protect not cleared, stable D8 pending.
+Next: Independently audit signed rc24 APK bytes (pinned hash, enrolled signer, unchanged permissions, receipt assets/provider, 16 KiB alignment and executable DEX delta from rc23). Owner S24 in-place update and receipt camera/photo picker, reauthentication, review/cancel/explicit Save, Activity icons and data continuity retest remain pending. Report actual Play Protect result without bypass; stable D8 pending.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: Finish exact-head CI for receipt repair PR (tracking, Android build/lint/J
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/rc23-receipt-launch-fix-20261126
-Current W6.4: Owner rc22 D7 pass retained; W1-W6 6/6 (24/24). rc23 actual published static APK comparison PASS, physical receipt launch FAIL. P1 correction source authored; exact-head hosted gates and new signed candidate physical retest pending.
+Issue #155, no open PR, branch android/rc24-published-apk-audit-20261127
+Current W6.4: Owner rc22 D7 pass retained, Web parity 6/6 (24/24); rc23 receipt launch failed, #547 repair integrated with six exact-head checks and 445 hosted tests. rc24 signed release published through #548; delta audit 7/8, independent actual APK audit and owner delta retest pending; stable D8 outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Finish exact-head CI for receipt repair PR (tracking, Android build/lint/JVM, screenshot, both hosted S24 emulator shards/aggregate); do not merge on failure. Re-evaluate repair delta integrated source/hosted audit and publish a new higher-version signed physical-test prerelease via existing guarded publisher only when all gates pass. Owner re-test camera and picker launch, same-owner reauthentication, OCR review and explicit save/cancel; capture icons separately; Play Protect not cleared, stable D8 pending.
+Next Independently audit signed rc24 APK bytes (pinned hash, enrolled signer, unchanged permissions, receipt assets/provider, 16 KiB alignment and executable DEX delta from rc23). Owner S24 in-place update and receipt camera/photo picker, reauthentication, review/cancel/explicit Save, Activity icons and data continuity retest remain pending. Report actual Play Protect result without bypass; stable D8 pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

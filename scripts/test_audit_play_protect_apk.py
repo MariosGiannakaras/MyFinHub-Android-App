@@ -79,7 +79,7 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertEqual([], difference["removed"])
 
     def test_hardened_release_rejects_unattended_install_permission(self):
-        for label in ("rc18", "rc20", "rc21", "rc22", "rc23"):
+        for label in ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24"):
             name, code, _ = RELEASES[label]
             badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'"
             permissions = f"uses-permission: name='{UNATTENDED_INSTALL_PERMISSION}'"
@@ -136,6 +136,20 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertIn("Added permissions: none", report(a, b))
         with self.assertRaisesRegex(AuditError, "permission set differs"):
             report(a, {**b, "perms": a["perms"] + ["android.permission.CAMERA"]})
+
+    def test_rc24_permissions_and_executable_delta(self):
+        a = {"signer": "a" * 64, "perms": ["android.permission.INTERNET"],
+             "version": "1.0.0-rc23", "size": 1, "entries": 2,
+             "dex": 1, "digest": "a" * 64}
+        b = {**a, "version": "1.0.0-rc24"}
+        diff = {"added": [], "removed": [], "changed": ["classes.dex"]}
+        self.assertIn("Added permissions: none", report(a, b, diff))
+        with self.assertRaisesRegex(AuditError, "permission set differs"):
+            report(a, {**b, "perms": a["perms"] + ["android.permission.CAMERA"]}, diff)
+        for unverified in (None, {**diff, "changed": ["AndroidManifest.xml"]}):
+            with self.subTest(diff=unverified):
+                with self.assertRaisesRegex(AuditError, "executable DEX delta"):
+                    report(a, b, unverified)
 
     def test_signer_continuity_required(self):
         a = {"signer": "a" * 64, "perms": [], "version": "rc16", "size": 1,
