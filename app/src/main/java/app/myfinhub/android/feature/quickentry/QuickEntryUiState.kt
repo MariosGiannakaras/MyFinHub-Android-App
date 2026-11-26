@@ -1,6 +1,8 @@
 package app.myfinhub.android.feature.quickentry
 
 import androidx.lifecycle.ViewModel
+import app.myfinhub.android.feature.receipt.ReceiptPrefill
+import app.myfinhub.android.feature.receipt.receiptReviewedCents
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -153,6 +155,8 @@ data class QuickEntryUiState(
     val dirty: Boolean = false,
     /** Debit cards carry no canonical account link. Preserve explicit choice across projection refreshes. */
     val debitExpenseRequiresAccountChoice: Boolean = false,
+    /** Receipt categories are deliberate choices, not inferred on sync refresh. */
+    val receiptDraft: Boolean = false,
 ) {
     val amount: Double?
         get() = amountText.toCurrencyCentsOrNull()?.div(100.0)
@@ -182,6 +186,7 @@ internal fun QuickEntryUiState.canSubmitDraft(): Boolean =
     validateAndPreview(this).validationMessage == null
 
 sealed interface QuickEntryAction {
+    data class ReceiptPrefilled(val value: ReceiptPrefill) : QuickEntryAction
     data object StartDebitExpense : QuickEntryAction
     data class SelectKind(val kind: QuickEntryKind) : QuickEntryAction
     data class AmountChanged(val value: String) : QuickEntryAction
@@ -212,6 +217,7 @@ sealed interface QuickEntryAction {
 }
 
 fun reduceQuickEntry(state: QuickEntryUiState, action: QuickEntryAction): QuickEntryUiState = when (action) {
+    is QuickEntryAction.ReceiptPrefilled -> prefillReceipt(state, action.value)
     QuickEntryAction.StartDebitExpense -> selectKind(
         resetDraft(state), QuickEntryKind.EXPENSE,
     ).copy(accountId = "", debitExpenseRequiresAccountChoice = true, dirty = false)
@@ -334,6 +340,7 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
 
     return state.copy(
         kind = kind,
+        receiptDraft = false,
         debitExpenseRequiresAccountChoice = false,
         amountText = state.amountText.takeIf { previousUsesAmount && newUsesAmount }.orEmpty(),
         category = category,
@@ -462,6 +469,36 @@ private fun updateSplitPart(
     dirty = true,
 )
 
+/** One atomic local draft transition; receipt recognition never dispatches Save. */
+private fun prefillReceipt(state: QuickEntryUiState, value: ReceiptPrefill): QuickEntryUiState {
+    val cents = receiptReviewedCents(value.amountText) ?: return state
+    val date = runCatching { LocalDate.parse(value.dateText) }.getOrNull() ?: return state
+    if (date.year !in 2000..2100 || value.merchant.length > 90) return state
+    val parts = value.splitLines
+    if (parts.isNotEmpty() && (parts.size !in 2..12 ||
+        parts.any { it.label.isBlank() || it.label.length > 90 || receiptReviewedCents(it.amountText) == null } ||
+        parts.sumOf { receiptReviewedCents(it.amountText) ?: 0L } != cents)) return state
+    val kind = if (parts.isEmpty()) QuickEntryKind.EXPENSE else QuickEntryKind.SPLIT
+    val clean = selectKind(resetDraft(state), kind)
+    return clean.copy(
+        amountText = value.amountText,
+        dateText = date.toString(),
+        note = value.merchant,
+        category = "",
+        subcategory = "",
+        receiptDraft = true,
+        dirty = true,
+        splitParts = if (parts.isEmpty()) clean.splitParts else parts.mapIndexed { index, item ->
+            QuickEntrySplitPartDraft(
+                id = "receipt-part-${index + 1}",
+                label = item.label,
+                category = "",
+                amountText = item.amountText,
+            )
+        },
+    )
+}
+
 private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
     val categoryOptions = if (state.kind == QuickEntryKind.INCOME) state.incomeCategories else state.expenseCategories
     val category = categoryOptions.firstOrNull()?.name.orEmpty()
@@ -470,6 +507,7 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
             state.defaultExpenseAccountId.takeIf { idExists(state, it) }.orEmpty()
         } else state.accountId,
         debitExpenseRequiresAccountChoice = false,
+        receiptDraft = false,
         amountText = "",
         dateText = LocalDate.now().toString(),
         note = "",

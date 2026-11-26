@@ -1,6 +1,12 @@
 import com.android.build.api.artifact.SingleArtifact
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.CacheableTask
+import java.net.URI
+import java.security.MessageDigest
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -51,6 +57,61 @@ abstract class InjectBenchmarkHostManifestTask : DefaultTask() {
             writeText(output)
         }
     }
+}
+
+/**
+ * Models are bundled into every APK/AAB, never downloaded at runtime. Pin the
+ * upstream signed release commit AND Git blob identity/length, failing closed.
+ */
+@CacheableTask
+abstract class StageReceiptModelsTask : DefaultTask() {
+    @get:Input
+    val upstreamCommit = "65727574dfcd264acbb0c3e07860e4e9e9b22185"
+
+    @get:Input
+    val modelPins = mapOf(
+        "ell.traineddata" to "1419514:ed98ae1a88d84414da316e6eeab3232f2c68639b",
+        "eng.traineddata" to "4113088:bbef4675053b5b468cdb477053e28b1c698ba08e",
+    )
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun stage() {
+        val directory = outputDirectory.get().asFile.resolve("receipt-tessdata")
+        check(directory.isDirectory || directory.mkdirs())
+        for ((name, pin) in modelPins) {
+            val (size, expected) = pin.split(":")
+            val length = size.toInt()
+            fun verified(bytes: ByteArray): Boolean {
+                if (bytes.size != length) return false
+                val digest = MessageDigest.getInstance("SHA-1")
+                digest.update("blob $size\u0000".toByteArray(Charsets.UTF_8))
+                val hash = digest.digest(bytes).joinToString("") { "%02x".format(it.toInt() and 0xff) }
+                return hash == expected
+            }
+            val target = directory.resolve(name)
+            if (target.isFile && target.length() == length.toLong() && verified(target.readBytes())) continue
+            val url = URI("https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/$upstreamCommit/$name").toURL()
+            val connection = url.openConnection() as javax.net.ssl.HttpsURLConnection
+            connection.connectTimeout = 20_000
+            connection.readTimeout = 45_000
+            connection.instanceFollowRedirects = false
+            val bytes = try {
+                check(connection.responseCode == 200) { "Unable to stage pinned OCR model $name" }
+                connection.inputStream.use { it.readNBytes(length + 1) }
+            } finally {
+                connection.disconnect()
+            }
+            check(verified(bytes)) { "Incorrect pinned OCR model bytes: $name" }
+            target.writeBytes(bytes)
+        }
+    }
+}
+
+val stageReceiptModels = tasks.register<StageReceiptModelsTask>("stageReceiptModels") {
+    outputDirectory.set(layout.buildDirectory.dir("generated/receipt-models"))
 }
 
 private fun String.asBuildConfigString(): String = "\"" +
@@ -152,6 +213,7 @@ android {
 
 androidComponents {
     onVariants { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(stageReceiptModels, StageReceiptModelsTask::outputDirectory)
         if (variant.name == "benchmarkRelease" || variant.name == "nonMinifiedRelease") {
             val taskName = "inject" + variant.name.replaceFirstChar { it.uppercase() } + "BenchmarkHostManifest"
             val manifestUpdater = tasks.register<InjectBenchmarkHostManifestTask>(taskName)
@@ -184,6 +246,7 @@ dependencies {
     testImplementation(okhttpBom)
 
     implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.navigation3:navigation3-runtime:1.1.6")

@@ -1,6 +1,7 @@
 package app.myfinhub.android.app
 
 import android.app.Activity
+import app.myfinhub.android.feature.receipt.ReceiptImportHost
 import android.content.Context
 import androidx.compose.foundation.background
 import android.os.SystemClock
@@ -404,200 +405,217 @@ fun MyFinHubRoot(
 
     MyFinHubTheme(darkTheme = darkTheme) {
         CompositionLocalProvider(LocalUpdateController provides updateController) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .statusBarsPadding(),
+            ReceiptImportHost(
+                auth = authState,
+                authorized = financeSessionAuthorized && (financeState as? FinanceProductState.Ready)?.let {
+                    !it.saving && it.issue == null
+                } == true,
+                activityItems = (financeState as? FinanceProductState.Ready)?.projection?.activityState?.items.orEmpty(),
+                currentOwnerMayEdit = { owner ->
+                    val current = authViewModel.state.value as? AuthShellUiState.Ready
+                    val finance = financeViewModel.state.value as? FinanceProductState.Ready
+                    current != null && current.session.userId == owner &&
+                        finance != null && !finance.saving && finance.issue == null &&
+                        financeViewModel.matchesSensitivePresentationSession(
+                            current.session, allowAutomaticSync = !current.offline,
+                        )
+                },
             ) {
-                AuthShellScreen(
-                    state = authState,
-                    onSignIn = authViewModel::signIn,
-                    onSubmitTotp = authViewModel::submitTotp,
-                    onEnrollPin = authViewModel::enrollPin,
-                    onVerifyPin = authViewModel::verifyPin,
-                    onBiometricSuccess = authViewModel::biometricSucceeded,
-                    onPinFallbackRequested = authViewModel::requestPinFallback,
-                    readyContent = {
-                        FinanceProductSurface(
-                            state = financeState,
-                            accountMetadata = if (metadataAuthorized) accountMetadata else emptyMap(),
-                            accountMetadataLoaded = metadataAuthorized && accountMetadataLoaded,
-                            financialProviderCatalog = if (metadataAuthorized)
-                                financialProviderCatalog else emptyList(),
-                            recurringServiceAssets = if (metadataAuthorized)
-                                recurringServiceAssets else emptyList(),
-                            deviceSessions = if (metadataAuthorized) deviceSessions
-                                else DeviceSessionsUiSnapshot(),
-                            serverHistory = if (historyAuthorized) serverHistory else null,
-                            serverHistoryEnabled = historyEnabled,
-                            serverHistoryLoaded = historyAuthorized && serverHistoryLoaded,
-                            onRefreshServerHistory = { serverHistoryRefresh += 1 },
-                            accountSecurityEnabled = historyEnabled &&
-                                activeMetadataSession?.session?.assuranceLevel ==
-                                    app.myfinhub.android.core.auth.AssuranceLevel.AAL2,
-                            accountSecuritySaving = securitySaving,
-                            accountSecurityFeedback = securityFeedback,
-                            onChangeAccountSecurity = { change ->
-                                val authorized = authViewModel.state.value as? AuthShellUiState.Ready
-                                if (!securitySaving && authorized != null && !authorized.offline &&
-                                    authorized.session.assuranceLevel ==
-                                        app.myfinhub.android.core.auth.AssuranceLevel.AAL2) {
-                                    val original = authorized.session
-                                    securitySaving = true
-                                    securityFeedback = null
-                                    securityWriteJob = accountMetadataScope.launch {
-                                        val reply = accountMetadataApi.changeAccountSecurity(original, change)
-                                        val active = authViewModel.state.value as? AuthShellUiState.Ready
-                                            ?: return@launch
-                                        if (active.offline || active.session.userId != original.userId ||
-                                            active.session.accessToken != original.accessToken) return@launch
-                                        securitySaving = false
-                                        securityFeedback = when (reply) {
-                                            is ApiResult.Success -> when (change) {
-                                                is WebAccountSecurityChange.Email ->
-                                                    if (reply.value.emailPendingConfirmation)
-                                                        "Ζητήθηκε αλλαγή email. Ελέγξτε το νέο email για επιβεβαίωση."
-                                                    else "Το email ενημερώθηκε στον server."
-                                                is WebAccountSecurityChange.Password ->
-                                                    "Ο κωδικός ενημερώθηκε στον server. Συνδεθείτε ξανά αν ζητηθεί."
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                        .statusBarsPadding(),
+                ) {
+                    AuthShellScreen(
+                        state = authState,
+                        onSignIn = authViewModel::signIn,
+                        onSubmitTotp = authViewModel::submitTotp,
+                        onEnrollPin = authViewModel::enrollPin,
+                        onVerifyPin = authViewModel::verifyPin,
+                        onBiometricSuccess = authViewModel::biometricSucceeded,
+                        onPinFallbackRequested = authViewModel::requestPinFallback,
+                        readyContent = {
+                            FinanceProductSurface(
+                                state = financeState,
+                                accountMetadata = if (metadataAuthorized) accountMetadata else emptyMap(),
+                                accountMetadataLoaded = metadataAuthorized && accountMetadataLoaded,
+                                financialProviderCatalog = if (metadataAuthorized)
+                                    financialProviderCatalog else emptyList(),
+                                recurringServiceAssets = if (metadataAuthorized)
+                                    recurringServiceAssets else emptyList(),
+                                deviceSessions = if (metadataAuthorized) deviceSessions
+                                    else DeviceSessionsUiSnapshot(),
+                                serverHistory = if (historyAuthorized) serverHistory else null,
+                                serverHistoryEnabled = historyEnabled,
+                                serverHistoryLoaded = historyAuthorized && serverHistoryLoaded,
+                                onRefreshServerHistory = { serverHistoryRefresh += 1 },
+                                accountSecurityEnabled = historyEnabled &&
+                                    activeMetadataSession?.session?.assuranceLevel ==
+                                        app.myfinhub.android.core.auth.AssuranceLevel.AAL2,
+                                accountSecuritySaving = securitySaving,
+                                accountSecurityFeedback = securityFeedback,
+                                onChangeAccountSecurity = { change ->
+                                    val authorized = authViewModel.state.value as? AuthShellUiState.Ready
+                                    if (!securitySaving && authorized != null && !authorized.offline &&
+                                        authorized.session.assuranceLevel ==
+                                            app.myfinhub.android.core.auth.AssuranceLevel.AAL2) {
+                                        val original = authorized.session
+                                        securitySaving = true
+                                        securityFeedback = null
+                                        securityWriteJob = accountMetadataScope.launch {
+                                            val reply = accountMetadataApi.changeAccountSecurity(original, change)
+                                            val active = authViewModel.state.value as? AuthShellUiState.Ready
+                                                ?: return@launch
+                                            if (active.offline || active.session.userId != original.userId ||
+                                                active.session.accessToken != original.accessToken) return@launch
+                                            securitySaving = false
+                                            securityFeedback = when (reply) {
+                                                is ApiResult.Success -> when (change) {
+                                                    is WebAccountSecurityChange.Email ->
+                                                        if (reply.value.emailPendingConfirmation)
+                                                            "Ζητήθηκε αλλαγή email. Ελέγξτε το νέο email για επιβεβαίωση."
+                                                        else "Το email ενημερώθηκε στον server."
+                                                    is WebAccountSecurityChange.Password ->
+                                                        "Ο κωδικός ενημερώθηκε στον server. Συνδεθείτε ξανά αν ζητηθεί."
+                                                }
+                                                is ApiResult.Failure ->
+                                                    "Η υπηρεσία δεν επιβεβαίωσε την αλλαγή. Επαληθεύστε τη συνεδρία και δοκιμάστε ξανά."
                                             }
-                                            is ApiResult.Failure ->
-                                                "Η υπηρεσία δεν επιβεβαίωσε την αλλαγή. Επαληθεύστε τη συνεδρία και δοκιμάστε ξανά."
                                         }
                                     }
-                                }
-                            },
-                            onRevokeDeviceSession = financeViewModel::revokeConfirmedOtherDeviceSession,
-                            cardSecretState = cardSecretState,
-                            cardSecretAccessAllowed = vaultSessionAuthorized,
-                            cardSecretCleanupState = cardSecretCleanupState,
-                            onRetryLoad = financeViewModel::retryLoad,
-                            onRetryMutation = financeViewModel::retryPendingMutation,
-                            onUndoPendingChange = financeViewModel::undoLatestPendingMutation,
-                            onLogout = authViewModel::logout,
-                            onHomeAction = financeViewModel::onHomeAction,
-                            onActivityAction = financeViewModel::onActivityAction,
-                            onQuickEntryAction = financeViewModel::onQuickEntryAction,
-                            onSaveBudget = financeViewModel::saveOverallBudget,
-                            onPlanAction = financeViewModel::onPlanAction,
-                            onSaveCategoryBudget = financeViewModel::saveCategoryBudget,
-                            onDeleteCategoryBudget = financeViewModel::deleteCategoryBudget,
-                            onSaveSubcategoryBudget = financeViewModel::saveSubcategoryBudget,
-                            onDeleteSubcategoryBudget = financeViewModel::deleteSubcategoryBudget,
-                            onDeleteOverallBudget = financeViewModel::deleteOverallBudget,
-                            onSaveMonthlySavingsRate = financeViewModel::saveMonthlySavingsRate,
-                            onToggleTransactionRule = financeViewModel::setTransactionRuleEnabled,
-                            onSaveTransactionRule = financeViewModel::saveTransactionRule,
-                            onSaveCounterparty = financeViewModel::saveCounterparty,
-                            onSaveManagedAccount = financeViewModel::saveManagedAccount,
-                            onDeleteUnusedCustomCashAccount = financeViewModel::deleteUnusedCustomCashAccount,
-                            onReorderCategoryTaxonomy = financeViewModel::reorderCategoryTaxonomy,
-                            onAddCategoryTaxonomy = financeViewModel::addCategoryTaxonomy,
-                            onRenameCategoryTaxonomy = financeViewModel::renameCategoryTaxonomy,
-                            onMoveSubcategoryTaxonomy = financeViewModel::moveSubcategoryTaxonomy,
-                            onRetireCategoryTaxonomy = financeViewModel::retireCategoryTaxonomy,
-                            onSetCategoryIconColor = financeViewModel::setCategoryIconColor,
-                            onSetCategoryIconPack = financeViewModel::setCategoryIconPack,
-                            onSetCategoryIconGlyph = financeViewModel::setCategoryIconGlyph,
-                            onSetDefaultManagedAccount = financeViewModel::setDefaultManagedAccount,
-                            onLinkActivityCounterparty = financeViewModel::linkActivityCounterparty,
-                            onDeleteTransactionRule = financeViewModel::deleteTransactionRule,
-                            onReorderTransactionRule = financeViewModel::reorderTransactionRule,
-                            onSetRecurringStatus = financeViewModel::setRecurringStatus,
-                            onCreateRecurring = financeViewModel::createRecurring,
-                            onEditRecurring = financeViewModel::editRecurring,
-                            onCreateScheduled = financeViewModel::createScheduled,
-                            onCompleteScheduled = financeViewModel::completeScheduled,
-                            onCloseScheduled = financeViewModel::closeScheduled,
-                            onRecordLoanPayment = financeViewModel::recordLoanPayment,
-                            onSaveLoanMetadata = financeViewModel::saveLoanMetadata,
-                            onSaveSavingsGoal = financeViewModel::saveSavingsGoal,
-                            onDeleteSavingsGoal = financeViewModel::deleteSavingsGoal,
-                            onSaveAccountIban = { id, rawIban ->
-                                val sessionReady = authViewModel.state.value as? AuthShellUiState.Ready
-                                val ready = financeViewModel.state.value as? FinanceProductState.Ready
-                                val account = ready?.projection?.moneyState?.accounts?.singleOrNull { it.id == id }
-                                val eligible = account?.canonicalKind in setOf("bank", "savings")
-                                if (!accountMetadataSaving && accountMetadataLoaded &&
-                                    metadataSessionKey != null && sessionReady != null &&
-                                    !sessionReady.offline && eligible &&
-                                    metadataSessionKey?.let {
-                                        mayPublishRootServerSnapshot(it, sessionReady)
-                                    } == true) {
-                                    val session = sessionReady.session
-                                    val revision = accountMetadata[id]?.revision ?: 0L
-                                    accountMetadataSaving = true
-                                    accountMetadataWriteJob = accountMetadataScope.launch {
-                                        val response = accountMetadataApi.updateAccountIban(
-                                            session, id, rawIban, revision,
-                                        )
-                                        val fresh = authViewModel.state.value as? AuthShellUiState.Ready
-                                            ?: return@launch
-                                        if (!mayPublishRootServerSnapshot(session, fresh) ||
-                                            metadataSessionKey?.let {
-                                                matchesSensitiveUiSession(it, session)
-                                            } != true) return@launch
-                                        accountMetadataSaving = false
-                                        when (response) {
-                                            is ApiResult.Success -> {
-                                                accountMetadata = accountMetadata + (id to response.value)
-                                                snackbarHostState.showSnackbar("Το IBAN ενημερώθηκε με επιβεβαίωση server.")
-                                            }
-                                            is ApiResult.Failure -> {
-                                                // Revision conflict or ambiguous write: no optimistic value.
-                                                accountMetadataLoaded = false
-                                                accountMetadata = emptyMap()
-                                                val reload = accountMetadataApi.loadAccountMetadata(session)
-                                                val check = authViewModel.state.value as? AuthShellUiState.Ready
-                                                if (check != null &&
-                                                    mayPublishRootServerSnapshot(session, check)) {
-                                                    if (reload is ApiResult.Success) {
-                                                        accountMetadata = reload.value
-                                                        accountMetadataLoaded = true
+                                },
+                                onRevokeDeviceSession = financeViewModel::revokeConfirmedOtherDeviceSession,
+                                cardSecretState = cardSecretState,
+                                cardSecretAccessAllowed = vaultSessionAuthorized,
+                                cardSecretCleanupState = cardSecretCleanupState,
+                                onRetryLoad = financeViewModel::retryLoad,
+                                onRetryMutation = financeViewModel::retryPendingMutation,
+                                onUndoPendingChange = financeViewModel::undoLatestPendingMutation,
+                                onLogout = authViewModel::logout,
+                                onHomeAction = financeViewModel::onHomeAction,
+                                onActivityAction = financeViewModel::onActivityAction,
+                                onQuickEntryAction = financeViewModel::onQuickEntryAction,
+                                onSaveBudget = financeViewModel::saveOverallBudget,
+                                onPlanAction = financeViewModel::onPlanAction,
+                                onSaveCategoryBudget = financeViewModel::saveCategoryBudget,
+                                onDeleteCategoryBudget = financeViewModel::deleteCategoryBudget,
+                                onSaveSubcategoryBudget = financeViewModel::saveSubcategoryBudget,
+                                onDeleteSubcategoryBudget = financeViewModel::deleteSubcategoryBudget,
+                                onDeleteOverallBudget = financeViewModel::deleteOverallBudget,
+                                onSaveMonthlySavingsRate = financeViewModel::saveMonthlySavingsRate,
+                                onToggleTransactionRule = financeViewModel::setTransactionRuleEnabled,
+                                onSaveTransactionRule = financeViewModel::saveTransactionRule,
+                                onSaveCounterparty = financeViewModel::saveCounterparty,
+                                onSaveManagedAccount = financeViewModel::saveManagedAccount,
+                                onDeleteUnusedCustomCashAccount = financeViewModel::deleteUnusedCustomCashAccount,
+                                onReorderCategoryTaxonomy = financeViewModel::reorderCategoryTaxonomy,
+                                onAddCategoryTaxonomy = financeViewModel::addCategoryTaxonomy,
+                                onRenameCategoryTaxonomy = financeViewModel::renameCategoryTaxonomy,
+                                onMoveSubcategoryTaxonomy = financeViewModel::moveSubcategoryTaxonomy,
+                                onRetireCategoryTaxonomy = financeViewModel::retireCategoryTaxonomy,
+                                onSetCategoryIconColor = financeViewModel::setCategoryIconColor,
+                                onSetCategoryIconPack = financeViewModel::setCategoryIconPack,
+                                onSetCategoryIconGlyph = financeViewModel::setCategoryIconGlyph,
+                                onSetDefaultManagedAccount = financeViewModel::setDefaultManagedAccount,
+                                onLinkActivityCounterparty = financeViewModel::linkActivityCounterparty,
+                                onDeleteTransactionRule = financeViewModel::deleteTransactionRule,
+                                onReorderTransactionRule = financeViewModel::reorderTransactionRule,
+                                onSetRecurringStatus = financeViewModel::setRecurringStatus,
+                                onCreateRecurring = financeViewModel::createRecurring,
+                                onEditRecurring = financeViewModel::editRecurring,
+                                onCreateScheduled = financeViewModel::createScheduled,
+                                onCompleteScheduled = financeViewModel::completeScheduled,
+                                onCloseScheduled = financeViewModel::closeScheduled,
+                                onRecordLoanPayment = financeViewModel::recordLoanPayment,
+                                onSaveLoanMetadata = financeViewModel::saveLoanMetadata,
+                                onSaveSavingsGoal = financeViewModel::saveSavingsGoal,
+                                onDeleteSavingsGoal = financeViewModel::deleteSavingsGoal,
+                                onSaveAccountIban = { id, rawIban ->
+                                    val sessionReady = authViewModel.state.value as? AuthShellUiState.Ready
+                                    val ready = financeViewModel.state.value as? FinanceProductState.Ready
+                                    val account = ready?.projection?.moneyState?.accounts?.singleOrNull { it.id == id }
+                                    val eligible = account?.canonicalKind in setOf("bank", "savings")
+                                    if (!accountMetadataSaving && accountMetadataLoaded &&
+                                        metadataSessionKey != null && sessionReady != null &&
+                                        !sessionReady.offline && eligible &&
+                                        metadataSessionKey?.let {
+                                            mayPublishRootServerSnapshot(it, sessionReady)
+                                        } == true) {
+                                        val session = sessionReady.session
+                                        val revision = accountMetadata[id]?.revision ?: 0L
+                                        accountMetadataSaving = true
+                                        accountMetadataWriteJob = accountMetadataScope.launch {
+                                            val response = accountMetadataApi.updateAccountIban(
+                                                session, id, rawIban, revision,
+                                            )
+                                            val fresh = authViewModel.state.value as? AuthShellUiState.Ready
+                                                ?: return@launch
+                                            if (!mayPublishRootServerSnapshot(session, fresh) ||
+                                                metadataSessionKey?.let {
+                                                    matchesSensitiveUiSession(it, session)
+                                                } != true) return@launch
+                                            accountMetadataSaving = false
+                                            when (response) {
+                                                is ApiResult.Success -> {
+                                                    accountMetadata = accountMetadata + (id to response.value)
+                                                    snackbarHostState.showSnackbar("Το IBAN ενημερώθηκε με επιβεβαίωση server.")
+                                                }
+                                                is ApiResult.Failure -> {
+                                                    // Revision conflict or ambiguous write: no optimistic value.
+                                                    accountMetadataLoaded = false
+                                                    accountMetadata = emptyMap()
+                                                    val reload = accountMetadataApi.loadAccountMetadata(session)
+                                                    val check = authViewModel.state.value as? AuthShellUiState.Ready
+                                                    if (check != null &&
+                                                        mayPublishRootServerSnapshot(session, check)) {
+                                                        if (reload is ApiResult.Success) {
+                                                            accountMetadata = reload.value
+                                                            accountMetadataLoaded = true
+                                                        }
+                                                        snackbarHostState.showSnackbar(
+                                                            "Η αλλαγή δεν επιβεβαιώθηκε. Ελέγχθηκαν ξανά τα metadata.")
                                                     }
-                                                    snackbarHostState.showSnackbar(
-                                                        "Η αλλαγή δεν επιβεβαιώθηκε. Ελέγχθηκαν ξανά τα metadata.")
                                                 }
                                             }
                                         }
                                     }
-                                }
-                            },
-                            accountMetadataSaving = accountMetadataSaving,
-                            onCardDetailOpened = cardSecretViewModel::openCard,
-                            onCardDetailClosed = cardSecretViewModel::closeCard,
-                            onRevealCardSecrets = cardSecretViewModel::reveal,
-                            onHideCardSecrets = cardSecretViewModel::hideSecrets,
-                            onSaveServerCardSecrets = cardSecretViewModel::saveServerSecrets,
-                            onSaveCvv = cardSecretViewModel::saveCvv,
-                            onSaveCardDetails = cardSecretViewModel::saveCardDetailsForCard,
-                            onRetryCardSecretCleanup = cardSecretViewModel::retryPurgeCard,
-                            onDeleteCard = financeViewModel::deleteCard,
-                            onRestoreCard = financeViewModel::restoreCard,
-                            onCreateCard = financeViewModel::createCard,
-                            onSaveCardProfile = financeViewModel::saveCardProfile,
-                            onSaveCreditBillingSettings = financeViewModel::saveCreditBillingSettings,
-                            onAddCreditRateVersion = financeViewModel::addCreditRateVersion,
-                            diagnostics = diagnostics,
-                            noticeHistory = noticeHistory,
-                        )
-                    },
-                )
-                SnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = MyFinHubSpacing.md)
-                        .padding(bottom = snackbarBottomPadding),
-                )
-            }
+                                },
+                                accountMetadataSaving = accountMetadataSaving,
+                                onCardDetailOpened = cardSecretViewModel::openCard,
+                                onCardDetailClosed = cardSecretViewModel::closeCard,
+                                onRevealCardSecrets = cardSecretViewModel::reveal,
+                                onHideCardSecrets = cardSecretViewModel::hideSecrets,
+                                onSaveServerCardSecrets = cardSecretViewModel::saveServerSecrets,
+                                onSaveCvv = cardSecretViewModel::saveCvv,
+                                onSaveCardDetails = cardSecretViewModel::saveCardDetailsForCard,
+                                onRetryCardSecretCleanup = cardSecretViewModel::retryPurgeCard,
+                                onDeleteCard = financeViewModel::deleteCard,
+                                onRestoreCard = financeViewModel::restoreCard,
+                                onCreateCard = financeViewModel::createCard,
+                                onSaveCardProfile = financeViewModel::saveCardProfile,
+                                onSaveCreditBillingSettings = financeViewModel::saveCreditBillingSettings,
+                                onAddCreditRateVersion = financeViewModel::addCreditRateVersion,
+                                diagnostics = diagnostics,
+                                noticeHistory = noticeHistory,
+                            )
+                        },
+                    )
+                    SnackbarHost(
+                        hostState = snackbarHostState,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(horizontal = MyFinHubSpacing.md)
+                            .padding(bottom = snackbarBottomPadding),
+                    )
+                }
 
-            detailNotice?.let { notice ->
-                UserNoticeDetailsDialog(
-                    notice = notice,
-                    onDismiss = { detailNotice = null },
-                )
+                detailNotice?.let { notice ->
+                    UserNoticeDetailsDialog(
+                        notice = notice,
+                        onDismiss = { detailNotice = null },
+                    )
+                }
             }
         }
     }

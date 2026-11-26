@@ -11,6 +11,14 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        exclusiveContent {
+            forRepository {
+                maven { url = uri("https://jitpack.io") }
+            }
+            filter {
+                includeModule("cz.adaptech.tesseract4android", "tesseract4android")
+            }
+        }
     }
 }
 
