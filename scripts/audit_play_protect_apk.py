@@ -17,8 +17,9 @@ RELEASES = {
     "rc21": ("1.0.0-rc21", 10020, "68859f5076dc33235ab6d34b01e2410c07f1d2245d3c6f56dfcb2f0f6c924bc4"),
     "rc22": ("1.0.0-rc22", 10021, "3e79ed72455e4b23b46ecc0c516cff3c9d731787d6c577c71272bd7e9ea5b41d"),
     "rc23": ("1.0.0-rc23", 10022, "3d4562188737d0281f0f2184eb4126e1b06c1183c2625243f940330b76b77b86"),
+    "rc24": ("1.0.0-rc24", 10023, "6be67bbaf249c245b151c2abf417b4801806faa47e2e2ea35d303bd7c601b8a7"),
 }
-HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22", "rc23")
+HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24")
 UNATTENDED_INSTALL_PERMISSION = "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"
 DISALLOWED = {
     "android.permission.READ_SMS", "android.permission.RECEIVE_SMS",
@@ -146,7 +147,7 @@ def apk_check(path, release, expected_signer, aapt, apksigner):
         unexpected.add(UNATTENDED_INSTALL_PERMISSION)
     if unexpected:
         raise AuditError("Unexpected dangerous APK permissions: " + ", ".join(sorted(unexpected)))
-    if code == RELEASES["rc23"][1]:
+    if code >= RELEASES["rc23"][1]:
         receipt_provider_check(run(aapt, "dump", "xmltree", str(path), "AndroidManifest.xml"))
     output = run(apksigner, "verify", "--verbose", "--print-certs", str(path))
     # apksigner may print the same certificate for multiple signing schemes;
@@ -196,8 +197,12 @@ def report(a, b, diff=None):
         raise AuditError(f"{older_label} and {newer_label} are signed by different certificates")
     added = sorted(set(b["perms"]) - set(a["perms"]))
     removed = sorted(set(a["perms"]) - set(b["perms"]))
-    if older_label == "rc22" and newer_label == "rc23" and (added or removed):
-        raise AuditError("rc23 permission set differs from rc22; investigate before acceptance")
+    if (older_label, newer_label) in {("rc22", "rc23"), ("rc23", "rc24")} and (added or removed):
+        raise AuditError(f"{newer_label} permission set differs from {older_label}; investigate before acceptance")
+    if (older_label, newer_label) == ("rc23", "rc24"):
+        if diff is None or not any(re.fullmatch(r"classes[0-9]*\.dex", name)
+                                   for key in ("added", "removed", "changed") for name in diff[key]):
+            raise AuditError("rc24 executable DEX delta not verified against rc23")
     lines = [
         f"# Published MyFinHub APK audit — {older_label} versus {newer_label}", "",
         "Read-only static checks passed for public GitHub Release APK bytes.", "",
@@ -242,7 +247,7 @@ def main():
             for suffix in ("apk", "metadata")
         ]
         if any(optional_paths) and not all(optional_paths):
-            raise AuditError("Provide all rc18, rc20, rc21, rc22 and rc23 APK/metadata pairs together")
+            raise AuditError("Provide all rc18, rc20, rc21, rc22, rc23 and rc24 APK/metadata pairs together")
         keys = list(RELEASES) if all(optional_paths) else ["rc16", "rc17"]
         apks = {key: getattr(args, key + "_apk") for key in keys}
         results = {
@@ -251,7 +256,7 @@ def main():
         }
         pairs = [("rc16", "rc17")]
         if all(optional_paths):
-            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22"), ("rc22", "rc23"), ("rc18", "rc23")]
+            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22"), ("rc22", "rc23"), ("rc18", "rc23"), ("rc23", "rc24"), ("rc18", "rc24")]
         output = "\n".join(report(results[older], results[newer], zip_diff(apks[older], apks[newer]))
                            for older, newer in pairs)
         args.report.write_text(output, encoding="utf-8")
