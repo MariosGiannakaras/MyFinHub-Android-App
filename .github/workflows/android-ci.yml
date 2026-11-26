@@ -145,6 +145,8 @@ jobs:
             echo 'Public CI release APK must remain unsigned.' >&2
             exit 1
           fi
+          python3 scripts/verify_receipt_apk.py "$apk"
+          "$ANDROID_HOME/build-tools/37.0.0/zipalign" -c -P 16 4 "$apk"
           echo 'Release artifact is unsigned and free of benchmark/debug manifest leakage.'
 
       - name: Audit Google Play distribution bundle policy

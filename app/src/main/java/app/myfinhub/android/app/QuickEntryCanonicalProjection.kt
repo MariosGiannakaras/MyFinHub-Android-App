@@ -97,7 +97,7 @@ internal fun projectQuickEntryState(
     ) expenseCategories + QuickEntryCategoryOption(linkedRecurring.category) else expenseCategories
     val activeCategories = if (base.kind == QuickEntryKind.INCOME) incomeCategories else scopedExpenseCategories
     val category = base.category.takeIf { current -> activeCategories.any { it.name == current } }
-        ?: activeCategories.firstOrNull()?.name.orEmpty()
+        ?: if (base.receiptDraft) "" else activeCategories.firstOrNull()?.name.orEmpty()
     val subcategory = base.subcategory.takeIf { value ->
         value.isBlank() || activeCategories.firstOrNull { it.name == category }?.subcategories?.contains(value) == true
     }.orEmpty()
@@ -146,7 +146,7 @@ internal fun projectQuickEntryState(
     val splitFallbackCategory = expenseCategories.firstOrNull()?.name ?: "Άλλο"
     val splitParts = base.splitParts.mapIndexed { index, part ->
         val categoryOption = expenseCategories.firstOrNull { it.name == part.category }
-        val partCategory = categoryOption?.name ?: splitFallbackCategory
+        val partCategory = categoryOption?.name ?: if (base.receiptDraft) "" else splitFallbackCategory
         val partSubcategory = part.subcategory.takeIf { value ->
             value.isBlank() || expenseCategories.firstOrNull { it.name == partCategory }
                 ?.subcategories
@@ -209,6 +209,7 @@ internal fun reduceQuickEntryWithCanonicalStatements(
 ): QuickEntryUiState {
     val reduced = app.myfinhub.android.feature.quickentry.reduceQuickEntry(state, action)
     return when (action) {
+        is app.myfinhub.android.feature.quickentry.QuickEntryAction.ReceiptPrefilled,
         is app.myfinhub.android.feature.quickentry.QuickEntryAction.CardChanged,
         is app.myfinhub.android.feature.quickentry.QuickEntryAction.DateChanged,
         is app.myfinhub.android.feature.quickentry.QuickEntryAction.PersonChanged,

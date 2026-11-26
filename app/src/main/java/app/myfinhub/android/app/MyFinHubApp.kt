@@ -76,6 +76,7 @@ import app.myfinhub.android.feature.plan.PlanAction
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.plan.PlannedItem
+import app.myfinhub.android.feature.receipt.LocalReceiptImportController
 import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryBackGuard
@@ -277,6 +278,14 @@ internal fun MyFinHubAppContent(
         TopLevelDestination.MONEY -> moneyBackStack
         TopLevelDestination.PLAN -> planBackStack
         TopLevelDestination.INSIGHTS -> insightsBackStack
+    }
+    val receiptImport = LocalReceiptImportController.current
+    val reviewedReceipt = receiptImport?.prefill
+    LaunchedEffect(reviewedReceipt) {
+        if (reviewedReceipt != null && receiptImport?.consume?.invoke() == true) {
+            onQuickEntryAction(QuickEntryAction.ReceiptPrefilled(reviewedReceipt))
+            activeBackStack.pushIfNew(AppRoute.QuickEntry)
+        }
     }
     val activeRoute = activeBackStack.lastOrNull() as? AppRoute
     val hideVaultForRoute = shouldHideCardSecretsForRoute(currentDestination, activeRoute)

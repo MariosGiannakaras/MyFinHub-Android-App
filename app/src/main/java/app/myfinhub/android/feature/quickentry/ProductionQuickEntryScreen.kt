@@ -81,6 +81,7 @@ import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.core.data.canonicalCounterpartySuggestion
+import app.myfinhub.android.feature.receipt.LocalReceiptImportController
 import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.time.Instant
@@ -137,6 +138,7 @@ fun ProductionQuickEntryScreen(
     var advancedMenuOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
     val amountsVisible = rememberAmountVisibilityPreference()
+    val receiptImport = LocalReceiptImportController.current
     val savedLocally = state.awaitingSync
     val canSubmit = remember(state, mutationBlocked) {
         !mutationBlocked && state.canSubmitDraft()
@@ -217,6 +219,17 @@ fun ProductionQuickEntryScreen(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.testTag("quick_entry_recurring_link"),
                 )
+            }
+            if (receiptImport != null && state.kind == QuickEntryKind.EXPENSE &&
+                state.amountText.isBlank() && state.note.isBlank() && state.recurringId.isBlank() &&
+                state.counterpartyId.isBlank() && !state.debitExpenseRequiresAccountChoice &&
+                !state.persisted && !savedLocally && !state.receiptDraft
+            ) {
+                OutlinedButton(
+                    onClick = receiptImport.open,
+                    enabled = !mutationInFlight && !mutationBlocked,
+                    modifier = Modifier.fillMaxWidth().testTag("quick_entry_receipt"),
+                ) { Text("Εισαγωγή απόδειξης") }
             }
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             if (state.kind in FastKinds) {

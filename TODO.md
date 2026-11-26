@@ -5,9 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete hosted final-head CI for the Activity actual Web artwork batch; verify real category/subcategory glyphs from five pinned packs, retain native fallback for unavailable keys, check screenshot evidence and merge only when green.
-- [ ] Implement native receipt capture/import and local Greek/English OCR, editable merchant/date/amount/category and duplicate purchase/split/currency review, then existing Quick Entry explicit save and offline enqueue. Preserve local-only images, no OCR uploads or automatic finance writes; validate privacy, permissions and failure paths before publication.
-- [ ] After both requested mobile additions are integrated and verified, publish a new explicitly authorized signed test candidate through the protected publisher; verify changed journeys on S24; D8 stable/main remains separate.
+- [ ] Complete six exact-head checks for the native receipt batch, including actual OCR models/ABI alignment and real synthetic bitmap S24 emulator test. Resolve any failures before merge.
+- [ ] After receipt integration, audit the icon/receipt delta and release compatibility, then publish the owner-authorized signed S24 physical test candidate through the protected workflow. D8 stable/main remains separate.
 
 ## Completed foundations
 
@@ -74,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Complete hosted final-head CI for the Activity actual Web artwork batch; verify real category/subcategory glyphs from five pinned packs, retain native fallback for unavailable keys, check screenshot evidence and merge only when green. Implement native receipt capture/import and local Greek/English OCR, editable merchant/date/amount/category and duplicate purchase/split/currency review, then existing Quick Entry explicit save and offline enqueue. Preserve local-only images, no OCR uploads or automatic finance writes; validate privacy, permissions and failure paths before publication. After both requested mobile additions are integrated and verified, publish a new explicitly authorized signed test candidate through the protected publisher; verify changed journeys on S24; D8 stable/main remains separate.
+Next: Complete six exact-head checks for the native receipt batch, including actual OCR models/ABI alignment and real synthetic bitmap S24 emulator test. Resolve any failures before merge. After receipt integration, audit the icon/receipt delta and release compatibility, then publish the owner-authorized signed S24 physical test candidate through the protected workflow. D8 stable/main remains separate.
 
 
 ## Active Web parity progress
@@ -83,10 +82,10 @@ Next: Complete hosted final-head CI for the Activity actual Web artwork batch; v
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/activity-web-category-artwork-20261126
-Current W6.4: W1–W6 baseline accepted by owner on rc22; subsequent owner-requested Activity artwork and receipt input are a separate extension, awaiting CI and implementation.
+Issue #155, no open PR, branch android/native-receipt-import-20261126
+Current W6.4: Owner-approved rc22 W1–W6/D7 baseline; Activity actual Web artwork merged #543; native receipt entry source and tests authored, required exact-head CI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete hosted final-head CI for the Activity actual Web artwork batch; verify real category/subcategory glyphs from five pinned packs, retain native fallback for unavailable keys, check screenshot evidence and merge only when green. Implement native receipt capture/import and local Greek/English OCR, editable merchant/date/amount/category and duplicate purchase/split/currency review, then existing Quick Entry explicit save and offline enqueue. Preserve local-only images, no OCR uploads or automatic finance writes; validate privacy, permissions and failure paths before publication. After both requested mobile additions are integrated and verified, publish a new explicitly authorized signed test candidate through the protected publisher; verify changed journeys on S24; D8 stable/main remains separate.
+Next Complete six exact-head checks for the native receipt batch, including actual OCR models/ABI alignment and real synthetic bitmap S24 emulator test. Resolve any failures before merge. After receipt integration, audit the icon/receipt delta and release compatibility, then publish the owner-authorized signed S24 physical test candidate through the protected workflow. D8 stable/main remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
