@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Finish exact-head CI for receipt repair PR (tracking, Android build/lint/JVM, screenshot, both hosted S24 emulator shards/aggregate); do not merge on failure. Re-evaluate repair delta integrated source/hosted audit and publish a new higher-version signed physical-test prerelease via existing guarded publisher only when all gates pass. Owner re-test camera and picker launch, same-owner reauthentication, OCR review and explicit save/cancel; capture icons separately; Play Protect not cleared, stable D8 pending.
+- [ ] Validate the new rc24 release-source PR on this immutable head (all six mandatory exact-head checks; unchanged runtime relative to integrated repair, clean review and stable base). Keep open and non-draft for protected publisher. When green change only the guarded production request on develop; publisher allocates versionCode and validates signer/package/version/digest. Do not claim published or physical pass until observed. Independently audit actual signed bytes after publication and owner retests camera, picker, reauthentication, review/cancel/explicit Save, Activity icons and data continuity; report actual Play Protect result without bypass. Stable D8 pending.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Finish exact-head CI for receipt repair PR (tracking, Android build/lint/JVM, screenshot, both hosted S24 emulator shards/aggregate); do not merge on failure. Re-evaluate repair delta integrated source/hosted audit and publish a new higher-version signed physical-test prerelease via existing guarded publisher only when all gates pass. Owner re-test camera and picker launch, same-owner reauthentication, OCR review and explicit save/cancel; capture icons separately; Play Protect not cleared, stable D8 pending.
+Next: Validate the new rc24 release-source PR on this immutable head (all six mandatory exact-head checks; unchanged runtime relative to integrated repair, clean review and stable base). Keep open and non-draft for protected publisher. When green change only the guarded production request on develop; publisher allocates versionCode and validates signer/package/version/digest. Do not claim published or physical pass until observed. Independently audit actual signed bytes after publication and owner retests camera, picker, reauthentication, review/cancel/explicit Save, Activity icons and data continuity; report actual Play Protect result without bypass. Stable D8 pending.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: Finish exact-head CI for receipt repair PR (tracking, Android build/lint/J
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/rc23-receipt-launch-fix-20261126
-Current W6.4: Owner rc22 D7 pass retained; W1-W6 6/6 (24/24). rc23 actual published static APK comparison PASS, physical receipt launch FAIL. P1 correction source authored; exact-head hosted gates and new signed candidate physical retest pending.
+Issue #155, no open PR, branch android/rc24-owner-s24-test-20261126
+Current W6.4: Owner rc22 D7 pass retained, Web parity 6/6 (24/24); rc23 physical receipt launch failed, #547 repair merged after six exact-head checks; delta audit 7/8 source/hosted, rc24 source-only gate pending, physical delta and stable D8 outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Finish exact-head CI for receipt repair PR (tracking, Android build/lint/JVM, screenshot, both hosted S24 emulator shards/aggregate); do not merge on failure. Re-evaluate repair delta integrated source/hosted audit and publish a new higher-version signed physical-test prerelease via existing guarded publisher only when all gates pass. Owner re-test camera and picker launch, same-owner reauthentication, OCR review and explicit save/cancel; capture icons separately; Play Protect not cleared, stable D8 pending.
+Next Validate the new rc24 release-source PR on this immutable head (all six mandatory exact-head checks; unchanged runtime relative to integrated repair, clean review and stable base). Keep open and non-draft for protected publisher. When green change only the guarded production request on develop; publisher allocates versionCode and validates signer/package/version/digest. Do not claim published or physical pass until observed. Independently audit actual signed bytes after publication and owner retests camera, picker, reauthentication, review/cancel/explicit Save, Activity icons and data continuity; report actual Play Protect result without bypass. Stable D8 pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

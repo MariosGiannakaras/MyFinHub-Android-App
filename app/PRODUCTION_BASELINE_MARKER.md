@@ -38,3 +38,7 @@ The device recording and privacy-safe acceptance contract is
 be filled only from a future actually published and independently verified APK,
 never by guessing from this marker. Production finance writes and signing
 material are explicitly outside this UI/device-readiness checkpoint.
+
+## rc24 corrected S24 physical-test candidate — 2026-11-26
+
+Source-only checkpoint after integrated #547 (`c9f5a4ea70a479156bf61016c288b8b04fa08ba1`): owner observed rc23 receipt camera and picker launch failure, repair finished six exact-head gates; 7/8 source/hosted delta audit with new real S24 acceptance unresolved. Keep this marker PR open/non-draft for the protected publisher only after six new source checks. Version code, actual signed artifact metadata and enrolled-signature verification must come from the publisher. No stable promotion or device pass claimed.
