@@ -246,6 +246,9 @@ dependencies {
     testImplementation(okhttpBom)
 
     implementation("androidx.activity:activity-compose:1.13.0")
+    // Biometric 1.1.0 brings a pre-ActivityResult FragmentActivity transitively.
+    // Pin a compatible stable Fragment: the old host rejects registry request codes > 16 bits.
+    implementation("androidx.fragment:fragment:1.9.1")
     implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")

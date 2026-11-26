@@ -1,8 +1,11 @@
 package app.myfinhub.android.feature.receipt
 
+import android.content.ClipData
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,12 +50,14 @@ internal data class ReceiptImportController(
 internal val LocalReceiptImportController = staticCompositionLocalOf<ReceiptImportController?> { null }
 
 private enum class ReceiptPhase { CHOOSE, CAMERA, PICKER, RECOGNIZE, REVIEW, ERROR }
+private enum class ReceiptFailure { CAMERA_LAUNCH, PICKER_LAUNCH, RECOGNITION }
 private data class ReceiptRequest(
     val ownerId: String,
     val phase: ReceiptPhase,
     val image: Uri? = null,
     val cameraFile: File? = null,
     val proposal: ReceiptProposal? = null,
+    val failure: ReceiptFailure? = null,
 )
 
 internal fun receiptOwner(auth: AuthShellUiState): String? = when (auth) {
@@ -66,6 +71,15 @@ internal fun mayKeepReceiptRequest(ownerId: String, auth: AuthShellUiState): Boo
     auth == AuthShellUiState.Loading || receiptOwner(auth) == ownerId
 
 private fun cameraDirectory(context: Context) = File(context.cacheDir, "receipt-capture")
+
+/** Only the one private temporary output URI is granted to the camera Activity. */
+internal class ReceiptCameraContract : ActivityResultContracts.TakePicture() {
+    override fun createIntent(context: Context, input: Uri): Intent =
+        super.createIntent(context, input).apply {
+            clipData = ClipData.newRawUri("receipt", input)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        }
+}
 
 /**
  * The activity-result launchers live above the lock/navigation shell. ON_STOP still locks
@@ -98,7 +112,9 @@ internal fun ReceiptImportHost(
         onDispose { clear() }
     }
 
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+    val cameraContract = remember { ReceiptCameraContract() }
+    val pickerContract = remember { ActivityResultContracts.PickVisualMedia() }
+    val camera = rememberLauncherForActivityResult(cameraContract) { success ->
         val active = request
         if (active?.phase == ReceiptPhase.CAMERA) {
             if (success && active.image != null && mayKeepReceiptRequest(active.ownerId, liveAuth)) {
@@ -106,7 +122,7 @@ internal fun ReceiptImportHost(
             } else clear()
         }
     }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val picker = rememberLauncherForActivityResult(pickerContract) { uri ->
         val active = request
         if (active?.phase == ReceiptPhase.PICKER) {
             if (uri != null && uri.scheme == "content" && mayKeepReceiptRequest(active.ownerId, liveAuth)) {
@@ -137,13 +153,15 @@ internal fun ReceiptImportHost(
         } catch (_: Exception) {
             if (request == active) {
                 active.cameraFile?.delete()
-                request = active.copy(phase = ReceiptPhase.ERROR, image = null, cameraFile = null)
+                request = active.copy(phase = ReceiptPhase.ERROR, image = null, cameraFile = null,
+                    failure = ReceiptFailure.RECOGNITION)
             }
         } catch (_: LinkageError) {
             // Missing native OCR library: normal manual entry must remain usable.
             if (request == active) {
                 active.cameraFile?.delete()
-                request = active.copy(phase = ReceiptPhase.ERROR, image = null, cameraFile = null)
+                request = active.copy(phase = ReceiptPhase.ERROR, image = null, cameraFile = null,
+                    failure = ReceiptFailure.RECOGNITION)
             }
         }
     }
@@ -187,7 +205,8 @@ internal fun ReceiptImportHost(
                             camera.launch(uri)
                         } catch (_: Exception) {
                             file?.delete()
-                            request = active.copy(phase = ReceiptPhase.ERROR)
+                            request = active.copy(phase = ReceiptPhase.ERROR, image = null, cameraFile = null,
+                                failure = ReceiptFailure.CAMERA_LAUNCH)
                         }
                     },
                     modifier = Modifier.testTag("receipt_camera"),
@@ -198,8 +217,10 @@ internal fun ReceiptImportHost(
                     onClick = {
                         if (!mayEdit(active.ownerId)) return@TextButton
                         request = active.copy(phase = ReceiptPhase.PICKER)
-                        try { picker.launch("image/*") }
-                        catch (_: Exception) { request = active.copy(phase = ReceiptPhase.ERROR) }
+                        try { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+                        catch (_: Exception) {
+                            request = active.copy(phase = ReceiptPhase.ERROR, failure = ReceiptFailure.PICKER_LAUNCH)
+                        }
                     },
                     modifier = Modifier.testTag("receipt_gallery"),
                 ) { Text("Φωτογραφία") }
@@ -231,9 +252,17 @@ internal fun ReceiptImportHost(
         }
         ReceiptPhase.ERROR -> AlertDialog(
             onDismissRequest = { clear() },
-            title = { Text("Δεν έγινε αναγνώριση") },
-            text = { Text("Χρησιμοποίησε καθαρή φωτογραφία JPEG ή PNG έως 12 MB, ή συνέχισε χειροκίνητα.") },
-            confirmButton = { TextButton(onClick = { request = active.copy(phase = ReceiptPhase.CHOOSE) }) { Text("Ξανά") } },
+            title = { Text(when (active.failure) {
+                ReceiptFailure.CAMERA_LAUNCH -> "Δεν άνοιξε η κάμερα"
+                ReceiptFailure.PICKER_LAUNCH -> "Δεν άνοιξε η επιλογή φωτογραφίας"
+                else -> "Δεν έγινε αναγνώριση"
+            }, modifier = Modifier.testTag("receipt_error_title")) },
+            text = { Text(when (active.failure) {
+                ReceiptFailure.CAMERA_LAUNCH -> "Δοκίμασε ξανά ή επίλεξε φωτογραφία. Δεν έγινε αναγνώριση εικόνας."
+                ReceiptFailure.PICKER_LAUNCH -> "Δοκίμασε ξανά ή χρησιμοποίησε την κάμερα. Δεν έγινε αναγνώριση εικόνας."
+                else -> "Χρησιμοποίησε καθαρή φωτογραφία JPEG ή PNG έως 12 MB, ή συνέχισε χειροκίνητα."
+            }) },
+            confirmButton = { TextButton(onClick = { request = ReceiptRequest(active.ownerId, ReceiptPhase.CHOOSE) }) { Text("Ξανά") } },
             dismissButton = { TextButton(onClick = { clear() }) { Text("Χειροκίνητα") } },
         )
         ReceiptPhase.CAMERA, ReceiptPhase.PICKER -> Unit
