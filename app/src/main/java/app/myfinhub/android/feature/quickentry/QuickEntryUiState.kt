@@ -480,12 +480,18 @@ private fun prefillReceipt(state: QuickEntryUiState, value: ReceiptPrefill): Qui
         parts.sumOf { receiptReviewedCents(it.amountText) ?: 0L } != cents)) return state
     val kind = if (parts.isEmpty()) QuickEntryKind.EXPENSE else QuickEntryKind.SPLIT
     val clean = selectKind(resetDraft(state), kind)
+    // Only a category explicitly accepted in receipt review and still present in
+    // current canonical taxonomy may populate the draft. Never infer on refresh.
+    val suggestion = value.categorySuggestion?.takeIf { proposed ->
+        parts.isEmpty() && state.expenseCategories.singleOrNull { it.name == proposed.category }
+            ?.let { proposed.subcategory.isEmpty() || proposed.subcategory in it.subcategories } == true
+    }
     return clean.copy(
         amountText = value.amountText,
         dateText = date.toString(),
         note = value.merchant,
-        category = "",
-        subcategory = "",
+        category = suggestion?.category.orEmpty(),
+        subcategory = suggestion?.subcategory.orEmpty(),
         receiptDraft = true,
         dirty = true,
         splitParts = if (parts.isEmpty()) clean.splitParts else parts.mapIndexed { index, item ->

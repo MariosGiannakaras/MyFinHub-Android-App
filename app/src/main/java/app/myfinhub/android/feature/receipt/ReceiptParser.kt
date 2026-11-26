@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.receipt
 
 import app.myfinhub.android.feature.activity.ActivityItem
+import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import java.math.BigDecimal
 import java.text.Normalizer
 import java.time.LocalDate
@@ -15,6 +16,8 @@ internal data class ReceiptProposal(
     val totalCents: Long? = null,
     val currency: ReceiptCurrency = ReceiptCurrency.UNKNOWN,
     val items: List<ReceiptLine> = emptyList(),
+    val qrReview: ReceiptQrReview? = null,
+    val ocrAmbiguous: Boolean = false,
 )
 internal enum class ReceiptCurrency { EUR, FOREIGN, UNKNOWN }
 data class ReceiptPrefill(
@@ -22,8 +25,10 @@ data class ReceiptPrefill(
     val dateText: String,
     val merchant: String,
     val splitLines: List<ReceiptPrefillLine> = emptyList(),
+    val categorySuggestion: ReceiptCategorySuggestion? = null,
 )
 data class ReceiptPrefillLine(val label: String, val amountText: String)
+data class ReceiptCategorySuggestion(val category: String, val subcategory: String = "")
 
 private val totalWords = listOf("συνολο", "πληρωτεο", "τελικο", "total", "amount due", "payable")
 private val excludedWords = listOf(
@@ -113,7 +118,8 @@ internal fun parseReceiptText(rawText: String): ReceiptProposal {
         val cents = tokenCents(match.value) ?: return@mapNotNull null
         ReceiptLine(label, cents)
     }
-    return ReceiptProposal(merchant, dates.singleOrNull(), total, currency, items.take(40))
+    return ReceiptProposal(merchant, dates.singleOrNull(), total, currency, items.take(40),
+        ocrAmbiguous = dates.size > 1 || distinctTotals.size > 1)
 }
 
 internal fun reviewedReceiptSplit(
@@ -155,4 +161,30 @@ internal fun receiptPurchaseMatches(
     }.distinctBy { it.isLegacyTransaction to it.id }
         .sortedWith(compareByDescending<ActivityItem> { merchantMatches(it) }.thenBy { distance(it) }.thenBy { it.id })
         .take(6)
+}
+
+
+/**
+ * Advisory only: exact normalized merchant history, one unambiguous current
+ * taxonomy pair, no pending, split, refund, transfer or zero-value rows.
+ */
+internal fun receiptCategorySuggestion(
+    items: List<ActivityItem>,
+    categories: List<ActivityCategoryOption>,
+    merchant: String,
+): ReceiptCategorySuggestion? {
+    val key = merchantKey(merchant)
+    if (key.length < 4) return null
+    val candidates = items.filter { item ->
+        !item.pendingSync && item.canonicalKind in setOf("expense", "card_purchase") &&
+            item.financeExpenseContribution?.let { it.isFinite() && it > 0 } == true &&
+            merchantKey(item.note.lineSequence().firstOrNull().orEmpty()) == key
+    }.mapNotNull { item ->
+        val category = item.category?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+        val option = categories.singleOrNull { it.name == category } ?: return@mapNotNull null
+        val subcategory = item.subcategory.orEmpty()
+        if (subcategory.isNotBlank() && subcategory !in option.subcategories) return@mapNotNull null
+        ReceiptCategorySuggestion(category, subcategory)
+    }.distinct()
+    return candidates.singleOrNull()
 }

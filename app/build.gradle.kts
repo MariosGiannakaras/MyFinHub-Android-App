@@ -250,6 +250,11 @@ dependencies {
     // Pin a compatible stable Fragment: the old host rejects registry request codes > 16 bits.
     implementation("androidx.fragment:fragment:1.9.1")
     implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
+    // Bundled, on-device receipt QR decoding and explicitly opened rear-camera preview.
+    implementation("com.google.zxing:core:3.5.4")
+    implementation("androidx.camera:camera-camera2:1.6.2")
+    implementation("androidx.camera:camera-lifecycle:1.6.2")
+    implementation("androidx.camera:camera-view:1.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.navigation3:navigation3-runtime:1.1.6")
@@ -277,6 +282,7 @@ dependencies {
     testImplementation("com.squareup.okhttp3:mockwebserver3")
 
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test:rules:1.7.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4-accessibility")

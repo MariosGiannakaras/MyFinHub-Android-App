@@ -1,5 +1,7 @@
 package app.myfinhub.android.feature.receipt
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
@@ -36,6 +38,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
+import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import java.io.File
@@ -49,8 +53,8 @@ internal data class ReceiptImportController(
 )
 internal val LocalReceiptImportController = staticCompositionLocalOf<ReceiptImportController?> { null }
 
-private enum class ReceiptPhase { CHOOSE, CAMERA, PICKER, RECOGNIZE, REVIEW, ERROR }
-private enum class ReceiptFailure { CAMERA_LAUNCH, PICKER_LAUNCH, RECOGNITION }
+private enum class ReceiptPhase { CHOOSE, CAMERA_PERMISSION, CAMERA_READY, CAMERA, QR_SCAN, PICKER, RECOGNIZE, REVIEW, ERROR }
+private enum class ReceiptFailure { CAMERA_PERMISSION, CAMERA_LAUNCH, QR_LAUNCH, PICKER_LAUNCH, RECOGNITION }
 private data class ReceiptRequest(
     val ownerId: String,
     val phase: ReceiptPhase,
@@ -58,6 +62,9 @@ private data class ReceiptRequest(
     val cameraFile: File? = null,
     val proposal: ReceiptProposal? = null,
     val failure: ReceiptFailure? = null,
+    val qrOnly: Boolean = false,
+    // Preserve identity through copies so a stale camera callback cannot match a new request.
+    val token: Any = Any(),
 )
 
 internal fun receiptOwner(auth: AuthShellUiState): String? = when (auth) {
@@ -92,6 +99,10 @@ internal fun ReceiptImportHost(
     authorized: Boolean,
     activityItems: List<ActivityItem>,
     currentOwnerMayEdit: (String) -> Boolean,
+    categoryOptions: List<ActivityCategoryOption> = emptyList(),
+    qrScanner: @Composable ((ReceiptQrRead) -> Unit, () -> Unit, () -> Unit) -> Unit = { read, failure, dismiss ->
+        ReceiptQrScanner(read, failure, dismiss)
+    },
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current.applicationContext
@@ -131,6 +142,31 @@ internal fun ReceiptImportHost(
         }
     }
 
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        val pending = request
+        if (pending?.phase == ReceiptPhase.CAMERA_PERMISSION) {
+            if (!mayKeepReceiptRequest(pending.ownerId, liveAuth)) clear()
+            else request = pending.copy(
+                phase = if (granted) ReceiptPhase.CAMERA_READY else ReceiptPhase.ERROR,
+                failure = if (granted) null else ReceiptFailure.CAMERA_PERMISSION,
+            )
+        }
+    }
+
+    fun beginCamera(active: ReceiptRequest, qrOnly: Boolean) {
+        if (!mayEdit(active.ownerId) || request != active) return
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED) {
+            request = active.copy(phase = ReceiptPhase.CAMERA_READY, qrOnly = qrOnly)
+        } else {
+            request = active.copy(phase = ReceiptPhase.CAMERA_PERMISSION, qrOnly = qrOnly)
+            try { permission.launch(Manifest.permission.CAMERA) }
+            catch (_: Exception) {
+                request = active.copy(phase = ReceiptPhase.ERROR, failure = ReceiptFailure.CAMERA_PERMISSION)
+            }
+        }
+    }
+
     val readyOwner = (auth as? AuthShellUiState.Ready)?.session?.userId
         ?.takeIf { authorized }
     val active = request
@@ -139,6 +175,32 @@ internal fun ReceiptImportHost(
         if (requestOwner != null && !mayKeepReceiptRequest(requestOwner, auth)) clear()
     }
     LaunchedEffect(active, readyOwner) {
+        // A live preview is never resumed automatically after lock/authority loss.
+        if (active?.phase == ReceiptPhase.QR_SCAN && active.ownerId != readyOwner) {
+            if (request == active) clear()
+            return@LaunchedEffect
+        }
+        if (active?.phase == ReceiptPhase.CAMERA_READY && active.ownerId == readyOwner &&
+            request == active && mayEdit(active.ownerId)) {
+            if (active.qrOnly) {
+                request = active.copy(phase = ReceiptPhase.QR_SCAN)
+            } else {
+                var file: File? = null
+                try {
+                    val directory = cameraDirectory(context)
+                    check(directory.exists() || directory.mkdirs())
+                    file = File.createTempFile("receipt-", ".jpg", directory)
+                    val uri = FileProvider.getUriForFile(context, context.packageName + ".receipt", file)
+                    request = active.copy(phase = ReceiptPhase.CAMERA, image = uri, cameraFile = file)
+                    camera.launch(uri)
+                } catch (_: Exception) {
+                    file?.delete()
+                    request = active.copy(phase = ReceiptPhase.ERROR, image = null, cameraFile = null,
+                        failure = ReceiptFailure.CAMERA_LAUNCH)
+                }
+            }
+            return@LaunchedEffect
+        }
         if (active?.phase != ReceiptPhase.RECOGNIZE || active.image == null ||
             active.ownerId != readyOwner || !mayEdit(active.ownerId)) return@LaunchedEffect
         try {
@@ -190,25 +252,19 @@ internal fun ReceiptImportHost(
         ReceiptPhase.CHOOSE -> AlertDialog(
             onDismissRequest = { clear() },
             title = { Text("Εισαγωγή απόδειξης") },
-            text = { Text("Η αναγνώριση γίνεται στη συσκευή. Θα ελέγξεις τα στοιχεία πριν από την καταχώριση.") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Η αναγνώριση γίνεται στη συσκευή. Θα ελέγξεις τα στοιχεία πριν από την καταχώριση.")
+                    TextButton(
+                        onClick = { beginCamera(active, qrOnly = true) },
+                        modifier = Modifier.fillMaxWidth().testTag("receipt_scan_qr"),
+                    ) { Text("Σάρωση QR Code") }
+                    Text("Ή φωτογράφισε ολόκληρη την απόδειξη για κατάστημα και είδη.")
+                }
+            },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        if (!mayEdit(active.ownerId)) return@TextButton
-                        var file: File? = null
-                        try {
-                            val directory = cameraDirectory(context)
-                            check(directory.exists() || directory.mkdirs())
-                            file = File.createTempFile("receipt-", ".jpg", directory)
-                            val uri = FileProvider.getUriForFile(context, context.packageName + ".receipt", file)
-                            request = active.copy(phase = ReceiptPhase.CAMERA, image = uri, cameraFile = file)
-                            camera.launch(uri)
-                        } catch (_: Exception) {
-                            file?.delete()
-                            request = active.copy(phase = ReceiptPhase.ERROR, image = null, cameraFile = null,
-                                failure = ReceiptFailure.CAMERA_LAUNCH)
-                        }
-                    },
+                    onClick = { beginCamera(active, qrOnly = false) },
                     modifier = Modifier.testTag("receipt_camera"),
                 ) { Text("Κάμερα") }
             },
@@ -226,13 +282,29 @@ internal fun ReceiptImportHost(
                 ) { Text("Φωτογραφία") }
             },
         )
+        ReceiptPhase.QR_SCAN -> qrScanner(
+            { result ->
+                if (request == active && mayEdit(active.ownerId) && result.fiscal != null) {
+                    request = active.copy(
+                        phase = ReceiptPhase.REVIEW,
+                        proposal = mergeReceiptQr(ReceiptProposal(), result),
+                    )
+                }
+            },
+            {
+                if (request == active) request = active.copy(phase = ReceiptPhase.ERROR, failure = ReceiptFailure.QR_LAUNCH)
+            },
+            {
+                if (request == active) request = active.copy(phase = ReceiptPhase.CHOOSE)
+            },
+        )
         ReceiptPhase.RECOGNIZE -> AlertDialog(
             onDismissRequest = { clear() },
             title = { Text("Αναγνώριση στη συσκευή") },
             text = {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator()
-                    Text("Επεξεργασία ελληνικών και αγγλικών…")
+                    Text("Ανάγνωση QR και ελληνικού / αγγλικού κειμένου…")
                 }
             },
             confirmButton = { TextButton(onClick = { clear() }) { Text("Ακύρωση") } },
@@ -241,6 +313,7 @@ internal fun ReceiptImportHost(
             ReceiptReviewDialog(
                 proposal = proposal,
                 activityItems = activityItems,
+                categoryOptions = categoryOptions,
                 onDismiss = { clear() },
                 onApply = { prefill ->
                     if (request == active && mayEdit(active.ownerId)) {
@@ -253,11 +326,15 @@ internal fun ReceiptImportHost(
         ReceiptPhase.ERROR -> AlertDialog(
             onDismissRequest = { clear() },
             title = { Text(when (active.failure) {
+                ReceiptFailure.CAMERA_PERMISSION -> "Δεν δόθηκε πρόσβαση στην κάμερα"
+                ReceiptFailure.QR_LAUNCH -> "Δεν άνοιξε η σάρωση QR"
                 ReceiptFailure.CAMERA_LAUNCH -> "Δεν άνοιξε η κάμερα"
                 ReceiptFailure.PICKER_LAUNCH -> "Δεν άνοιξε η επιλογή φωτογραφίας"
                 else -> "Δεν έγινε αναγνώριση"
             }, modifier = Modifier.testTag("receipt_error_title")) },
             text = { Text(when (active.failure) {
+                ReceiptFailure.CAMERA_PERMISSION -> "Μπορείς να επιλέξεις ήδη υπάρχουσα φωτογραφία ή να επιτρέψεις την κάμερα στις ρυθμίσεις Android."
+                ReceiptFailure.QR_LAUNCH -> "Δοκίμασε ξανά ή εισήγαγε φωτογραφία της απόδειξης."
                 ReceiptFailure.CAMERA_LAUNCH -> "Δοκίμασε ξανά ή επίλεξε φωτογραφία. Δεν έγινε αναγνώριση εικόνας."
                 ReceiptFailure.PICKER_LAUNCH -> "Δοκίμασε ξανά ή χρησιμοποίησε την κάμερα. Δεν έγινε αναγνώριση εικόνας."
                 else -> "Χρησιμοποίησε καθαρή φωτογραφία JPEG ή PNG έως 12 MB, ή συνέχισε χειροκίνητα."
@@ -265,7 +342,7 @@ internal fun ReceiptImportHost(
             confirmButton = { TextButton(onClick = { request = ReceiptRequest(active.ownerId, ReceiptPhase.CHOOSE) }) { Text("Ξανά") } },
             dismissButton = { TextButton(onClick = { clear() }) { Text("Χειροκίνητα") } },
         )
-        ReceiptPhase.CAMERA, ReceiptPhase.PICKER -> Unit
+        ReceiptPhase.CAMERA_PERMISSION, ReceiptPhase.CAMERA_READY, ReceiptPhase.CAMERA, ReceiptPhase.PICKER -> Unit
     }
 }
 
@@ -275,6 +352,7 @@ internal fun ReceiptReviewDialog(
     activityItems: List<ActivityItem>,
     onDismiss: () -> Unit,
     onApply: (ReceiptPrefill) -> Unit,
+    categoryOptions: List<ActivityCategoryOption> = emptyList(),
 ) {
     var amount by remember(proposal) {
         mutableStateOf(proposal.totalCents?.takeIf { proposal.currency == ReceiptCurrency.EUR }
@@ -286,6 +364,12 @@ internal fun ReceiptReviewDialog(
     var useSplit by remember(proposal) { mutableStateOf(false) }
     var lines by remember(proposal) { mutableStateOf(proposal.items.map { receiptAmountText(it.cents) }) }
     var duplicateConfirmed by remember(amount, date, merchant, activityItems, confirmedEuro) { mutableStateOf(false) }
+    val qr = proposal.qrReview
+    val fiscal = qr?.fiscal
+    val qrDisagreement = qr?.requiresConfirmation == true
+    var qrConfirmed by remember(proposal, amount, date, confirmedEuro) { mutableStateOf(false) }
+    val suggestion = receiptCategorySuggestion(activityItems, categoryOptions, merchant)
+    var useSuggestion by remember(suggestion, merchant, useSplit) { mutableStateOf(false) }
     val cents = receiptReviewedCents(amount)
     val parsedDate = runCatching { LocalDate.parse(date) }.getOrNull()?.takeIf { it.year in 2000..2100 }
     val matches = if (confirmedEuro) receiptPurchaseMatches(activityItems, cents, parsedDate, merchant) else emptyList()
@@ -303,7 +387,37 @@ internal fun ReceiptReviewDialog(
                 Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("Το OCR μπορεί να κάνει λάθος. Έλεγξε όλα τα στοιχεία. Η καταχώριση γίνεται μόνο στην επόμενη φόρμα.")
+                Text("Έλεγξε τα στοιχεία της απόδειξης. Η καταχώριση γίνεται μόνο στην επόμενη φόρμα.")
+                if (fiscal != null) {
+                    Text(
+                        "QR ΑΑΔΕ · " + receiptAmountText(fiscal.totalCents) + " € · " +
+                            fiscal.issuedAt.toString().replace('T', ' '),
+                        modifier = Modifier.testTag("receipt_qr_source"),
+                    )
+                    Text("Τα στοιχεία διαβάστηκαν από τον κωδικό, χωρίς ηλεκτρονική επαλήθευση.")
+                    if (qrDisagreement) {
+                        Text(
+                            "Διαφορά QR και OCR. OCR: " +
+                                (qr?.ocrTotalCents?.let(::receiptAmountText) ?: "—") + " · " +
+                                (qr?.ocrDate?.toString() ?: "—") +
+                                (if (qr?.ocrAmbiguous == true) " · Πολλαπλές τιμές OCR." else "") +
+                                ". Έλεγξε ποσό, ημερομηνία και νόμισμα.",
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.testTag("receipt_qr_conflict"),
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(checked = qrConfirmed, onCheckedChange = { qrConfirmed = it },
+                                modifier = Modifier.testTag("receipt_qr_confirmation"))
+                            Text("Έλεγξα και επιβεβαιώνω τα τελικά στοιχεία")
+                        }
+                    }
+                } else if (qr?.status == ReceiptQrStatus.AMBIGUOUS) {
+                    Text("Βρέθηκαν διαφορετικοί QR κωδικοί. Χρησιμοποιήθηκε μόνο OCR.", color = MaterialTheme.colorScheme.error)
+                } else if (qr?.status == ReceiptQrStatus.UNSUPPORTED) {
+                    Text("Ο QR κωδικός δεν υποστηρίζεται. Χρησιμοποιήθηκε μόνο OCR, χωρίς άνοιγμα συνδέσμου.")
+                } else {
+                    Text("Το OCR μπορεί να κάνει λάθος.")
+                }
                 if (proposal.currency != ReceiptCurrency.EUR) {
                     Text(
                         if (proposal.currency == ReceiptCurrency.FOREIGN)
@@ -333,6 +447,14 @@ internal fun ReceiptReviewDialog(
                     label = { Text("Ημερομηνία (ΕΕΕΕ-ΜΜ-ΗΗ)") }, modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )
+                if (suggestion != null && !useSplit) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = useSuggestion, onCheckedChange = { useSuggestion = it },
+                            modifier = Modifier.testTag("receipt_category_confirmation"))
+                        Text("Πρόταση από προηγούμενες κινήσεις: " + suggestion.category +
+                            suggestion.subcategory.takeIf(String::isNotBlank)?.let { " / " + it }.orEmpty())
+                    }
+                }
                 if (matches.isNotEmpty()) {
                     Text("Πιθανή προηγούμενη καταχώριση", color = MaterialTheme.colorScheme.error)
                     matches.forEach { item ->
@@ -368,11 +490,13 @@ internal fun ReceiptReviewDialog(
         confirmButton = {
             TextButton(
                 enabled = confirmedEuro && cents != null && parsedDate != null &&
-                    (matches.isEmpty() || duplicateConfirmed) && (!useSplit || parts.isNotEmpty()),
+                    (matches.isEmpty() || duplicateConfirmed) && (!useSplit || parts.isNotEmpty()) &&
+                    (!qrDisagreement || qrConfirmed),
                 onClick = {
                     if (cents != null && parsedDate != null) onApply(ReceiptPrefill(
                         receiptAmountText(cents), parsedDate.toString(), merchant.trim(),
                         if (useSplit) parts else emptyList(),
+                        suggestion.takeIf { useSuggestion && !useSplit },
                     ))
                 },
                 modifier = Modifier.testTag("receipt_review_apply"),

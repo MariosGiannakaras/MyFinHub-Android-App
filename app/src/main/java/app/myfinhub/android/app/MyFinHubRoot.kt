@@ -411,6 +411,7 @@ fun MyFinHubRoot(
                     !it.saving && it.issue == null
                 } == true,
                 activityItems = (financeState as? FinanceProductState.Ready)?.projection?.activityState?.items.orEmpty(),
+                categoryOptions = (financeState as? FinanceProductState.Ready)?.projection?.activityState?.expenseCategories.orEmpty(),
                 currentOwnerMayEdit = { owner ->
                     val current = authViewModel.state.value as? AuthShellUiState.Ready
                     val finance = financeViewModel.state.value as? FinanceProductState.Ready
