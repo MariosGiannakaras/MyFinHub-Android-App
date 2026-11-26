@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityItem
+import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
@@ -78,5 +79,42 @@ class ReceiptReviewComposeTest {
             }
         }
         composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
+    }
+
+    @Test
+    fun qrDisagreementAndCategorySuggestionRequireDeliberateReview() {
+        var result: ReceiptPrefill? = null
+        val existing = ActivityItem(
+            id = "prior", dateLabel = "01/11/2026", kind = ActivityKind.EXPENSE,
+            title = "TEST STORE", subtitle = "", amount = -5.0, accountLabel = "Cash",
+            category = "Food", subcategory = "Groceries", rawDate = "2026-11-01", note = "TEST STORE",
+            canonicalKind = "expense", financeExpenseContribution = 5.0,
+        )
+        val fiscal = FiscalReceiptQr(1835, java.time.LocalDateTime.of(2026, 11, 26, 10, 37), "synthetic")
+        val proposal = mergeReceiptQr(
+            ReceiptProposal("TEST STORE", LocalDate.of(2026, 11, 25), 1935, ReceiptCurrency.EUR),
+            ReceiptQrRead(ReceiptQrStatus.AADE, fiscal),
+        )
+        composeRule.setContent {
+            MyFinHubTheme {
+                ReceiptReviewDialog(
+                    proposal = proposal,
+                    activityItems = listOf(existing),
+                    categoryOptions = listOf(ActivityCategoryOption("Food", listOf("Groceries"))),
+                    onDismiss = {},
+                    onApply = { result = it },
+                )
+            }
+        }
+        composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
+        composeRule.onNodeWithTag("receipt_qr_confirmation").performScrollTo().performClick()
+        composeRule.onNodeWithTag("receipt_category_confirmation").performScrollTo().performClick()
+        composeRule.onNodeWithTag("receipt_review_apply").assertIsEnabled().performClick()
+        composeRule.runOnIdle {
+            assertEquals(ReceiptPrefill(
+                "18.35", "2026-11-26", "TEST STORE",
+                categorySuggestion = ReceiptCategorySuggestion("Food", "Groceries"),
+            ), result)
+        }
     }
 }

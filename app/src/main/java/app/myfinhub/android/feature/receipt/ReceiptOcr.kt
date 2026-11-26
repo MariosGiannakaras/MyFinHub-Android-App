@@ -130,6 +130,22 @@ private fun matchesModel(file: File, length: Long, hash: String): Boolean {
 
 /** Each recognition owns its own non-thread-safe native recognizer and releases it. */
 internal fun recognizeReceiptBitmap(context: Context, bitmap: Bitmap): ReceiptProposal {
+    // Always decode locally first. A valid fiscal QR remains usable even if
+    // the optional merchant/item OCR recognizer fails.
+    val qr = try { readReceiptQr(bitmap) } catch (_: RuntimeException) { ReceiptQrRead() }
+    val ocr = try {
+        recognizeReceiptTextBitmap(context, bitmap)
+    } catch (failure: Exception) {
+        if (qr.fiscal == null) throw failure
+        ReceiptProposal()
+    } catch (failure: LinkageError) {
+        if (qr.fiscal == null) throw failure
+        ReceiptProposal()
+    }
+    return mergeReceiptQr(ocr, qr)
+}
+
+private fun recognizeReceiptTextBitmap(context: Context, bitmap: Bitmap): ReceiptProposal {
     val root = installModels(context)
     val engine = TessBaseAPI()
     try {

@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.receipt
 
+import android.Manifest
 import android.app.Activity
 import android.app.Instrumentation
 import android.content.Intent
@@ -9,6 +10,10 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.provider.MediaStore
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -17,15 +22,18 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.core.content.FileProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import androidx.test.platform.app.InstrumentationRegistry
 import app.myfinhub.android.AuthTestActivity
 import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.auth.AuthSession
+import app.myfinhub.android.core.security.PinAttemptStatus
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import java.io.File
+import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -41,7 +49,8 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class ReceiptLaunchComposeTest {
-    @get:Rule val composeRule = createAndroidComposeRule<AuthTestActivity>()
+    @get:Rule(order = 0) val cameraPermission = GrantPermissionRule.grant(Manifest.permission.CAMERA)
+    @get:Rule(order = 1) val composeRule = createAndroidComposeRule<AuthTestActivity>()
 
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
 
@@ -144,5 +153,50 @@ class ReceiptLaunchComposeTest {
             instrumentation.removeMonitor(monitor)
             fixture.delete()
         }
+    }
+
+    @Test
+    fun qrScannerCannotPublishAfterLockAndNewRequestIsIndependent() {
+        val owner = AuthSession("synthetic-access", "synthetic-refresh", Long.MAX_VALUE, "test-owner", AssuranceLevel.AAL2)
+        val auth = mutableStateOf<AuthShellUiState>(AuthShellUiState.Ready(owner))
+        val callback = AtomicReference<((ReceiptQrRead) -> Unit)?>(null)
+        val result = ReceiptQrRead(ReceiptQrStatus.AADE,
+            FiscalReceiptQr(1835, LocalDateTime.of(2026, 11, 26, 10, 37), "synthetic"))
+        composeRule.setContent {
+            MyFinHubTheme {
+                ReceiptImportHost(
+                    auth = auth.value,
+                    authorized = auth.value is AuthShellUiState.Ready,
+                    activityItems = emptyList(),
+                    currentOwnerMayEdit = { it == owner.userId && auth.value is AuthShellUiState.Ready },
+                    // Camera hardware is tested separately; this test exercises the production
+                    // request/authority/review boundary using a deterministic decoded result.
+                    qrScanner = { read, _, _ ->
+                        callback.set(read)
+                        Text("Scanner", Modifier.testTag("synthetic_live_scanner"))
+                    },
+                ) {
+                    ProductionQuickEntryScreen(QuickEntryUiState(), {}, {})
+                }
+            }
+        }
+        startReceipt("receipt_scan_qr")
+        composeRule.onNodeWithTag("synthetic_live_scanner").assertIsDisplayed()
+        val stale = requireNotNull(callback.get())
+        composeRule.runOnIdle {
+            auth.value = AuthShellUiState.Locked(owner, false, PinAttemptStatus(true, 5))
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("synthetic_live_scanner").assertDoesNotExist()
+        composeRule.runOnIdle { stale(result) }
+        composeRule.runOnIdle { auth.value = AuthShellUiState.Ready(owner) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("receipt_qr_source").assertDoesNotExist()
+        startReceipt("receipt_scan_qr")
+        composeRule.onNodeWithTag("synthetic_live_scanner").assertIsDisplayed()
+        composeRule.runOnIdle { stale(result) }
+        composeRule.onNodeWithTag("receipt_qr_source").assertDoesNotExist()
+        composeRule.runOnIdle { requireNotNull(callback.get())(result) }
+        composeRule.onNodeWithTag("receipt_review_amount").assertTextContains("18.35")
     }
 }
