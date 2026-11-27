@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate the new Android QR receipt feature PR on its exact head (tracking, Android CI, screenshot regression, both hosted S24 emulator shards and aggregate). Repair any actual failure, merge only on required green gates and clean stable base. Record new QR/permission/auth/finance source+hosted pre-APK audit by delta before separate protected signed physical-test candidate; rc24 remains latest published and does not contain QR support. Owner physical camera/picker/OCR and QR + Activity icon and installed continuity retest, actual Play Protect and D8 stable gate remain outstanding. Web issue #666 tracks companion implementation; no Web code or production finance changed.
+- [ ] Independently verify actual signed rc25 APK hash, enrolled signer, exact CAMERA-only permission delta, executable DEX changes, receipt provider, pinned OCR assets/native ELF and 16 KiB ZIP alignment; integrate source-gate permission assertion into develop. Owner S24 in-place update and live QR, camera/photo OCR, runtime permission grant/denial, lock/cancel, review/category/explicit Save, Activity icons and installed continuity pending. Report actual Play Protect result without bypass; stable D8 pending. Web issue #666 tracks Web implementation.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Validate the new Android QR receipt feature PR on its exact head (tracking, Android CI, screenshot regression, both hosted S24 emulator shards and aggregate). Repair any actual failure, merge only on required green gates and clean stable base. Record new QR/permission/auth/finance source+hosted pre-APK audit by delta before separate protected signed physical-test candidate; rc24 remains latest published and does not contain QR support. Owner physical camera/picker/OCR and QR + Activity icon and installed continuity retest, actual Play Protect and D8 stable gate remain outstanding. Web issue #666 tracks companion implementation; no Web code or production finance changed.
+Next: Independently verify actual signed rc25 APK hash, enrolled signer, exact CAMERA-only permission delta, executable DEX changes, receipt provider, pinned OCR assets/native ELF and 16 KiB ZIP alignment; integrate source-gate permission assertion into develop. Owner S24 in-place update and live QR, camera/photo OCR, runtime permission grant/denial, lock/cancel, review/category/explicit Save, Activity icons and installed continuity pending. Report actual Play Protect result without bypass; stable D8 pending. Web issue #666 tracks Web implementation.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: Validate the new Android QR receipt feature PR on its exact head (tracking
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/receipt-qr-import-20261127
-Current W6.4: Owner rc22 D7 pass; Web parity 6/6 (24/24), rc24 signed and independently audited #549 (7 gates), physical retest pending (7/8 prior delta audit); owner QR feature authored and Web issue #666 opened, exact-head feature CI pending; D8 stable outstanding.
+Issue #155, no open PR, branch android/rc25-published-apk-audit-20261127
+Current W6.4: Owner rc22 D7 pass retained; Web parity 6/6 (24/24). rc25 signed published #551 after six exact-head gates and actual unsigned CAMERA-only permission delta; #550 449 emulator tests passed. New QR delta audit 7/8, independent signed-byte audit and S24 physical retest pending. D8 stable outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate the new Android QR receipt feature PR on its exact head (tracking, Android CI, screenshot regression, both hosted S24 emulator shards and aggregate). Repair any actual failure, merge only on required green gates and clean stable base. Record new QR/permission/auth/finance source+hosted pre-APK audit by delta before separate protected signed physical-test candidate; rc24 remains latest published and does not contain QR support. Owner physical camera/picker/OCR and QR + Activity icon and installed continuity retest, actual Play Protect and D8 stable gate remain outstanding. Web issue #666 tracks companion implementation; no Web code or production finance changed.
+Next Independently verify actual signed rc25 APK hash, enrolled signer, exact CAMERA-only permission delta, executable DEX changes, receipt provider, pinned OCR assets/native ELF and 16 KiB ZIP alignment; integrate source-gate permission assertion into develop. Owner S24 in-place update and live QR, camera/photo OCR, runtime permission grant/denial, lock/cancel, review/category/explicit Save, Activity icons and installed continuity pending. Report actual Play Protect result without bypass; stable D8 pending. Web issue #666 tracks Web implementation.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

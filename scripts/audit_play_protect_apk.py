@@ -18,8 +18,9 @@ RELEASES = {
     "rc22": ("1.0.0-rc22", 10021, "3e79ed72455e4b23b46ecc0c516cff3c9d731787d6c577c71272bd7e9ea5b41d"),
     "rc23": ("1.0.0-rc23", 10022, "3d4562188737d0281f0f2184eb4126e1b06c1183c2625243f940330b76b77b86"),
     "rc24": ("1.0.0-rc24", 10023, "6be67bbaf249c245b151c2abf417b4801806faa47e2e2ea35d303bd7c601b8a7"),
+    "rc25": ("1.0.0-rc25", 10024, "273f23283cb758a43a771155e4397236859a75ccb0b4f044b8d546601363c038"),
 }
-HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24")
+HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25")
 UNATTENDED_INSTALL_PERMISSION = "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"
 DISALLOWED = {
     "android.permission.READ_SMS", "android.permission.RECEIVE_SMS",
@@ -199,10 +200,12 @@ def report(a, b, diff=None):
     removed = sorted(set(a["perms"]) - set(b["perms"]))
     if (older_label, newer_label) in {("rc22", "rc23"), ("rc23", "rc24")} and (added or removed):
         raise AuditError(f"{newer_label} permission set differs from {older_label}; investigate before acceptance")
-    if (older_label, newer_label) == ("rc23", "rc24"):
+    if (older_label, newer_label) == ("rc24", "rc25") and (added != ["android.permission.CAMERA"] or removed):
+        raise AuditError("rc25 permission delta must be exactly CAMERA added and none removed")
+    if (older_label, newer_label) in {("rc23", "rc24"), ("rc24", "rc25")}:
         if diff is None or not any(re.fullmatch(r"classes[0-9]*\.dex", name)
                                    for key in ("added", "removed", "changed") for name in diff[key]):
-            raise AuditError("rc24 executable DEX delta not verified against rc23")
+            raise AuditError(f"{newer_label} executable DEX delta not verified against {older_label}")
     lines = [
         f"# Published MyFinHub APK audit — {older_label} versus {newer_label}", "",
         "Read-only static checks passed for public GitHub Release APK bytes.", "",
@@ -247,7 +250,7 @@ def main():
             for suffix in ("apk", "metadata")
         ]
         if any(optional_paths) and not all(optional_paths):
-            raise AuditError("Provide all rc18, rc20, rc21, rc22, rc23 and rc24 APK/metadata pairs together")
+            raise AuditError("Provide all rc18, rc20, rc21, rc22, rc23, rc24 and rc25 APK/metadata pairs together")
         keys = list(RELEASES) if all(optional_paths) else ["rc16", "rc17"]
         apks = {key: getattr(args, key + "_apk") for key in keys}
         results = {
@@ -256,7 +259,7 @@ def main():
         }
         pairs = [("rc16", "rc17")]
         if all(optional_paths):
-            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22"), ("rc22", "rc23"), ("rc18", "rc23"), ("rc23", "rc24"), ("rc18", "rc24")]
+            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22"), ("rc22", "rc23"), ("rc18", "rc23"), ("rc23", "rc24"), ("rc18", "rc24"), ("rc24", "rc25"), ("rc18", "rc25")]
         output = "\n".join(report(results[older], results[newer], zip_diff(apks[older], apks[newer]))
                            for older, newer in pairs)
         args.report.write_text(output, encoding="utf-8")
