@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.receipt
 
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.activity.ActivityCategoryOption
+import app.myfinhub.android.feature.bankalert.BankAlertParser
 import java.math.BigDecimal
 import java.text.Normalizer
 import java.time.LocalDate
@@ -18,6 +19,7 @@ internal data class ReceiptProposal(
     val items: List<ReceiptLine> = emptyList(),
     val qrReview: ReceiptQrReview? = null,
     val ocrAmbiguous: Boolean = false,
+    val bankAlert: BankAlertParser.Alert? = null,
 )
 internal enum class ReceiptCurrency { EUR, FOREIGN, UNKNOWN }
 data class ReceiptPrefill(
@@ -26,6 +28,7 @@ data class ReceiptPrefill(
     val merchant: String,
     val splitLines: List<ReceiptPrefillLine> = emptyList(),
     val categorySuggestion: ReceiptCategorySuggestion? = null,
+    val bankAlertKind: BankAlertParser.Kind? = null,
 )
 data class ReceiptPrefillLine(val label: String, val amountText: String)
 data class ReceiptCategorySuggestion(val category: String, val subcategory: String = "")
@@ -187,4 +190,15 @@ internal fun receiptCategorySuggestion(
         ReceiptCategorySuggestion(category, subcategory)
     }.distinct()
     return candidates.singleOrNull()
+}
+
+/** Same canonical activity snapshot as receipt duplicates; withdrawal is a cash transfer, not an expense. */
+internal fun bankWithdrawalMatches(items: List<ActivityItem>, cents: Long?, date: LocalDate?): List<ActivityItem> {
+    if (cents == null || cents <= 0 || date == null) return emptyList()
+    return items.filter { item ->
+        val day = runCatching { LocalDate.parse(item.rawDate) }.getOrNull()
+        item.canonicalKind == "withdrawal" && day != null &&
+            kotlin.math.abs(ChronoUnit.DAYS.between(day, date)) <= 3 &&
+            item.amount.isFinite() && kotlin.math.abs(kotlin.math.abs(item.amount) - cents / 100.0) < 1e-8
+    }.distinctBy { it.isLegacyTransaction to it.id }.take(6)
 }

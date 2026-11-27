@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Independently verify actual signed rc25 APK hash, enrolled signer, exact CAMERA-only permission delta, executable DEX changes, receipt provider, pinned OCR assets/native ELF and 16 KiB ZIP alignment; integrate source-gate permission assertion into develop. Owner S24 in-place update and live QR, camera/photo OCR, runtime permission grant/denial, lock/cancel, review/category/explicit Save, Activity icons and installed continuity pending. Report actual Play Protect result without bypass; stable D8 pending. Web issue #666 tracks Web implementation.
+- [ ] Validate #146 user-selected bank alert import on exact-head CI and merge only after six green mandatory gates and clean stable base. Obtain anonymized actual Piraeus purchase and withdrawal templates and real S24 confirmation before asserting parser interoperability. Background SMS intake remains gated by Google Play policy and explicit Android permission/consent decision; no broad SMS or notification-listener access added. #345 shared server PIN compatibility is separate, requires current Web bearer/ticket/real-stack contract and safe native auth lifecycle work; do not activate global PIN or modify backend without evidence. Owner rc25 QR/OCR/Activity delta physical retest and D8 stable promotion remain pending. #149 superseded/closed, #27 permanent index remains open.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Independently verify actual signed rc25 APK hash, enrolled signer, exact CAMERA-only permission delta, executable DEX changes, receipt provider, pinned OCR assets/native ELF and 16 KiB ZIP alignment; integrate source-gate permission assertion into develop. Owner S24 in-place update and live QR, camera/photo OCR, runtime permission grant/denial, lock/cancel, review/category/explicit Save, Activity icons and installed continuity pending. Report actual Play Protect result without bypass; stable D8 pending. Web issue #666 tracks Web implementation.
+Next: Validate #146 user-selected bank alert import on exact-head CI and merge only after six green mandatory gates and clean stable base. Obtain anonymized actual Piraeus purchase and withdrawal templates and real S24 confirmation before asserting parser interoperability. Background SMS intake remains gated by Google Play policy and explicit Android permission/consent decision; no broad SMS or notification-listener access added. #345 shared server PIN compatibility is separate, requires current Web bearer/ticket/real-stack contract and safe native auth lifecycle work; do not activate global PIN or modify backend without evidence. Owner rc25 QR/OCR/Activity delta physical retest and D8 stable promotion remain pending. #149 superseded/closed, #27 permanent index remains open.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: Independently verify actual signed rc25 APK hash, enrolled signer, exact C
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/rc25-published-apk-audit-20261127
-Current W6.4: Owner rc22 D7 pass retained; Web parity 6/6 (24/24). rc25 signed published #551 after six exact-head gates and actual unsigned CAMERA-only permission delta; #550 449 emulator tests passed. New QR delta audit 7/8, independent signed-byte audit and S24 physical retest pending. D8 stable outstanding.
+Issue #155, no open PR, branch android/bank-alert-review-20261127
+Current W6.4: rc25 #552 all seven CI gates and post-merge Android/tracking pass; owner Play Protect PASS; D8 stable and S24 QR/OCR delta pending. Owner active scope extended to all remaining issues; #146 permission-free bank-alert review authored (22 local synthetic parser cases pass), hosted CI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Independently verify actual signed rc25 APK hash, enrolled signer, exact CAMERA-only permission delta, executable DEX changes, receipt provider, pinned OCR assets/native ELF and 16 KiB ZIP alignment; integrate source-gate permission assertion into develop. Owner S24 in-place update and live QR, camera/photo OCR, runtime permission grant/denial, lock/cancel, review/category/explicit Save, Activity icons and installed continuity pending. Report actual Play Protect result without bypass; stable D8 pending. Web issue #666 tracks Web implementation.
+Next Validate #146 user-selected bank alert import on exact-head CI and merge only after six green mandatory gates and clean stable base. Obtain anonymized actual Piraeus purchase and withdrawal templates and real S24 confirmation before asserting parser interoperability. Background SMS intake remains gated by Google Play policy and explicit Android permission/consent decision; no broad SMS or notification-listener access added. #345 shared server PIN compatibility is separate, requires current Web bearer/ticket/real-stack contract and safe native auth lifecycle work; do not activate global PIN or modify backend without evidence. Owner rc25 QR/OCR/Activity delta physical retest and D8 stable promotion remain pending. #149 superseded/closed, #27 permanent index remains open.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

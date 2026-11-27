@@ -229,7 +229,7 @@ fun ProductionQuickEntryScreen(
                     onClick = receiptImport.open,
                     enabled = !mutationInFlight && !mutationBlocked,
                     modifier = Modifier.fillMaxWidth().testTag("quick_entry_receipt"),
-                ) { Text("Εισαγωγή απόδειξης") }
+                ) { Text("Εισαγωγή απόδειξης / SMS") }
             }
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             if (state.kind in FastKinds) {
@@ -317,11 +317,13 @@ fun ProductionQuickEntryScreen(
             }
 
             if (state.kind.needsPrimaryAccount) {
+                val primaryAccounts = if (state.bankAlertDraft) state.accounts.filter { it.isPiraeusFundingAccount }
+                    else state.accounts
                 CompactChoice(
                     label = productionPrimaryAccountLabel(state.kind),
                     selectedId = state.accountId,
-                    choices = state.accounts.map { it.id to it.label },
-                    subtitles = state.accounts.associate { it.id to accountKindLabel(it.kind) },
+                    choices = primaryAccounts.map { it.id to it.label },
+                    subtitles = primaryAccounts.associate { it.id to accountKindLabel(it.kind) },
                     onSelected = { onAction(QuickEntryAction.AccountChanged(it)) },
                     searchable = true,
                 )
@@ -951,6 +953,8 @@ private fun ProductionTransactionSemanticsHint(kind: QuickEntryKind) {
 
 private fun productionSourceOptions(state: QuickEntryUiState): List<QuickEntryAccountOption> =
     when (state.kind) {
+        QuickEntryKind.WITHDRAWAL -> if (state.bankAlertDraft) state.accounts.filter { it.isPiraeusFundingAccount }
+            else state.accounts
         QuickEntryKind.SAVING ->
             state.accounts.filter(QuickEntryAccountOption::isSavingContributionSource)
         QuickEntryKind.CARD_PAYMENT -> state.cardPaymentSourceAccountIds?.let { ids ->
@@ -965,7 +969,7 @@ private fun productionDestinationOptions(state: QuickEntryUiState): List<QuickEn
         QuickEntryKind.SAVING -> state.accounts.filter(QuickEntryAccountOption::isSavingsDestination)
         else -> state.accounts
     }.filter { it.id != state.fromAccountId }
-    return if (state.kind == QuickEntryKind.SAVING) filtered
+    return if (state.kind == QuickEntryKind.SAVING || state.bankAlertDraft) filtered
         else filtered.ifEmpty { state.accounts.filter { it.id != state.fromAccountId } }
 }
 

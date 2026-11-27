@@ -9,6 +9,8 @@ import app.myfinhub.android.feature.quickentry.QuickEntryKind
 import app.myfinhub.android.feature.quickentry.canSubmitDraft
 import app.myfinhub.android.feature.quickentry.reduceQuickEntry
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
+import app.myfinhub.android.feature.bankalert.BankAlertParser
+import app.myfinhub.android.feature.receipt.ReceiptPrefill
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -18,6 +20,44 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class QuickEntryCanonicalProjectionTest {
+    @Test
+    fun bankAlertPurchaseAndWithdrawalRequireCanonicalFundingWithoutAutomaticSelection() {
+        val document = projectionFixture()
+        val date = LocalDate.parse("2026-09-02")
+        val initial = projectQuickEntryState(document, date, QuickEntryUiState())
+        val purchase = reduceQuickEntry(initial, QuickEntryAction.ReceiptPrefilled(ReceiptPrefill(
+            "4.50", date.toString(), "TEST COFFEE", bankAlertKind = BankAlertParser.Kind.PURCHASE,
+        )))
+        val refreshedPurchase = projectQuickEntryState(document, date, purchase)
+        assertTrue(refreshedPurchase.bankAlertDraft)
+        assertEquals(QuickEntryKind.EXPENSE, refreshedPurchase.kind)
+        assertEquals("", refreshedPurchase.accountId)
+        assertFalse(refreshedPurchase.canSubmitDraft())
+        val categorized = reduceQuickEntry(refreshedPurchase, QuickEntryAction.CategoryChanged("Μετακίνηση"))
+        val wrong = reduceQuickEntry(categorized, QuickEntryAction.AccountChanged("cash-main"))
+        assertFalse(wrong.canSubmitDraft())
+        val valid = reduceQuickEntry(categorized, QuickEntryAction.AccountChanged("bank-main"))
+        assertTrue(projectQuickEntryState(document, date, valid).canSubmitDraft())
+
+        val withdrawal = reduceQuickEntry(initial, QuickEntryAction.ReceiptPrefilled(ReceiptPrefill(
+            "20.00", date.toString(), "TEST ATM", bankAlertKind = BankAlertParser.Kind.WITHDRAWAL,
+        )))
+        val refreshed = projectQuickEntryState(document, date, withdrawal)
+        assertEquals(QuickEntryKind.WITHDRAWAL, refreshed.kind)
+        assertEquals("", refreshed.fromAccountId)
+        assertEquals("", refreshed.toAccountId)
+        assertFalse(refreshed.canSubmitDraft())
+        val from = reduceQuickEntry(refreshed, QuickEntryAction.FromAccountChanged("bank-main"))
+        assertFalse(projectQuickEntryState(document, date, from).canSubmitDraft())
+        val wrongDestination = reduceQuickEntry(from, QuickEntryAction.ToAccountChanged("save-main"))
+        assertFalse(wrongDestination.canSubmitDraft())
+        val to = reduceQuickEntry(from, QuickEntryAction.ToAccountChanged("cash-main"))
+        val ready = projectQuickEntryState(document, date, to)
+        assertTrue(ready.canSubmitDraft())
+        assertFalse(ready.persisted)
+        assertFalse(reduceQuickEntry(ready, QuickEntryAction.Reset).bankAlertDraft)
+    }
+
     @Test
     fun debitExpenseKeepsExplicitAccountChoiceAcrossFinanceRefreshes() {
         val document = projectionFixture()

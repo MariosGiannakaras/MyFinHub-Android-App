@@ -12,6 +12,7 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityKind
+import app.myfinhub.android.feature.bankalert.BankAlertParser
 import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import org.junit.Assert.assertEquals
@@ -24,6 +25,39 @@ import java.time.LocalDate
 @RunWith(AndroidJUnit4::class)
 class ReceiptReviewComposeTest {
     @get:Rule val composeRule = createComposeRule()
+
+    @Test
+    fun suspectedWithdrawalDuplicateRequiresBothBankAndDuplicateConfirmations() {
+        val parsed = requireNotNull(BankAlertParser.parse(
+            "PIRAEUS; WITHDRAWAL; card XX5678; 2026-11-26 09:15; EUR 20.00; ATM: TEST ATM",
+        ))
+        var result: ReceiptPrefill? = null
+        val existing = ActivityItem(
+            id = "existing-withdrawal", dateLabel = "26/11/2026", kind = ActivityKind.TRANSFER,
+            title = "ATM", subtitle = "", amount = 20.0, accountLabel = "Bank",
+            category = null, rawDate = "2026-11-26", note = "ATM", canonicalKind = "withdrawal",
+        )
+        composeRule.setContent {
+            MyFinHubTheme {
+                ReceiptReviewDialog(
+                    proposal = ReceiptProposal(parsed.merchant, parsed.date, parsed.cents,
+                        ReceiptCurrency.EUR, bankAlert = parsed),
+                    activityItems = listOf(existing),
+                    onDismiss = {},
+                    onApply = { result = it },
+                )
+            }
+        }
+        composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
+        composeRule.onNodeWithTag("bank_alert_confirmation").performScrollTo().performClick()
+        composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
+        composeRule.onNodeWithTag("receipt_duplicate_confirmation").performScrollTo().performClick()
+        composeRule.onNodeWithTag("receipt_review_apply").assertIsEnabled().performClick()
+        composeRule.runOnIdle {
+            assertEquals(ReceiptPrefill("20.00", "2026-11-26", "TEST ATM",
+                bankAlertKind = BankAlertParser.Kind.WITHDRAWAL), result)
+        }
+    }
 
     @Test
     fun productionExpenseExposesReceiptEntryOnlyThroughAuthorizedHost() {
