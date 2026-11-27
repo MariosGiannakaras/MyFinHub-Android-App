@@ -39,7 +39,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          for variant in "rc16 10015" "rc17 10016" "rc18 10017" "rc20 10019" "rc21 10020" "rc22 10021" "rc23 10022" "rc24 10023" "rc25 10024" "rc26 10025"; do
+          for variant in "rc16 10015" "rc17 10016" "rc18 10017" "rc20 10019" "rc21 10020" "rc22 10021" "rc23 10022" "rc24 10023" "rc25 10024" "rc26 10025" "rc27 10026"; do
             read -r label number <<< "$variant"
             mkdir -p "apk-audit/$label"
             gh release download "v1.0.0-$label" --repo "$GITHUB_REPOSITORY" \
@@ -72,6 +72,8 @@ jobs:
             --rc25-metadata apk-audit/rc25/release-metadata.json \
             --rc26-apk apk-audit/rc26/MyFinHub-1.0.0-rc26-10025.apk \
             --rc26-metadata apk-audit/rc26/release-metadata.json \
+            --rc27-apk apk-audit/rc27/MyFinHub-1.0.0-rc27-10026.apk \
+            --rc27-metadata apk-audit/rc27/release-metadata.json \
             --aapt "$ANDROID_HOME/build-tools/37.0.0/aapt" \
             --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner" \
             --report "$RUNNER_TEMP/published-apk-audit.md"
@@ -109,6 +111,15 @@ jobs:
             printf 'Actual receipt FileProvider is nonexported with explicit URI grants; rc25/rc26 permission sets match, target SDK 37 and executable DEX delta verified. 16 KiB APK ZIP alignment passed.\n\n'
             printf '\x60\x60\x60text\n'
             python3 scripts/verify_receipt_apk.py "$rc26"
+            printf '\x60\x60\x60\n'
+          } | tee -a "$RUNNER_TEMP/published-apk-audit.md"
+          rc27=apk-audit/rc27/MyFinHub-1.0.0-rc27-10026.apk
+          "$ANDROID_HOME/build-tools/37.0.0/zipalign" -c -P 16 4 "$rc27"
+          {
+            printf '\n## rc27 published receipt assets, bank SMS receiver and provider\n\n'
+            printf 'Actual bank SMS receiver requires BROADCAST_SMS, private permission delta is RECEIVE_SMS and POST_NOTIFICATIONS only; same enrolled signer, SDK 37, receipt provider and DEX delta verified. 16 KiB APK ZIP alignment passed.\n\n'
+            printf '\x60\x60\x60text\n'
+            python3 scripts/verify_receipt_apk.py "$rc27"
             printf '\x60\x60\x60\n'
           } | tee -a "$RUNNER_TEMP/published-apk-audit.md"
           cat "$RUNNER_TEMP/published-apk-audit.md" >> "$GITHUB_STEP_SUMMARY"
