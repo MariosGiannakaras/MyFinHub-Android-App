@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate #345 device metadata/nickname checkpoint on all six exact-head mandatory checks, then merge only with clean review and stable base. Implement separate shared-PIN bearer/ticket/auth lifecycle including recovery and real-stack tests without weakening local lock, owner+AAL2/device/RLS. Do not activate global PIN or alter Web backend. #146 source is merged; sanitized actual Piraeus purchase and withdrawal templates and S24 confirmation are still required for real-format interoperability. Background ingestion remains gated by Google Play policy and explicit permission/consent decision. Owner rc25 QR/OCR/Activity physical retest and D8 stable promotion still pending; #149 superseded/closed, #27 permanent index stays open.
+- [ ] Validate the #345 isolated native app-lock transport checkpoint on all six exact-head mandatory checks, then merge only with clean review and stable base. Integrate the memory-only ticket with protected request headers, 423 recovery, exact session/local lock/foreground/idle gating, PIN and recovery UI, and isolated real-stack tests; do not activate global PIN, weaken owner+AAL2/device/RLS or edit Web backend. #146 source merged; anonymized actual Piraeus purchase/withdrawal templates and physical S24 confirmation still needed. Background ingestion remains gated by distribution policy and explicit permission/consent decision. Owner rc25 QR/OCR/Activity physical retest and D8 stable promotion remain pending; #149 superseded/closed, #27 permanent.
 
 ## Completed foundations
 
