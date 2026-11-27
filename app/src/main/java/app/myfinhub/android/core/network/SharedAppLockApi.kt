@@ -62,8 +62,8 @@ internal enum class SharedAppLockFailure {
 
 /**
  * Native bearer-only transport for the canonical Web app-lock endpoint.
- * This deliberately has no storage, UI, background retries, configuration/activation action,
- * or finance request integration. Lifecycle ownership must be implemented before runtime use.
+ * This deliberately has no storage, UI, background retries or configuration/activation action.
+ * The auth shell owns lifecycle transitions; the protected API uses a separate memory-only grant.
  */
 internal class SharedAppLockApi(
     private val configuration: AppConfiguration,

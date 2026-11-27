@@ -12,6 +12,7 @@ import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.network.MyFinHubApi
 import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
+import app.myfinhub.android.core.network.productionSharedAppLockAuthority
 import app.myfinhub.android.core.security.AndroidKeystoreCipher
 import app.myfinhub.android.core.security.CardDetailsVault
 import app.myfinhub.android.core.security.DataStoreEncryptedCardDetailsVault
@@ -89,6 +90,7 @@ class CardSecretViewModel internal constructor(
         api = OkHttpMyFinHubApi(
             configuration = AppConfiguration.fromBuildConfig(),
             client = NetworkClientFactory.create(),
+            appLockAuthority = productionSharedAppLockAuthority,
         ),
         cvvVault = DataStoreEncryptedCvvVault(
             context = application,

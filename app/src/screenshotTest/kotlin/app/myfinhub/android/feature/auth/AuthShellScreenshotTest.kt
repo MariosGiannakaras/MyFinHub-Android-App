@@ -51,9 +51,40 @@ fun AuthLockedPinFallbackCompactLightScreenshot() {
     )
 }
 
+@PreviewTest
+@Preview(
+    name = "auth_shared_pin_compact_light",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true,
+)
 @Composable
-private fun AuthFixture(state: AuthShellUiState) {
-    MyFinHubTheme(darkTheme = false) {
+fun AuthSharedPinCompactLightScreenshot() {
+    AuthFixture(AuthShellUiState.SharedLocked(syntheticSession(), requiresPin = true))
+}
+
+@PreviewTest
+@Preview(
+    name = "auth_shared_pin_unavailable_dark_large_font",
+    widthDp = 412,
+    heightDp = 915,
+    fontScale = 1.5f,
+    showBackground = true,
+)
+@Composable
+fun AuthSharedPinUnavailableDarkLargeFontScreenshot() {
+    AuthFixture(
+        AuthShellUiState.SharedLocked(
+            syntheticSession(),
+            message = "Η προστασία του κοινού PIN δεν είναι διαθέσιμη. Δοκίμασε ξανά.",
+        ),
+        darkTheme = true,
+    )
+}
+
+@Composable
+private fun AuthFixture(state: AuthShellUiState, darkTheme: Boolean = false) {
+    MyFinHubTheme(darkTheme = darkTheme) {
         AuthShellScreen(
             state = state,
             onSignIn = { _, password -> password.fill('\u0000') },

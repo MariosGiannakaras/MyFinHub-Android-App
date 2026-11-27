@@ -53,6 +53,7 @@ import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
+import app.myfinhub.android.core.network.productionSharedAppLockAuthority
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.network.WebAccountSecurityChange
@@ -163,7 +164,7 @@ fun MyFinHubRoot(
     var accountMetadataWriteJob by remember { mutableStateOf<Job?>(null) }
     var accountMetadataSaving by remember { mutableStateOf(false) }
     val accountMetadataApi = remember {
-        OkHttpMyFinHubApi(AppConfiguration.fromBuildConfig(), NetworkClientFactory.create())
+        OkHttpMyFinHubApi(AppConfiguration.fromBuildConfig(), NetworkClientFactory.create(), productionSharedAppLockAuthority)
     }
     var accountMetadata by remember { mutableStateOf<Map<String, AccountMetadataRecord>>(emptyMap()) }
     var accountMetadataLoaded by remember { mutableStateOf(false) }
@@ -178,7 +179,16 @@ fun MyFinHubRoot(
     var securitySaving by remember { mutableStateOf(false) }
     var securityFeedback by remember { mutableStateOf<String?>(null) }
 
-    val authState by authViewModel.state.collectAsStateWithLifecycle()
+    val observedAuthState by authViewModel.state.collectAsStateWithLifecycle()
+    val sharedLockRevision by authViewModel.sharedLockRevision.collectAsStateWithLifecycle()
+    // Observe the request authority independently of the asynchronous auth ViewModel
+    // transition so revoked credentials cannot paint another finance frame.
+    val authState = remember(observedAuthState, sharedLockRevision) {
+        val ready = observedAuthState as? AuthShellUiState.Ready
+        if (ready != null && !authViewModel.canPresentSharedLock(ready.session)) {
+            AuthShellUiState.SharedLocked(ready.session, message = "Απαιτείται νέος έλεγχος του κοινού PIN.")
+        } else observedAuthState
+    }
     val networkStatus by financeViewModel.networkStatus.collectAsStateWithLifecycle()
     val observedFinanceState by financeViewModel.state.collectAsStateWithLifecycle()
     val attachedFinanceOnlineAuthority by financeViewModel.presentationOnlineAuthority.collectAsStateWithLifecycle()
@@ -244,7 +254,8 @@ fun MyFinHubRoot(
         if (ready != null && !ready.offline) {
             when (val result = accountMetadataApi.loadAccountMetadata(ready.session)) {
                 is ApiResult.Success -> {
-                    if (mayPublishRootServerSnapshot(ready.session, authViewModel.state.value)) {
+                    if (authViewModel.canPresentSharedLock(ready.session) &&
+                        mayPublishRootServerSnapshot(ready.session, authViewModel.state.value)) {
                         accountMetadata = result.value
                         metadataSessionKey = ready.session
                         accountMetadataLoaded = true
@@ -265,7 +276,8 @@ fun MyFinHubRoot(
         if (ready != null && !ready.offline) {
             when (val result = accountMetadataApi.loadServerFinanceHistory(ready.session)) {
                 is ApiResult.Success -> {
-                    if (mayPublishRootServerSnapshot(ready.session, authViewModel.state.value)) {
+                    if (authViewModel.canPresentSharedLock(ready.session) &&
+                        mayPublishRootServerSnapshot(ready.session, authViewModel.state.value)) {
                         serverHistory = result.value
                         serverHistorySessionKey = ready.session
                         serverHistoryLoaded = true
@@ -413,7 +425,7 @@ fun MyFinHubRoot(
                 activityItems = (financeState as? FinanceProductState.Ready)?.projection?.activityState?.items.orEmpty(),
                 categoryOptions = (financeState as? FinanceProductState.Ready)?.projection?.activityState?.expenseCategories.orEmpty(),
                 currentOwnerMayEdit = { owner ->
-                    val current = authViewModel.state.value as? AuthShellUiState.Ready
+                    val current = authViewModel.currentSharedReady()
                     val finance = financeViewModel.state.value as? FinanceProductState.Ready
                     current != null && current.session.userId == owner &&
                         finance != null && !finance.saving && finance.issue == null &&
@@ -436,6 +448,10 @@ fun MyFinHubRoot(
                         onVerifyPin = authViewModel::verifyPin,
                         onBiometricSuccess = authViewModel::biometricSucceeded,
                         onPinFallbackRequested = authViewModel::requestPinFallback,
+                        onRetrySharedLock = authViewModel::retrySharedStatus,
+                        onVerifySharedPin = authViewModel::verifySharedPin,
+                        onRecoverSharedPin = authViewModel::recoverSharedPin,
+                        onSharedLogout = authViewModel::logout,
                         readyContent = {
                             FinanceProductSurface(
                                 state = financeState,
@@ -457,7 +473,7 @@ fun MyFinHubRoot(
                                 accountSecuritySaving = securitySaving,
                                 accountSecurityFeedback = securityFeedback,
                                 onChangeAccountSecurity = { change ->
-                                    val authorized = authViewModel.state.value as? AuthShellUiState.Ready
+                                    val authorized = authViewModel.currentSharedReady()
                                     if (!securitySaving && authorized != null && !authorized.offline &&
                                         authorized.session.assuranceLevel ==
                                             app.myfinhub.android.core.auth.AssuranceLevel.AAL2) {
@@ -466,7 +482,7 @@ fun MyFinHubRoot(
                                         securityFeedback = null
                                         securityWriteJob = accountMetadataScope.launch {
                                             val reply = accountMetadataApi.changeAccountSecurity(original, change)
-                                            val active = authViewModel.state.value as? AuthShellUiState.Ready
+                                            val active = authViewModel.currentSharedReady()
                                                 ?: return@launch
                                             if (active.offline || active.session.userId != original.userId ||
                                                 active.session.accessToken != original.accessToken) return@launch
@@ -534,7 +550,7 @@ fun MyFinHubRoot(
                                 onSaveSavingsGoal = financeViewModel::saveSavingsGoal,
                                 onDeleteSavingsGoal = financeViewModel::deleteSavingsGoal,
                                 onSaveAccountIban = { id, rawIban ->
-                                    val sessionReady = authViewModel.state.value as? AuthShellUiState.Ready
+                                    val sessionReady = authViewModel.currentSharedReady()
                                     val ready = financeViewModel.state.value as? FinanceProductState.Ready
                                     val account = ready?.projection?.moneyState?.accounts?.singleOrNull { it.id == id }
                                     val eligible = account?.canonicalKind in setOf("bank", "savings")
@@ -551,7 +567,7 @@ fun MyFinHubRoot(
                                             val response = accountMetadataApi.updateAccountIban(
                                                 session, id, rawIban, revision,
                                             )
-                                            val fresh = authViewModel.state.value as? AuthShellUiState.Ready
+                                            val fresh = authViewModel.currentSharedReady()
                                                 ?: return@launch
                                             if (!mayPublishRootServerSnapshot(session, fresh) ||
                                                 metadataSessionKey?.let {
@@ -568,7 +584,7 @@ fun MyFinHubRoot(
                                                     accountMetadataLoaded = false
                                                     accountMetadata = emptyMap()
                                                     val reload = accountMetadataApi.loadAccountMetadata(session)
-                                                    val check = authViewModel.state.value as? AuthShellUiState.Ready
+                                                    val check = authViewModel.currentSharedReady()
                                                     if (check != null &&
                                                         mayPublishRootServerSnapshot(session, check)) {
                                                         if (reload is ApiResult.Success) {

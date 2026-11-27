@@ -9,6 +9,8 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.fragment.app.FragmentActivity
 import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.auth.AuthFactor
@@ -141,6 +143,53 @@ class AuthShellTest {
         composeRule.runOnIdle { currentState = AuthShellUiState.Login() }
         composeRule.onNodeWithText("Σύνδεση στο MyFinHub").assertIsDisplayed()
         composeRule.onNodeWithText("Ιδιωτικό οικονομικό περιεχόμενο").assertDoesNotExist()
+    }
+
+    @Test
+    fun sharedLockAndRecoveryNeverMountPrivateFinanceUntilExplicitReady() {
+        var currentState by mutableStateOf<AuthShellUiState>(
+            AuthShellUiState.SharedLocked(aal2Session()),
+        )
+        var retryRequests = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                AuthShellScreen(
+                    state = currentState,
+                    onSignIn = { _, password -> password.fill('\u0000') },
+                    onSubmitTotp = { it.fill('\u0000') },
+                    onEnrollPin = { pin, confirmation -> pin.fill('\u0000'); confirmation.fill('\u0000') },
+                    onVerifyPin = { it.fill('\u0000') },
+                    onBiometricSuccess = {},
+                    onPinFallbackRequested = {},
+                    readyContent = { Text("Private finance after shared unlock") },
+                    biometricGateway = FakeBiometricGateway(BiometricCapability.UNAVAILABLE),
+                    onRetrySharedLock = { retryRequests++ },
+                )
+            }
+        }
+        composeRule.onNodeWithText("Κοινό PIN MyFinHub").assertIsDisplayed()
+        composeRule.onNodeWithText("Private finance after shared unlock").assertDoesNotExist()
+        composeRule.onNodeWithText("Κοινό PIN (4 ψηφία)").assertDoesNotExist()
+        composeRule.onNodeWithText("Νέος έλεγχος προστασίας").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, retryRequests)
+            currentState = AuthShellUiState.SharedLocked(aal2Session(), requiresPin = true)
+        }
+        composeRule.onNodeWithText("Κοινό PIN (4 ψηφία)").assertIsDisplayed()
+        composeRule.onNodeWithText("Ξέχασα το κοινό PIN").performScrollTo().performClick()
+        composeRule.onNodeWithText("Αλλαγή κοινού PIN").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Κωδικός TOTP").assertExists()
+        composeRule.onNodeWithText("Private finance after shared unlock").assertDoesNotExist()
+        composeRule.onNodeWithText("Επιστροφή στο PIN").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            currentState = AuthShellUiState.SharedLocked(aal2Session(), requiresPin = true,
+                message = "Το κοινό PIN άλλαξε. Ξεκλείδωσε με το νέο PIN.")
+        }
+        composeRule.onNodeWithText("Private finance after shared unlock").assertDoesNotExist()
+        composeRule.runOnIdle { currentState = AuthShellUiState.Ready(aal2Session()) }
+        composeRule.onNodeWithText("Private finance after shared unlock").assertIsDisplayed()
+        composeRule.runOnIdle { currentState = AuthShellUiState.SharedLocked(aal2Session()) }
+        composeRule.onNodeWithText("Private finance after shared unlock").assertDoesNotExist()
     }
 
     private fun aal1Session() = AuthSession(
