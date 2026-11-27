@@ -52,12 +52,13 @@ jobs:
           target: default
           arch: x86_64
           profile: pixel_6
+          ram-size: 4096M
           disable-animations: true
           force-avd-creation: true
           emulator-options: >-
             -no-window -no-audio -no-boot-anim
             -no-snapshot-load -no-snapshot-save
-            -gpu swiftshader_indirect
+            -gpu software
             -camera-back none -camera-front none
           script: |
             ./gradlew :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace
@@ -112,12 +113,13 @@ jobs:
           target: default
           arch: x86_64
           profile: pixel_6
+          ram-size: 4096M
           disable-animations: true
           force-avd-creation: true
           emulator-options: >-
             -no-window -no-audio -no-boot-anim
             -no-snapshot-load -no-snapshot-save
-            -gpu swiftshader_indirect
+            -gpu software
             -camera-back none -camera-front none
           script: ./gradlew :benchmark:connectedBenchmarkAndroidTest -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=Macrobenchmark --stacktrace
 
