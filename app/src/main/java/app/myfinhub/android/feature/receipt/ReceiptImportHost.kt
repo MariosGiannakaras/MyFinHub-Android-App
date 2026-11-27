@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -42,6 +43,7 @@ import androidx.core.content.ContextCompat
 import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.auth.AuthShellUiState
+import app.myfinhub.android.feature.bankalert.BankAlertParser
 import java.io.File
 import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
@@ -53,7 +55,7 @@ internal data class ReceiptImportController(
 )
 internal val LocalReceiptImportController = staticCompositionLocalOf<ReceiptImportController?> { null }
 
-private enum class ReceiptPhase { CHOOSE, CAMERA_PERMISSION, CAMERA_READY, CAMERA, QR_SCAN, PICKER, RECOGNIZE, REVIEW, ERROR }
+private enum class ReceiptPhase { CHOOSE, BANK_TEXT, CAMERA_PERMISSION, CAMERA_READY, CAMERA, QR_SCAN, PICKER, RECOGNIZE, REVIEW, ERROR }
 private enum class ReceiptFailure { CAMERA_PERMISSION, CAMERA_LAUNCH, QR_LAUNCH, PICKER_LAUNCH, RECOGNITION }
 private data class ReceiptRequest(
     val ownerId: String,
@@ -176,7 +178,8 @@ internal fun ReceiptImportHost(
     }
     LaunchedEffect(active, readyOwner) {
         // A live preview is never resumed automatically after lock/authority loss.
-        if (active?.phase == ReceiptPhase.QR_SCAN && active.ownerId != readyOwner) {
+        if (active != null && (active.phase in setOf(ReceiptPhase.QR_SCAN, ReceiptPhase.BANK_TEXT) ||
+                active.proposal?.bankAlert != null) && active.ownerId != readyOwner) {
             if (request == active) clear()
             return@LaunchedEffect
         }
@@ -251,7 +254,7 @@ internal fun ReceiptImportHost(
     when (active.phase) {
         ReceiptPhase.CHOOSE -> AlertDialog(
             onDismissRequest = { clear() },
-            title = { Text("Εισαγωγή απόδειξης") },
+            title = { Text("Εισαγωγή απόδειξης ή SMS") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Η αναγνώριση γίνεται στη συσκευή. Θα ελέγξεις τα στοιχεία πριν από την καταχώριση.")
@@ -260,6 +263,14 @@ internal fun ReceiptImportHost(
                         modifier = Modifier.fillMaxWidth().testTag("receipt_scan_qr"),
                     ) { Text("Σάρωση QR Code") }
                     Text("Ή φωτογράφισε ολόκληρη την απόδειξη για κατάστημα και είδη.")
+                    TextButton(
+                        onClick = {
+                            if (mayEdit(active.ownerId) && request == active) {
+                                request = active.copy(phase = ReceiptPhase.BANK_TEXT)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("bank_alert_import"),
+                    ) { Text("Εισαγωγή τραπεζικού SMS") }
                 }
             },
             confirmButton = {
@@ -280,6 +291,17 @@ internal fun ReceiptImportHost(
                     },
                     modifier = Modifier.testTag("receipt_gallery"),
                 ) { Text("Φωτογραφία") }
+            },
+        )
+        ReceiptPhase.BANK_TEXT -> BankAlertTextDialog(
+            onDismiss = { clear() },
+            onParsed = { alert ->
+                if (request == active && mayEdit(active.ownerId)) {
+                    request = active.copy(phase = ReceiptPhase.REVIEW, proposal = ReceiptProposal(
+                        merchant = alert.merchant, date = alert.date, totalCents = alert.cents,
+                        currency = ReceiptCurrency.EUR, bankAlert = alert,
+                    ))
+                }
             },
         )
         ReceiptPhase.QR_SCAN -> qrScanner(
@@ -347,6 +369,53 @@ internal fun ReceiptImportHost(
 }
 
 @Composable
+internal fun BankAlertTextDialog(
+    onDismiss: () -> Unit,
+    onParsed: (BankAlertParser.Alert) -> Unit,
+) {
+    // No automatic clipboard/inbox access or rememberSaveable. Raw text is disposed with the dialog.
+    var text by remember { mutableStateOf("") }
+    var rejected by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Τραπεζικό SMS") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Αντέγραψε μόνο την ειδοποίηση αγοράς ή ανάληψης Πειραιώς. Μην επικολλήσεις κωδικούς ασφαλείας. Δεν διαβάζονται άλλα μηνύματα.")
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { value ->
+                        if (value.length <= 1500) { text = value; rejected = false }
+                        else { text = ""; rejected = true }
+                    },
+                    label = { Text("Κείμενο ειδοποίησης") },
+                    modifier = Modifier.fillMaxWidth().testTag("bank_alert_text"),
+                    minLines = 3, maxLines = 6,
+                    keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
+                )
+                if (rejected) Text(
+                    "Δεν αναγνωρίστηκε με ασφάλεια αγορά ή ανάληψη σε ευρώ. Συνέχισε χειροκίνητα.",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("bank_alert_rejected"),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = text.isNotBlank(),
+                onClick = {
+                    val alert = BankAlertParser.parse(text)
+                    if (alert == null) { text = ""; rejected = true }
+                    else { text = ""; onParsed(alert) }
+                },
+                modifier = Modifier.testTag("bank_alert_parse"),
+            ) { Text("Ανάλυση") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Ακύρωση") } },
+    )
+}
+
+@Composable
 internal fun ReceiptReviewDialog(
     proposal: ReceiptProposal,
     activityItems: List<ActivityItem>,
@@ -368,11 +437,16 @@ internal fun ReceiptReviewDialog(
     val fiscal = qr?.fiscal
     val qrDisagreement = qr?.requiresConfirmation == true
     var qrConfirmed by remember(proposal, amount, date, confirmedEuro) { mutableStateOf(false) }
-    val suggestion = receiptCategorySuggestion(activityItems, categoryOptions, merchant)
+    val bankAlert = proposal.bankAlert
+    val withdrawal = bankAlert?.kind == BankAlertParser.Kind.WITHDRAWAL
+    var bankConfirmed by remember(proposal, amount, date, merchant) { mutableStateOf(false) }
+    val suggestion = if (withdrawal) null else receiptCategorySuggestion(activityItems, categoryOptions, merchant)
     var useSuggestion by remember(suggestion, merchant, useSplit) { mutableStateOf(false) }
     val cents = receiptReviewedCents(amount)
     val parsedDate = runCatching { LocalDate.parse(date) }.getOrNull()?.takeIf { it.year in 2000..2100 }
-    val matches = if (confirmedEuro) receiptPurchaseMatches(activityItems, cents, parsedDate, merchant) else emptyList()
+    val matches = if (!confirmedEuro) emptyList() else if (withdrawal)
+        bankWithdrawalMatches(activityItems, cents, parsedDate)
+    else receiptPurchaseMatches(activityItems, cents, parsedDate, merchant)
     val reviewedLines = proposal.items.mapIndexedNotNull { index, item ->
         receiptReviewedCents(lines[index])?.let { ReceiptLine(item.label, it) }
     }
@@ -381,14 +455,27 @@ internal fun ReceiptReviewDialog(
         reviewedReceiptSplit(reviewedLines, cents, confirmedEuro) else emptyList()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Έλεγχος απόδειξης") },
+        title = { Text(if (bankAlert != null) "Έλεγχος τραπεζικής ειδοποίησης" else "Έλεγχος απόδειξης") },
         text = {
             Column(
                 Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("Έλεγξε τα στοιχεία της απόδειξης. Η καταχώριση γίνεται μόνο στην επόμενη φόρμα.")
-                if (fiscal != null) {
+                Text(if (bankAlert != null) "Έλεγξε την κίνηση. Καμία καταχώριση δεν γίνεται πριν επιλέξεις λογαριασμό και πατήσεις Καταχώριση."
+                    else "Έλεγξε τα στοιχεία της απόδειξης. Η καταχώριση γίνεται μόνο στην επόμενη φόρμα.")
+                if (bankAlert != null) {
+                    Text((if (withdrawal) "Ανάληψη προς μετρητά" else "Αγορά με χρεωστική") +
+                        " · κάρτα •••• " + bankAlert.lastFour +
+                        (bankAlert.time?.let { " · " + it.toString() } ?: "") +
+                        bankAlert.country.takeIf { it.isNotBlank() }?.let { " · " + it }.orEmpty(),
+                        modifier = Modifier.testTag("bank_alert_summary"))
+                    Text("Το μήνυμα δεν επαληθεύεται από την τράπεζα. Δεν αντιστοιχίζεται αυτόματα λογαριασμός.")
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = bankConfirmed, onCheckedChange = { bankConfirmed = it },
+                            modifier = Modifier.testTag("bank_alert_confirmation"))
+                        Text("Επιβεβαιώνω ότι ολοκληρώθηκε με χρεωστική κάρτα")
+                    }
+                } else if (fiscal != null) {
                     Text(
                         "QR ΑΑΔΕ · " + receiptAmountText(fiscal.totalCents) + " € · " +
                             fiscal.issuedAt.toString().replace('T', ' '),
@@ -491,12 +578,13 @@ internal fun ReceiptReviewDialog(
             TextButton(
                 enabled = confirmedEuro && cents != null && parsedDate != null &&
                     (matches.isEmpty() || duplicateConfirmed) && (!useSplit || parts.isNotEmpty()) &&
-                    (!qrDisagreement || qrConfirmed),
+                    (!qrDisagreement || qrConfirmed) && (bankAlert == null || bankConfirmed),
                 onClick = {
                     if (cents != null && parsedDate != null) onApply(ReceiptPrefill(
                         receiptAmountText(cents), parsedDate.toString(), merchant.trim(),
                         if (useSplit) parts else emptyList(),
                         suggestion.takeIf { useSuggestion && !useSplit },
+                        bankAlert?.kind,
                     ))
                 },
                 modifier = Modifier.testTag("receipt_review_apply"),

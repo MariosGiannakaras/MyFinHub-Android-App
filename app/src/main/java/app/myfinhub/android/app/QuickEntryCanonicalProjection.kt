@@ -44,6 +44,8 @@ internal fun projectQuickEntryState(
             label = account.name,
             kind = account.kind,
             bankAccountCategory = account.bankAccountCategory,
+            isPiraeusFundingAccount = account.kind in setOf("bank", "savings") &&
+                account.matchesFinancialProvider("piraeus"),
         )
     }
     val accountIds = accountOptions.map { it.id }.toSet()
@@ -105,7 +107,7 @@ internal fun projectQuickEntryState(
     // source card or account. Keep the old ID invalid until the owner reselects.
     val preserveDirty = previous?.dirty == true && !previous.persisted && !previous.pendingSync
     val selectedAccount = base.accountId.takeIf(accountIds::contains)
-        ?: base.accountId.takeIf { base.debitExpenseRequiresAccountChoice }
+        ?: base.accountId.takeIf { base.debitExpenseRequiresAccountChoice || base.bankAlertDraft }
         ?: base.accountId.takeIf { preserveDirty && base.kind.needsPrimaryAccount && it.isNotBlank() }
         ?: if (base.kind == QuickEntryKind.INCOME) defaultIncomeId else defaultExpenseId
     val selectedCard = base.cardId.takeIf(cardIds::contains)
@@ -114,6 +116,7 @@ internal fun projectQuickEntryState(
         ?: cards.firstOrNull()?.id.orEmpty()
     val cardPaymentSources = projectCardPaymentSourceAccountIds(document, selectedCard)
     val selectedFromCandidate = base.fromAccountId.takeIf(accountIds::contains)
+        ?: base.fromAccountId.takeIf { base.bankAlertDraft }
         ?: base.fromAccountId.takeIf {
             preserveDirty && (base.kind.needsTransferAccounts || base.kind == QuickEntryKind.CARD_PAYMENT) &&
                 it.isNotBlank()
@@ -131,6 +134,7 @@ internal fun projectQuickEntryState(
         else -> selectedFromCandidate
     }
     val selectedTo = base.toAccountId.takeIf { it in accountIds && it != selectedFrom }
+        ?: base.toAccountId.takeIf { base.bankAlertDraft }
         ?: base.toAccountId.takeIf { preserveDirty && base.kind.needsTransferAccounts && it.isNotBlank() }
         ?: accountOptions.firstOrNull { option -> option.isSavingsDestination && option.id != selectedFrom }?.id
         ?: defaultDestinationId

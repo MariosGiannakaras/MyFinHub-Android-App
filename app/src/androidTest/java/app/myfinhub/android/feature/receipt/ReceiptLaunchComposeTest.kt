@@ -15,6 +15,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -74,6 +78,24 @@ class ReceiptLaunchComposeTest {
     private fun startReceipt(tag: String) {
         composeRule.onNodeWithTag("quick_entry_receipt").performClick()
         composeRule.onNodeWithTag(tag).performClick()
+    }
+
+    @Test
+    fun userSelectedBankTextReachesReviewAndRequiresExplicitDebitConfirmation() {
+        showHost()
+        startReceipt("bank_alert_import")
+        composeRule.onNodeWithTag("bank_alert_text").performTextReplacement("PIRAEUS OTP 123456")
+        composeRule.onNodeWithTag("bank_alert_parse").performClick()
+        composeRule.onNodeWithTag("bank_alert_rejected").assertIsDisplayed()
+        composeRule.onNodeWithTag("bank_alert_text").performTextReplacement(
+            "Πειραιώς; Αγορά; κάρτα ****1234; 26/11/2026 14:35; 4,50 EUR; Έμπορος: TEST COFFEE; Χώρα: GR",
+        )
+        composeRule.onNodeWithTag("bank_alert_parse").performClick()
+        composeRule.onNodeWithTag("bank_alert_summary").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("receipt_review_amount").performScrollTo().assertTextContains("4.50")
+        composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
+        composeRule.onNodeWithTag("bank_alert_confirmation").performScrollTo().performClick()
+        composeRule.onNodeWithTag("receipt_review_apply").assertIsEnabled()
     }
 
     @Test

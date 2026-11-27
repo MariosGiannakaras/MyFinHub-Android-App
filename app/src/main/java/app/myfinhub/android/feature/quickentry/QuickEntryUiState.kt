@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.quickentry
 
 import androidx.lifecycle.ViewModel
 import app.myfinhub.android.feature.receipt.ReceiptPrefill
+import app.myfinhub.android.feature.bankalert.BankAlertParser
 import app.myfinhub.android.feature.receipt.receiptReviewedCents
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -54,6 +55,7 @@ data class QuickEntryAccountOption(
     val label: String,
     val kind: String,
     val bankAccountCategory: String? = null,
+    val isPiraeusFundingAccount: Boolean = false,
 ) {
     val isSavingsDestination: Boolean get() = kind == "savings" ||
         (kind == "bank" && bankAccountCategory == "savings")
@@ -157,6 +159,8 @@ data class QuickEntryUiState(
     val debitExpenseRequiresAccountChoice: Boolean = false,
     /** Receipt categories are deliberate choices, not inferred on sync refresh. */
     val receiptDraft: Boolean = false,
+    /** Pasted bank alert requires deliberate current funding and cash-destination selection. */
+    val bankAlertDraft: Boolean = false,
 ) {
     val amount: Double?
         get() = amountText.toCurrencyCentsOrNull()?.div(100.0)
@@ -341,6 +345,7 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
     return state.copy(
         kind = kind,
         receiptDraft = false,
+        bankAlertDraft = false,
         debitExpenseRequiresAccountChoice = false,
         amountText = state.amountText.takeIf { previousUsesAmount && newUsesAmount }.orEmpty(),
         category = category,
@@ -478,12 +483,17 @@ private fun prefillReceipt(state: QuickEntryUiState, value: ReceiptPrefill): Qui
     if (parts.isNotEmpty() && (parts.size !in 2..12 ||
         parts.any { it.label.isBlank() || it.label.length > 90 || receiptReviewedCents(it.amountText) == null } ||
         parts.sumOf { receiptReviewedCents(it.amountText) ?: 0L } != cents)) return state
-    val kind = if (parts.isEmpty()) QuickEntryKind.EXPENSE else QuickEntryKind.SPLIT
+    if (value.bankAlertKind != null && parts.isNotEmpty()) return state
+    val kind = when {
+        value.bankAlertKind == BankAlertParser.Kind.WITHDRAWAL -> QuickEntryKind.WITHDRAWAL
+        parts.isEmpty() -> QuickEntryKind.EXPENSE
+        else -> QuickEntryKind.SPLIT
+    }
     val clean = selectKind(resetDraft(state), kind)
     // Only a category explicitly accepted in receipt review and still present in
     // current canonical taxonomy may populate the draft. Never infer on refresh.
     val suggestion = value.categorySuggestion?.takeIf { proposed ->
-        parts.isEmpty() && state.expenseCategories.singleOrNull { it.name == proposed.category }
+        kind == QuickEntryKind.EXPENSE && parts.isEmpty() && state.expenseCategories.singleOrNull { it.name == proposed.category }
             ?.let { proposed.subcategory.isEmpty() || proposed.subcategory in it.subcategories } == true
     }
     return clean.copy(
@@ -493,6 +503,11 @@ private fun prefillReceipt(state: QuickEntryUiState, value: ReceiptPrefill): Qui
         category = suggestion?.category.orEmpty(),
         subcategory = suggestion?.subcategory.orEmpty(),
         receiptDraft = true,
+        bankAlertDraft = value.bankAlertKind != null,
+        accountId = if (value.bankAlertKind != null) "" else clean.accountId,
+        fromAccountId = if (value.bankAlertKind != null) "" else clean.fromAccountId,
+        toAccountId = if (value.bankAlertKind != null) "" else clean.toAccountId,
+        debitExpenseRequiresAccountChoice = value.bankAlertKind == BankAlertParser.Kind.PURCHASE,
         dirty = true,
         splitParts = if (parts.isEmpty()) clean.splitParts else parts.mapIndexed { index, item ->
             QuickEntrySplitPartDraft(
@@ -514,6 +529,7 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
         } else state.accountId,
         debitExpenseRequiresAccountChoice = false,
         receiptDraft = false,
+        bankAlertDraft = false,
         amountText = "",
         dateText = LocalDate.now().toString(),
         note = "",
@@ -559,6 +575,13 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
 
     if (state.kind.needsPrimaryAccount && !idExists(state, state.accountId)) {
         return state.invalid("Διάλεξε διαθέσιμο λογαριασμό.")
+    }
+
+    if (state.bankAlertDraft) {
+        val fundingId = if (state.kind == QuickEntryKind.WITHDRAWAL) state.fromAccountId else state.accountId
+        if (state.accounts.singleOrNull { it.id == fundingId }?.isPiraeusFundingAccount != true) {
+            return state.invalid("Επίλεξε διαθέσιμο τραπεζικό λογαριασμό Πειραιώς.")
+        }
     }
 
     if (state.kind == QuickEntryKind.CARD_PAYMENT && state.cardPaymentSourceAccountIds != null &&
