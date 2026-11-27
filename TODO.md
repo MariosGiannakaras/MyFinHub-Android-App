@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate #345 native shared-PIN lifecycle checkpoint on the exact head: Android/JVM/Compose gates; review and adopt the two official new auth screenshot references before final green checks/merge. Then complete isolated real Web+Supabase owner/AAL2/device/RLS, wrong/expired ticket, touch/lock/recovery and physical S24 validation before production shared PIN activation or release. Cold offline unknown status now blocks finance until revalidation; confirmed-disabled exact-bearer process-local offline queue needs physical acceptance. Do not activate global PIN or alter Web backend. #146 synthetic source merged; anonymized real Piraeus purchase/withdrawal templates and physical S24 acceptance pending. Owner rc25 QR/OCR/Activity retest and stable D8 remain pending. #27 permanent.
+- [ ] Validate the two individually reviewed official #345 shared-PIN screenshot references and all six exact-final-head hosted gates on PR #556; merge only with stable develop and clean reviews. Then complete isolated real Web+Supabase owner/AAL2/device/RLS, wrong/expired ticket, touch/lock/recovery and physical S24 validation before production shared PIN activation or release. Cold offline unknown status blocks finance until revalidation; confirmed-disabled exact-bearer process-local offline queue needs physical acceptance. Do not activate global PIN or alter Web backend. #146 synthetic source merged; anonymized real Piraeus purchase/withdrawal templates and physical S24 acceptance pending. Owner rc25 QR/OCR/Activity retest and stable D8 remain pending. #27 permanent.
 
 ## Completed foundations
 
