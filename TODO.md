@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete #559 six original exact-head representative checks (API35 runtime, installed target SDK37) and actual isolated proof against corrected Web #668 67d0d6045f9bbcbd4538f85674e8143869f857a4; confirm Web CI/CodeQL and independent account password enforcement. If source audit/checks pass, publish authorized same-signer physical-test candidate only. API37 hosted system crashes remain explicit and actual S24 Android17/OneUI verification mandatory before stable. Web #668 remains isolated for owning Web integration; no production shared PIN activation or live finance writes. Actual withdrawal format unverified.
+- [ ] Complete rc26 independent actual published APK audit and S24 physical testing; no stable main promotion or production shared PIN activation. Owner can install signed rc26/10025 through in-app update or GitHub release in-place, check Play Protect, SMS credit/debit review and local aliases, QR/receipt, installed data/session continuity; do not make test finance writes. Web #668 final CI passed; Web owning integration and production deployment separate, actual withdrawal example pending.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Complete #559 six original exact-head representative checks (API35 runtime, installed target SDK37) and actual isolated proof against corrected Web #668 67d0d6045f9bbcbd4538f85674e8143869f857a4; confirm Web CI/CodeQL and independent account password enforcement. If source audit/checks pass, publish authorized same-signer physical-test candidate only. API37 hosted system crashes remain explicit and actual S24 Android17/OneUI verification mandatory before stable. Web #668 remains isolated for owning Web integration; no production shared PIN activation or live finance writes. Actual withdrawal format unverified.
+Next: Complete rc26 independent actual published APK audit and S24 physical testing; no stable main promotion or production shared PIN activation. Owner can install signed rc26/10025 through in-app update or GitHub release in-place, check Play Protect, SMS credit/debit review and local aliases, QR/receipt, installed data/session continuity; do not make test finance writes. Web #668 final CI passed; Web owning integration and production deployment separate, actual withdrawal example pending.
 
 
 ## Active Web parity progress

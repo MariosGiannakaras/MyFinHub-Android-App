@@ -19,8 +19,9 @@ RELEASES = {
     "rc23": ("1.0.0-rc23", 10022, "3d4562188737d0281f0f2184eb4126e1b06c1183c2625243f940330b76b77b86"),
     "rc24": ("1.0.0-rc24", 10023, "6be67bbaf249c245b151c2abf417b4801806faa47e2e2ea35d303bd7c601b8a7"),
     "rc25": ("1.0.0-rc25", 10024, "273f23283cb758a43a771155e4397236859a75ccb0b4f044b8d546601363c038"),
+    "rc26": ("1.0.0-rc26", 10025, "e8149dcd74f42892be66a0661613de831224fae8f89dad22ef21df30852bf7c5"),
 }
-HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25")
+HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25", "rc26")
 UNATTENDED_INSTALL_PERMISSION = "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"
 DISALLOWED = {
     "android.permission.READ_SMS", "android.permission.RECEIVE_SMS",
@@ -137,6 +138,8 @@ def apk_check(path, release, expected_signer, aapt, apksigner):
     match = re.search(r"package:\s+name='([^']+)'\s+versionCode='(\d+)'\s+versionName='([^']+)'", badging)
     if not match or match.groups() != ("app.myfinhub.android", str(code), name):
         raise AuditError("APK package/version does not match pinned release")
+    if name == "1.0.0-rc26" and (not re.search(r"^sdkVersion:\x2726\x27$", badging, re.M) or not re.search(r"^targetSdkVersion:\x2737\x27$", badging, re.M)):
+        raise AuditError("rc26 APK SDK declaration mismatch")
     dump = run(aapt, "dump", "permissions", str(path))
     perms = set(re.findall(r"uses-permission(?:-sdk-\d+)?: name='([^']+)'", dump))
     if not perms:
@@ -198,11 +201,11 @@ def report(a, b, diff=None):
         raise AuditError(f"{older_label} and {newer_label} are signed by different certificates")
     added = sorted(set(b["perms"]) - set(a["perms"]))
     removed = sorted(set(a["perms"]) - set(b["perms"]))
-    if (older_label, newer_label) in {("rc22", "rc23"), ("rc23", "rc24")} and (added or removed):
+    if (older_label, newer_label) in {("rc22", "rc23"), ("rc23", "rc24"), ("rc25", "rc26")} and (added or removed):
         raise AuditError(f"{newer_label} permission set differs from {older_label}; investigate before acceptance")
     if (older_label, newer_label) == ("rc24", "rc25") and (added != ["android.permission.CAMERA"] or removed):
         raise AuditError("rc25 permission delta must be exactly CAMERA added and none removed")
-    if (older_label, newer_label) in {("rc23", "rc24"), ("rc24", "rc25")}:
+    if (older_label, newer_label) in {("rc23", "rc24"), ("rc24", "rc25"), ("rc25", "rc26")}:
         if diff is None or not any(re.fullmatch(r"classes[0-9]*\.dex", name)
                                    for key in ("added", "removed", "changed") for name in diff[key]):
             raise AuditError(f"{newer_label} executable DEX delta not verified against {older_label}")
@@ -250,7 +253,7 @@ def main():
             for suffix in ("apk", "metadata")
         ]
         if any(optional_paths) and not all(optional_paths):
-            raise AuditError("Provide all rc18, rc20, rc21, rc22, rc23, rc24 and rc25 APK/metadata pairs together")
+            raise AuditError("Provide all rc18, rc20, rc21, rc22, rc23, rc24, rc25 and rc26 APK/metadata pairs together")
         keys = list(RELEASES) if all(optional_paths) else ["rc16", "rc17"]
         apks = {key: getattr(args, key + "_apk") for key in keys}
         results = {
@@ -259,7 +262,7 @@ def main():
         }
         pairs = [("rc16", "rc17")]
         if all(optional_paths):
-            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22"), ("rc22", "rc23"), ("rc18", "rc23"), ("rc23", "rc24"), ("rc18", "rc24"), ("rc24", "rc25"), ("rc18", "rc25")]
+            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22"), ("rc22", "rc23"), ("rc18", "rc23"), ("rc23", "rc24"), ("rc18", "rc24"), ("rc24", "rc25"), ("rc18", "rc25"), ("rc25", "rc26"), ("rc18", "rc26")]
         output = "\n".join(report(results[older], results[newer], zip_diff(apks[older], apks[newer]))
                            for older, newer in pairs)
         args.report.write_text(output, encoding="utf-8")
