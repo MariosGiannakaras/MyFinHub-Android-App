@@ -73,6 +73,8 @@ internal fun projectQuickEntryState(
                 id = card.id,
                 label = label,
                 provider = cardProviderLabel(card.network),
+                lastFour = card.last4,
+                isPiraeusCreditCard = card.bankId == "piraeus",
             )
         }
     val cardIds = cards.map { it.id }.toSet()
@@ -111,6 +113,7 @@ internal fun projectQuickEntryState(
         ?: base.accountId.takeIf { preserveDirty && base.kind.needsPrimaryAccount && it.isNotBlank() }
         ?: if (base.kind == QuickEntryKind.INCOME) defaultIncomeId else defaultExpenseId
     val selectedCard = base.cardId.takeIf(cardIds::contains)
+        ?: base.cardId.takeIf { base.bankAlertDraft && base.kind == QuickEntryKind.CARD_PURCHASE }
         ?: base.cardId.takeIf { base.kind.needsCard && it.isNotBlank() &&
             (preserveDirty || allCards.any { card -> card.id == it }) }
         ?: cards.firstOrNull()?.id.orEmpty()

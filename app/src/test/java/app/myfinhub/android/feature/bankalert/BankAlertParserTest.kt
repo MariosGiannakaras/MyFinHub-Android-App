@@ -28,6 +28,57 @@ class BankAlertParserTest {
         assertEquals("5678", alert.lastFour)
     }
 
+    // Only structural templates match the owner screenshot: all dates, digits,
+    // amounts, balances, account and merchant names are synthetic.
+    private val realShapeDebit = """
+        ALERT-ΑΓΟΡΑ ΜΕ ΚΑΡΤΑ
+        18/10/26 08:17
+        ΛΟΓ/ΜΟΣ:TEST ACCOUNT
+        ΠΟΣΟ=-13 EUR (ΧΡ)
+        ΛΟΓ.ΥΠΟΛ=111.22
+        ΔΙΑΘ.ΥΠΟΛ=100.50
+        SAMPLE OWNER SHOP CITY
+    """.trimIndent()
+    private val realShapeCredit = """
+        ALERT-ΠΙΣΤΩΤΙΚΗ ΚΑΡΤΑ
+        ΑΓΟΡΑ 18/10/2026 21:17
+        ΚΑΡΤΑ: 1234***9876
+        ΠΟΣΟ= 17.43 EUR
+        ΑΠΟ: SAMPLE_TEST SHOP STREET
+        ΧΩΡΑ: ΕΛΛΑΔΑ
+    """.trimIndent()
+
+    @Test fun parsesPiraeusObservedDebitShapeWithoutCardAndIgnoresBalances() {
+        val alert = requireNotNull(BankAlertParser.parse(realShapeDebit))
+        assertEquals(BankAlertParser.Kind.PURCHASE, alert.kind)
+        assertEquals(1300L, alert.cents)
+        assertEquals("2026-10-18", alert.date.toString())
+        assertEquals("08:17", alert.time.toString())
+        assertEquals("", alert.lastFour)
+        assertEquals("TEST ACCOUNT", alert.accountHint)
+        assertEquals("SAMPLE OWNER SHOP CITY", alert.merchant)
+        assertEquals(330L, BankAlertParser.parse(realShapeDebit.replace("-13 EUR", "-3.30 EUR"))?.cents)
+    }
+
+    @Test fun parsesPiraeusObservedCreditShapeWithoutRetainingCardPrefix() {
+        val alert = requireNotNull(BankAlertParser.parse(realShapeCredit))
+        assertEquals(BankAlertParser.Kind.CREDIT_PURCHASE, alert.kind)
+        assertEquals(1743L, alert.cents)
+        assertEquals("9876", alert.lastFour)
+        assertEquals("SAMPLE_TEST SHOP STREET", alert.merchant)
+        assertEquals("GR", alert.country)
+    }
+
+    @Test fun rejectsModifiedObservedShapesRatherThanGuessing() {
+        listOf(realShapeDebit.replace("-13 EUR", "13 EUR"), realShapeDebit.replace("(ΧΡ)", "(ΠΡ)"),
+            realShapeDebit + "\nOTP 123456", realShapeDebit + "\n" + realShapeDebit,
+            realShapeDebit.replace("111.22", "invalid"), realShapeCredit.replace("1234***9876", "1234567890987654"),
+            realShapeCredit.replace("ΑΓΟΡΑ", "ΑΝΑΛΗΨΗ"), realShapeCredit.replace("17.43 EUR", "17.43 USD"),
+            realShapeCredit + "\nΑΚΥΡΩΘΗΚΕ").forEachIndexed { index, message ->
+            assertNull("malformed structured shape $index", BankAlertParser.parse(message))
+        }
+    }
+
     @Test fun rejectsMalformedAmbiguousSensitiveOrUnsupportedContent() {
         val invalid = listOf(
             purchase + "; 10,00 EUR", purchase.replace("4,50 EUR", "-4,50 EUR"),

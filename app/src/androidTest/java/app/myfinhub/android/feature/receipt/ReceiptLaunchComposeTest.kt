@@ -36,6 +36,8 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
+import app.myfinhub.android.feature.bankalert.BankMerchantAliasStore
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicReference
@@ -91,11 +93,54 @@ class ReceiptLaunchComposeTest {
             "Πειραιώς; Αγορά; κάρτα ****1234; 26/11/2026 14:35; 4,50 EUR; Έμπορος: TEST COFFEE; Χώρα: GR",
         )
         composeRule.onNodeWithTag("bank_alert_parse").performClick()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithTag("bank_alert_summary").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithTag("bank_alert_summary").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("receipt_review_amount").performScrollTo().assertTextContains("4.50")
         composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
         composeRule.onNodeWithTag("bank_alert_confirmation").performScrollTo().performClick()
         composeRule.onNodeWithTag("receipt_review_apply").assertIsEnabled()
+    }
+
+    @Test
+    fun localMerchantNicknameIsSavedExplicitlyAndPrefillsTheNextObservedSms() {
+        val store = BankMerchantAliasStore(instrumentation.targetContext)
+        val descriptor = "SYNTHETIC ALIAS SHOP"
+        val message = """
+            ALERT-ΑΓΟΡΑ ΜΕ ΚΑΡΤΑ
+            18/10/26 08:17
+            ΛΟΓ/ΜΟΣ:TEST ACCOUNT
+            ΠΟΣΟ=-13 EUR (ΧΡ)
+            ΛΟΓ.ΥΠΟΛ=111.22
+            ΔΙΑΘ.ΥΠΟΛ=100.50
+            $descriptor
+        """.trimIndent()
+        runBlocking { store.remove("test-owner", descriptor) }
+        try {
+            showHost()
+            fun paste() {
+                startReceipt("bank_alert_import")
+                composeRule.onNodeWithTag("bank_alert_text").performTextReplacement(message)
+                composeRule.onNodeWithTag("bank_alert_parse").performClick()
+                composeRule.waitUntil(timeoutMillis = 10_000) {
+                    composeRule.onAllNodesWithTag("receipt_review_merchant").fetchSemanticsNodes().isNotEmpty()
+                }
+            }
+            paste()
+            composeRule.onNodeWithTag("receipt_review_merchant").performScrollTo().assertTextContains(descriptor)
+                .performTextReplacement("My example store")
+            composeRule.onNodeWithTag("bank_alert_save_alias").performScrollTo().performClick()
+            composeRule.waitUntil(timeoutMillis = 10_000) {
+                composeRule.onAllNodesWithTag("bank_alert_alias_status").fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithTag("bank_alert_alias_status").performScrollTo().assertTextContains("Αποθηκεύτηκε μόνο στη συσκευή.")
+            composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
+            composeRule.onNodeWithTag("receipt_review_cancel").performClick()
+            paste()
+            composeRule.onNodeWithTag("receipt_review_merchant").performScrollTo().assertTextContains("My example store")
+            composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
+        } finally { runBlocking { store.remove("test-owner", descriptor) } }
     }
 
     @Test

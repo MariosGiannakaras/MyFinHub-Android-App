@@ -59,6 +59,35 @@ class QuickEntryCanonicalProjectionTest {
     }
 
     @Test
+    fun observedCreditAlertRequiresExplicitMatchingPiraeusCardAcrossRefresh() {
+        val document = projectionFixture()
+        val date = LocalDate.parse("2026-09-02")
+        val initial = projectQuickEntryState(document, date, QuickEntryUiState())
+        val draft = reduceQuickEntry(initial, QuickEntryAction.ReceiptPrefilled(ReceiptPrefill(
+            "17.43", date.toString(), "Synthetic shop", bankAlertKind = BankAlertParser.Kind.CREDIT_PURCHASE,
+            bankAlertCardLastFour = "9012",
+        )))
+        val refreshed = projectQuickEntryState(document, date, draft)
+        assertEquals(QuickEntryKind.CARD_PURCHASE, refreshed.kind)
+        assertEquals("", refreshed.cardId)
+        assertFalse(refreshed.canSubmitDraft())
+        val categorized = reduceQuickEntry(refreshed, QuickEntryAction.CategoryChanged("Μετακίνηση"))
+        val invalid = reduceQuickEntry(categorized, QuickEntryAction.CardChanged("nonmatching"))
+        assertFalse(projectQuickEntryState(document, date, invalid).canSubmitDraft())
+        val valid = reduceQuickEntry(categorized, QuickEntryAction.CardChanged("credit-one"))
+        assertTrue(projectQuickEntryState(document, date, valid).canSubmitDraft())
+        assertFalse(valid.persisted)
+        val wrongMask = reduceQuickEntry(initial, QuickEntryAction.ReceiptPrefilled(ReceiptPrefill(
+            "17.43", date.toString(), "Synthetic shop", bankAlertKind = BankAlertParser.Kind.CREDIT_PURCHASE,
+            bankAlertCardLastFour = "0000",
+        )))
+        assertFalse(projectQuickEntryState(document, date, reduceQuickEntry(
+            reduceQuickEntry(wrongMask, QuickEntryAction.CategoryChanged("Μετακίνηση")),
+            QuickEntryAction.CardChanged("credit-one"),
+        )).canSubmitDraft())
+    }
+
+    @Test
     fun debitExpenseKeepsExplicitAccountChoiceAcrossFinanceRefreshes() {
         val document = projectionFixture()
         val date = LocalDate.parse("2026-09-02")

@@ -20,6 +20,7 @@ internal data class ReceiptProposal(
     val qrReview: ReceiptQrReview? = null,
     val ocrAmbiguous: Boolean = false,
     val bankAlert: BankAlertParser.Alert? = null,
+    val bankAliasLookupFailed: Boolean = false,
 )
 internal enum class ReceiptCurrency { EUR, FOREIGN, UNKNOWN }
 data class ReceiptPrefill(
@@ -29,6 +30,7 @@ data class ReceiptPrefill(
     val splitLines: List<ReceiptPrefillLine> = emptyList(),
     val categorySuggestion: ReceiptCategorySuggestion? = null,
     val bankAlertKind: BankAlertParser.Kind? = null,
+    val bankAlertCardLastFour: String? = null,
 )
 data class ReceiptPrefillLine(val label: String, val amountText: String)
 data class ReceiptCategorySuggestion(val category: String, val subcategory: String = "")
