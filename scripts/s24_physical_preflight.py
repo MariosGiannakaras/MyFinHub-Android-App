@@ -15,8 +15,8 @@ import subprocess
 import sys
 
 PACKAGE = "app.myfinhub.android"
-# Public GitHub prerelease metadata, rechecked 2026-11-26 against
-# tag v1.0.0-rc24 (published 2026-11-26 21:28 UTC).
+# Public GitHub prerelease metadata, rechecked 2026-11-27 against
+# tag v1.0.0-rc25 (published 2026-11-27 00:16 UTC).
 # These code/name pairs are only a read-only consistency allowlist: neither the
 # release listing nor an ADB-reported version proves APK signer, Play Protect
 # clearance, safe in-place update, source trust, or physical owner acceptance.
@@ -36,8 +36,9 @@ PUBLISHED_RELEASE_VERSION_NAMES = {
     10021: "1.0.0-rc22",
     10022: "1.0.0-rc23",
     10023: "1.0.0-rc24",
+    10024: "1.0.0-rc25",
 }
-LATEST_PUBLISHED_VERSION_CODE = 10023
+LATEST_PUBLISHED_VERSION_CODE = 10024
 LATEST_PUBLISHED_VERSION_NAME = PUBLISHED_RELEASE_VERSION_NAMES[LATEST_PUBLISHED_VERSION_CODE]
 LATEST_PUBLISHED_RELEASE_LABEL = LATEST_PUBLISHED_VERSION_NAME.rsplit("-", 1)[-1]
 LAST_KNOWN_SIGNED_VERSION_CODE = 10011  # rc12 lower bound; old candidates remain inspectable

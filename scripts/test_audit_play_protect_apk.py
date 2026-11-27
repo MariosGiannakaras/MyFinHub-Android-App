@@ -79,7 +79,7 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertEqual([], difference["removed"])
 
     def test_hardened_release_rejects_unattended_install_permission(self):
-        for label in ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24"):
+        for label in ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25"):
             name, code, _ = RELEASES[label]
             badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'"
             permissions = f"uses-permission: name='{UNATTENDED_INSTALL_PERMISSION}'"
@@ -146,6 +146,23 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertIn("Added permissions: none", report(a, b, diff))
         with self.assertRaisesRegex(AuditError, "permission set differs"):
             report(a, {**b, "perms": a["perms"] + ["android.permission.CAMERA"]}, diff)
+        for unverified in (None, {**diff, "changed": ["AndroidManifest.xml"]}):
+            with self.subTest(diff=unverified):
+                with self.assertRaisesRegex(AuditError, "executable DEX delta"):
+                    report(a, b, unverified)
+
+    def test_rc25_only_approved_camera_permission_and_executable_delta(self):
+        a = {"signer": "a" * 64, "perms": ["android.permission.INTERNET"],
+             "version": "1.0.0-rc24", "size": 1, "entries": 2,
+             "dex": 1, "digest": "a" * 64}
+        b = {**a, "version": "1.0.0-rc25", "perms": a["perms"] + ["android.permission.CAMERA"]}
+        diff = {"added": [], "removed": [], "changed": ["classes.dex"]}
+        self.assertIn("Added permissions: android.permission.CAMERA", report(a, b, diff))
+        for invalid in (a["perms"], b["perms"] + ["android.permission.RECORD_AUDIO"],
+                        ["android.permission.CAMERA"]):
+            with self.subTest(perms=invalid):
+                with self.assertRaisesRegex(AuditError, "permission delta must be exactly CAMERA"):
+                    report(a, {**b, "perms": invalid}, diff)
         for unverified in (None, {**diff, "changed": ["AndroidManifest.xml"]}):
             with self.subTest(diff=unverified):
                 with self.assertRaisesRegex(AuditError, "executable DEX delta"):
