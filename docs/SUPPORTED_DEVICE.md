@@ -29,6 +29,18 @@ Automated merge validation should focus on:
 
 Do not run automatic tablet/foldable device matrices for ordinary Android work.
 
+The owner uses current Android and Samsung One UI. The application and benchmark target
+Android 17 (API 37), while retaining minSdk 26; the mandatory compact-phone emulator
+uses API 37.0 and verifies the runtime SDK before running both existing shards. No
+additional device classes or OEM-only APIs are required. Android 17's platform privacy
+and security defaults remain enabled; the app already uses explicit receipt-camera URI
+grants, user-selected Photo Picker, biometric authentication, private update confirmation,
+Recents protection, and FLAG_SECURE for revealed card secrets. Physical acceptance still
+must verify actual One UI behavior, public HTTPS, receipt capture/import, security, and
+same-signer update confirmation on the owner's phone; an emulator is not Samsung firmware.
+See [Android 17 behavior changes](https://developer.android.com/about/versions/17/behavior-changes-17)
+and [migration guidance](https://developer.android.com/about/versions/17/migration).
+
 Hosted-emulator Macrobenchmark/Baseline Profile runs are optional diagnostic tools rather than a device-specific acceptance result. The benchmark/profile tooling must continue to compile, but actual device-specific performance acceptance belongs to the physical Galaxy S24 Ultra handoff.
 
 ## Physical-device authority

@@ -167,7 +167,7 @@ jobs:
       - name: S24 Ultra target phone UI tests
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
-          api-level: 35
+          api-level: '37.0'
           target: default
           arch: x86_64
           profile: pixel_6
@@ -180,7 +180,7 @@ jobs:
             -no-snapshot-load -no-snapshot-save
             -gpu swiftshader_indirect
             -camera-back none -camera-front none
-          script: bash scripts/run-connected-android-tests.sh
+          script: MYFINHUB_EXPECTED_ANDROID_API=37 bash scripts/run-connected-android-tests.sh
 
   s24-ultra-target-instrumented:
     # Stable historical required-check identity: both matrix shards MUST pass.
