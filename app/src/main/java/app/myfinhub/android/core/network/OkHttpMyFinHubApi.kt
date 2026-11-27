@@ -235,6 +235,32 @@ class OkHttpMyFinHubApi(
         }
     }
 
+    override suspend fun renameDeviceSession(
+        session: AuthSession, targetSessionId: String, nickname: String,
+    ): ApiResult<List<DeviceSessionRecord>> {
+        requestGate(session)?.let { return it }
+        val id = targetSessionId.trim()
+        val name = normalizedDeviceNickname(nickname)
+            ?: return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+        if (!DEVICE_SESSION_ID_REGEX.matches(id)) return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+        val body = buildJsonObject {
+            put("action", JsonPrimitive("rename"))
+            put("sessionId", JsonPrimitive(id))
+            put("nickname", JsonPrimitive(name))
+        }.toString()
+        val request = authenticatedRequest(session, "/api/auth/devices")
+            .post(body.toRequestBody(JSON_MEDIA_TYPE)).build()
+        return execute(request) { responseBody ->
+            val rows = parseDeviceSessions(responseBody, json)
+                ?: return@execute ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
+            val target = rows.singleOrNull { it.sessionId.equals(id, ignoreCase = true) }
+            // An older server or ambiguous response must not report a confirmed rename.
+            if (target == null || target.defaultLabel == null || target.nickname != name.takeIf(String::isNotBlank)) {
+                ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
+            } else ApiResult.Success(rows)
+        }
+    }
+
     override suspend fun saveMutableState(
         session: AuthSession,
         document: CanonicalFinanceDocument,

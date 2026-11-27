@@ -1,5 +1,10 @@
 package app.myfinhub.android.feature.utilities
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performTextReplacement
+import app.myfinhub.android.app.DeviceSessionsUiSnapshot
+import app.myfinhub.android.core.network.DeviceSessionRecord
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.compose.ui.test.assertIsDisplayed
@@ -101,6 +106,40 @@ class MobileDeviceSettingsJourneyTest {
         } finally {
             AmountVisibilityPreference.write(context, originallyVisible)
         }
+    }
+
+    @Test fun modernDeviceNicknameRequiresExplicitSaveAndDoesNotSurviveSessionLoss() {
+        val id = "5b90719d-65c1-4abc-8299-3e07b192ac00"
+        val row = DeviceSessionRecord(
+            id, "android", "Work phone", null,
+            "2026-10-01T09:00:00Z", "2026-10-16T09:00:00Z", true,
+            nickname = "Work phone", defaultLabel = "Galaxy S24 Ultra", systemName = "Android",
+        )
+        val snapshot = mutableStateOf(DeviceSessionsUiSnapshot(loaded = true, devices = listOf(row)))
+        val submissions = mutableListOf<Pair<String, String>>()
+        compose.setContent {
+            MyFinHubTheme {
+                MobileDeviceSettingsScreen(
+                    onBack = {}, onLogout = {},
+                    deviceSessions = snapshot.value,
+                    onRenameDeviceSession = { target, nickname -> submissions += target to nickname },
+                )
+            }
+        }
+        compose.onNodeWithTag("device_nickname_$id").performScrollTo().performClick()
+        compose.onNodeWithTag("device_nickname_field").performTextReplacement(" Home  phone ")
+        compose.runOnIdle { assertEquals(emptyList<Pair<String, String>>(), submissions) }
+        compose.onNodeWithTag("device_nickname_confirm").performClick()
+        compose.runOnIdle { assertEquals(listOf(id to "Home phone"), submissions) }
+
+        compose.onNodeWithTag("device_nickname_$id").performScrollTo().performClick()
+        compose.runOnIdle { snapshot.value = DeviceSessionsUiSnapshot() }
+        compose.onNodeWithTag("device_nickname_confirm").assertDoesNotExist()
+        compose.runOnIdle {
+            snapshot.value = DeviceSessionsUiSnapshot(loaded = true, devices = listOf(row))
+        }
+        compose.onNodeWithTag("device_nickname_confirm").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(1, submissions.size) }
     }
 
     @Test fun unauthenticatedPhoneSettingsCannotExposeLogoutAction() {

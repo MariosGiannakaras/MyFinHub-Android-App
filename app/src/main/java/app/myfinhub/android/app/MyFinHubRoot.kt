@@ -487,6 +487,7 @@ fun MyFinHubRoot(
                                     }
                                 },
                                 onRevokeDeviceSession = financeViewModel::revokeConfirmedOtherDeviceSession,
+                                onRenameDeviceSession = financeViewModel::renameConfirmedDeviceSession,
                                 cardSecretState = cardSecretState,
                                 cardSecretAccessAllowed = vaultSessionAuthorized,
                                 cardSecretCleanupState = cardSecretCleanupState,
@@ -664,6 +665,7 @@ private fun FinanceProductSurface(
     accountSecurityFeedback: String?,
     onChangeAccountSecurity: (WebAccountSecurityChange) -> Unit,
     onRevokeDeviceSession: (String) -> Unit,
+    onRenameDeviceSession: (String, String) -> Unit,
     cardSecretState: CardSecretUiState,
     cardSecretAccessAllowed: Boolean,
     cardSecretCleanupState: CardSecretCleanupUiState,
@@ -765,6 +767,7 @@ private fun FinanceProductSurface(
                     accountSecurityFeedback = accountSecurityFeedback,
                     onChangeAccountSecurity = onChangeAccountSecurity,
                     onRevokeDeviceSession = onRevokeDeviceSession,
+                    onRenameDeviceSession = onRenameDeviceSession,
                     onHomeAction = onHomeAction,
                     activityState = projection.activityState,
                     activityHistoricalBalance = { item ->
