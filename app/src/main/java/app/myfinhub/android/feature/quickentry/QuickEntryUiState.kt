@@ -67,6 +67,8 @@ data class QuickEntryCardOption(
     val id: String,
     val label: String,
     val provider: String = "",
+    val lastFour: String? = null,
+    val isPiraeusCreditCard: Boolean = false,
 )
 
 data class QuickEntryStatementOption(
@@ -161,6 +163,7 @@ data class QuickEntryUiState(
     val receiptDraft: Boolean = false,
     /** Pasted bank alert requires deliberate current funding and cash-destination selection. */
     val bankAlertDraft: Boolean = false,
+    val bankAlertCardLastFour: String? = null,
 ) {
     val amount: Double?
         get() = amountText.toCurrencyCentsOrNull()?.div(100.0)
@@ -181,11 +184,13 @@ data class QuickEntryUiState(
         get() = splitParts.mapNotNull { it.amountText.toCurrencyCentsOrNull() }.sum()
 }
 
-/**
- * The sticky Save control must follow the SAME pure validation as the Save action:
- * invalid dates, stale account/card identities, transfers and incomplete splits
- * must never advertise a submission that will be refused immediately.
- */
+/** Restrict SMS credit purchases to active cards matching the observed bank and last four. */
+internal fun QuickEntryUiState.bankAlertCreditOptions(): List<QuickEntryCardOption> =
+    if (bankAlertDraft && kind == QuickEntryKind.CARD_PURCHASE) creditCards.filter {
+        it.isPiraeusCreditCard && bankAlertCardLastFour?.matches(Regex("[0-9]{4}")) == true && it.lastFour == bankAlertCardLastFour
+    } else creditCards
+
+/** The sticky Save control uses the same validation as the actual Save action. */
 internal fun QuickEntryUiState.canSubmitDraft(): Boolean =
     validateAndPreview(this).validationMessage == null
 
@@ -346,6 +351,7 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
         kind = kind,
         receiptDraft = false,
         bankAlertDraft = false,
+        bankAlertCardLastFour = null,
         debitExpenseRequiresAccountChoice = false,
         amountText = state.amountText.takeIf { previousUsesAmount && newUsesAmount }.orEmpty(),
         category = category,
@@ -486,14 +492,16 @@ private fun prefillReceipt(state: QuickEntryUiState, value: ReceiptPrefill): Qui
     if (value.bankAlertKind != null && parts.isNotEmpty()) return state
     val kind = when {
         value.bankAlertKind == BankAlertParser.Kind.WITHDRAWAL -> QuickEntryKind.WITHDRAWAL
+        value.bankAlertKind == BankAlertParser.Kind.CREDIT_PURCHASE -> QuickEntryKind.CARD_PURCHASE
         parts.isEmpty() -> QuickEntryKind.EXPENSE
         else -> QuickEntryKind.SPLIT
     }
+    if (kind == QuickEntryKind.CARD_PURCHASE && value.bankAlertCardLastFour?.matches(Regex("[0-9]{4}")) != true) return state
     val clean = selectKind(resetDraft(state), kind)
     // Only a category explicitly accepted in receipt review and still present in
     // current canonical taxonomy may populate the draft. Never infer on refresh.
     val suggestion = value.categorySuggestion?.takeIf { proposed ->
-        kind == QuickEntryKind.EXPENSE && parts.isEmpty() && state.expenseCategories.singleOrNull { it.name == proposed.category }
+        kind in setOf(QuickEntryKind.EXPENSE, QuickEntryKind.CARD_PURCHASE) && parts.isEmpty() && state.expenseCategories.singleOrNull { it.name == proposed.category }
             ?.let { proposed.subcategory.isEmpty() || proposed.subcategory in it.subcategories } == true
     }
     return clean.copy(
@@ -504,6 +512,8 @@ private fun prefillReceipt(state: QuickEntryUiState, value: ReceiptPrefill): Qui
         subcategory = suggestion?.subcategory.orEmpty(),
         receiptDraft = true,
         bankAlertDraft = value.bankAlertKind != null,
+        bankAlertCardLastFour = value.bankAlertCardLastFour.takeIf { kind == QuickEntryKind.CARD_PURCHASE },
+        cardId = if (kind == QuickEntryKind.CARD_PURCHASE) "" else clean.cardId,
         accountId = if (value.bankAlertKind != null) "" else clean.accountId,
         fromAccountId = if (value.bankAlertKind != null) "" else clean.fromAccountId,
         toAccountId = if (value.bankAlertKind != null) "" else clean.toAccountId,
@@ -530,6 +540,7 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
         debitExpenseRequiresAccountChoice = false,
         receiptDraft = false,
         bankAlertDraft = false,
+        bankAlertCardLastFour = null,
         amountText = "",
         dateText = LocalDate.now().toString(),
         note = "",
@@ -578,9 +589,15 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
     }
 
     if (state.bankAlertDraft) {
-        val fundingId = if (state.kind == QuickEntryKind.WITHDRAWAL) state.fromAccountId else state.accountId
-        if (state.accounts.singleOrNull { it.id == fundingId }?.isPiraeusFundingAccount != true) {
-            return state.invalid("Επίλεξε διαθέσιμο τραπεζικό λογαριασμό Πειραιώς.")
+        if (state.kind == QuickEntryKind.CARD_PURCHASE) {
+            if (state.bankAlertCreditOptions().count { it.id == state.cardId } != 1) {
+                return state.invalid("Επίλεξε την ενεργή πιστωτική Πειραιώς που ταιριάζει στα τελευταία ψηφία.")
+            }
+        } else {
+            val fundingId = if (state.kind == QuickEntryKind.WITHDRAWAL) state.fromAccountId else state.accountId
+            if (state.accounts.singleOrNull { it.id == fundingId }?.isPiraeusFundingAccount != true) {
+                return state.invalid("Επίλεξε διαθέσιμο τραπεζικό λογαριασμό Πειραιώς.")
+            }
         }
     }
 

@@ -7,6 +7,11 @@ import app.myfinhub.android.core.auth.SupabaseAuthGateway
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.withMutableState
 import java.io.File
+import java.io.EOFException
+import java.io.IOException
+import java.net.ProtocolException
+import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.net.Proxy
 import java.nio.ByteBuffer
 import java.time.Instant
@@ -20,11 +25,11 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.put
+import okhttp3.Call
 import okhttp3.CookieJar
+import okhttp3.EventListener
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -61,7 +66,20 @@ class SharedAppLockRealStackTest {
             val fixture = File(input("MYFINHUB_ISOLATED_FIXTURE")).readText()
             client = NetworkClientFactory.create().newBuilder()
                 .proxy(Proxy.NO_PROXY).cookieJar(CookieJar.NO_COOKIES)
-                .followRedirects(false).followSslRedirects(false).build()
+                .followRedirects(false).followSslRedirects(false)
+                .eventListener(object : EventListener() {
+                    override fun callFailed(call: Call, ioe: IOException) {
+                        // Fixed categories only. Never print request, URL, exception message or headers.
+                        val kind = when (ioe) {
+                            is SocketTimeoutException -> "TIMEOUT"
+                            is EOFException -> "EOF"
+                            is ProtocolException -> "PROTOCOL"
+                            is SocketException -> "SOCKET"
+                            else -> "OTHER_IO"
+                        }
+                        println("ISOLATED_HTTP_TRANSPORT=$kind")
+                    }
+                }).build()
             val configuration = AppConfiguration(web, supabase, key)
             gateway = SupabaseAuthGateway(configuration, client)
             lock = SharedAppLockApi(configuration, client)
@@ -75,6 +93,9 @@ class SharedAppLockRealStackTest {
             assertEquals(AssuranceLevel.AAL1, aal1.assuranceLevel)
             assertTrue("Native AAL1 status must fail", lock.status(aal1) is SharedAppLockResult.Failure)
             expectHttp("server AAL1", raw(web, "/api/auth/app-lock", aal1.accessToken), 403)
+            val credentialProbe = """{"action":"email","email":"rejected@example.test"}"""
+            expectHttp("AAL1 device list", raw(web, "/api/auth/devices", aal1.accessToken), 403)
+            expectHttp("AAL1 account mutation", raw(web, "/api/auth/account", aal1.accessToken, "PATCH", credentialProbe), 403)
             val (owner, totpSecret, enrollmentCode) = enroll(aal1)
             assertEquals(AssuranceLevel.AAL2, owner.assuranceLevel)
             val outsiderAal1 = authSuccess("outsider password", gateway.signInWithPassword(outsiderEmail, password.toCharArray()))
@@ -91,6 +112,30 @@ class SharedAppLockRealStackTest {
             assertTrue("Synthetic state must have accounts", initial.document.accounts().isNotEmpty())
             assertTrue("Direct JWT baseline", directRows(owner).size == 1)
             assertTrue("Nonowner direct JWT denial", directRows(outsider).isEmpty())
+            val ownerId = sessionId(owner)
+            expectHttp("nonowner device list", raw(web, "/api/auth/devices", outsider.accessToken), 401)
+            expectHttp("nonowner account mutation", raw(web, "/api/auth/account", outsider.accessToken, "PATCH", credentialProbe), 401)
+
+            // A second real password + TOTP login for the SAME disposable owner.
+            // No admin API, forged JWT or direct insertion of a device registry row.
+            val secondAal1 = authSuccess("other device password", gateway.signInWithPassword(ownerEmail, password.toCharArray()))
+            val factor = authSuccess("other device factors", gateway.listFactors(secondAal1.accessToken))
+                .single { it.isVerifiedTotp }
+            val secondChallenge = authSuccess("other device challenge", gateway.challengeTotp(secondAal1.accessToken, factor.id))
+            val secondCode = nextCode(totpSecret, enrollmentCode)
+            val second = authSuccess("other device AAL2",
+                gateway.verifyTotp(secondAal1.accessToken, factor.id, secondChallenge.id, secondCode.toCharArray()))
+            assertEquals(AssuranceLevel.AAL2, second.assuranceLevel)
+            val secondId = sessionId(second)
+            assertTrue("Independent owner sessions", ownerId != secondId)
+            val secondAuthority = SharedAppLockAuthority(nowMillis = { 0L })
+            val secondFinance = OkHttpMyFinHubApi(configuration, client, secondAuthority)
+            assertFalse(lockSuccess("other device disabled status", lock.status(second)).enabled)
+            secondAuthority.publishDisabled(second)
+            val firstDeviceList = apiSuccess("native owner device list", finance.loadDeviceSessions(owner))
+            assertTrue("List contains current and independent owner devices", firstDeviceList.any { it.sessionId == ownerId && it.current } &&
+                firstDeviceList.any { it.sessionId == secondId && !it.current })
+            assertTrue("Direct JWT other-device baseline", directRows(second).size == 1)
 
             // Configure only in the disposable test stack. Android has no configure API.
             expectHttp("configure fixture PIN", raw(web, "/api/auth/app-lock", owner.accessToken, "POST",
@@ -102,6 +147,8 @@ class SharedAppLockRealStackTest {
             expectHttp("missing ticket", raw(web, "/api/data", owner.accessToken), 423)
             expectHttp("forged ticket", raw(web, "/api/data", owner.accessToken,
                 headers = mapOf("X-MyFinHub-App-Unlock" to "A".repeat(43))), 423)
+            expectHttp("locked device list", raw(web, "/api/auth/devices", owner.accessToken), 423)
+            expectHttp("locked account mutation", raw(web, "/api/auth/account", owner.accessToken, "PATCH", credentialProbe), 423)
             expectGate("local presentation gate", finance.loadFinanceData(owner), false)
 
             var verified = verify(owner, "1234")
@@ -109,6 +156,13 @@ class SharedAppLockRealStackTest {
             apiSuccess("unlocked finance", finance.loadFinanceData(owner))
             apiSuccess("unlocked history", finance.loadServerFinanceHistory(owner))
             apiSuccess("unlocked account metadata", finance.loadAccountMetadata(owner))
+            val renamed = apiSuccess("native rename other device", finance.renameDeviceSession(owner, secondId, "Isolated QA device"))
+            assertTrue("Server returned nickname", renamed.single { it.sessionId == secondId }.nickname == "Isolated QA device")
+            val renamedReadback = apiSuccess("native nickname readback", finance.loadDeviceSessions(owner))
+            assertTrue("Nickname persisted", renamedReadback.single { it.sessionId == secondId }.nickname == "Isolated QA device")
+            val cleared = apiSuccess("native clear device nickname", finance.renameDeviceSession(owner, secondId, ""))
+            val clearedRow = cleared.single { it.sessionId == secondId }
+            assertTrue("Default device label restored", clearedRow.nickname == null && clearedRow.label == clearedRow.defaultLabel)
             assertTrue("Direct JWT unlocked baseline", directRows(owner).size == 1)
             // Mutate only synthetic account display metadata in the disposable
             // canonical fixture through Android's real history/finance preconditions.
@@ -150,7 +204,7 @@ class SharedAppLockRealStackTest {
             val limited = lockSuccess("rate limit", lock.verify(owner, "1234".toCharArray()))
             assertTrue("Correct PIN blocked by rate limit", limited is SharedAppLockVerification.Rejected &&
                 limited.reason == SharedAppLockVerification.Rejection.RATE_LIMITED && limited.status.retryAfterMs > 0)
-            val freshCode = nextCode(totpSecret, enrollmentCode)
+            val freshCode = nextCode(totpSecret, secondCode)
             assertTrue("Wrong recovery credentials fail", lock.recover(owner, ownerEmail,
                 "InvalidSyntheticPassword".toCharArray(), freshCode.toCharArray(), "5678".toCharArray()) is SharedAppLockResult.Failure)
             val recovered = lockSuccess("fresh password and TOTP", lock.recover(owner, ownerEmail,
@@ -164,21 +218,47 @@ class SharedAppLockRealStackTest {
             assertTrue(authority.publishVerified(owner, verified, 0))
             apiSuccess("new PIN unlocks original session", finance.loadFinanceData(owner))
 
-            // Exercise the actual active-device RLS boundary separately from the
-            // currently cookie-only Web /api/auth/devices handler.
-            val sid = Json.parseToJsonElement(String(Base64.getUrlDecoder().decode(owner.accessToken.split('.')[1])))
-                .jsonObject["session_id"]?.jsonPrimitive?.content ?: error("Missing session identity")
-            check(Regex("^[0-9a-fA-F-]{36}$").matches(sid))
-            val revoke = raw(supabase, "/rest/v1/myfinhub_device_sessions?session_id=eq.$sid",
-                owner.accessToken, "PATCH", buildJsonObject { put("revoked_at", Instant.now().toString()) }.toString(),
-                mapOf("Prefer" to "return=minimal"))
-            assertTrue("Synthetic device revocation must succeed", revoke.status in 200..299)
-            val revoked = finance.loadFinanceData(owner)
+            // Actually revoke the independent owner session via the native Web
+            // endpoint; confirm both the API and direct RLS boundary fail closed.
+            val secondVerified = verify(second, "5678")
+            assertTrue(secondAuthority.publishVerified(second, secondVerified, 0))
+            apiSuccess("other device unlocked finance", secondFinance.loadFinanceData(second))
+            assertTrue("Other device direct JWT unlocked", directRows(second).size == 1)
+            val remaining = apiSuccess("native revoke other device", finance.revokeOtherDeviceSession(owner, secondId))
+            assertTrue("Revoked device removed, current retained", remaining.none { it.sessionId == secondId } &&
+                remaining.any { it.sessionId == ownerId && it.current })
+            val revoked = secondFinance.loadFinanceData(second)
             assertTrue("Revoked device must not load finance", revoked is ApiResult.Failure &&
                 revoked.kind == ApiFailureKind.AUTH_REQUIRED)
-            assertTrue("Revoked device status rejected", lock.status(owner) is SharedAppLockResult.Failure)
-            assertTrue("Revoked device direct JWT denied", directRows(owner).isEmpty())
+            assertTrue("Revoked device status rejected", lock.status(second) is SharedAppLockResult.Failure)
+            assertTrue("Revoked device direct JWT denied", directRows(second).isEmpty())
+            expectHttp("revoked device account route", raw(web, "/api/auth/account", second.accessToken, "PATCH", credentialProbe), 401)
+            expectHttp("revoked device list route", raw(web, "/api/auth/devices", second.accessToken), 401)
+            apiSuccess("current device still authorized", finance.loadDeviceSessions(owner))
+
+            // Account updates are confined to the runner-created @example.test identity.
+            // Refresh the actual unlock ticket first, not the test's frozen clock.
+            lockSuccess("account stage touch", lock.touch(owner, verified.ticket))
+            val replacement = "Isolated-NewPass-9!"
+            val wrongPassword = finance.changeAccountSecurity(owner,
+                WebAccountSecurityChange.Password("InvalidSyntheticPassword", replacement))
+            assertTrue("Invalid current password rejected with HTTP 400",
+                wrongPassword is ApiResult.Failure && wrongPassword.statusCode == 400)
+            apiSuccess("native password change", finance.changeAccountSecurity(owner,
+                WebAccountSecurityChange.Password(password, replacement)))
+            assertEquals(AssuranceLevel.AAL1, authSuccess("new password accepted",
+                gateway.signInWithPassword(ownerEmail, replacement.toCharArray())).assuranceLevel)
+            val differentEmail = ownerEmail.replace("@", "-changed@")
+            check(differentEmail.endsWith("@example.test"))
+            apiSuccess("native email change", finance.changeAccountSecurity(owner, WebAccountSecurityChange.Email(differentEmail)))
         }
+    }
+
+    private fun sessionId(session: AuthSession): String {
+        val sid = Json.parseToJsonElement(String(Base64.getUrlDecoder().decode(session.accessToken.split('.')[1])))
+            .jsonObject["session_id"]?.jsonPrimitive?.content ?: error("Missing session identity")
+        check(Regex("^[0-9a-fA-F-]{36}$").matches(sid))
+        return sid
     }
 
     private fun input(name: String): String = requireNotNull(System.getenv(name)?.takeIf { it.isNotBlank() }) {

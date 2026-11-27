@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -38,15 +39,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.core.content.FileProvider
 import androidx.core.content.ContextCompat
 import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.bankalert.BankAlertParser
+import app.myfinhub.android.feature.bankalert.BankMerchantAliasStore
+import app.myfinhub.android.feature.bankalert.BankMerchantAliasesDialog
+import app.myfinhub.android.feature.bankalert.merchantAliasKey
+import app.myfinhub.android.feature.bankalert.validMerchantAliasName
 import java.io.File
 import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 internal data class ReceiptImportController(
     val open: () -> Unit,
@@ -55,7 +63,7 @@ internal data class ReceiptImportController(
 )
 internal val LocalReceiptImportController = staticCompositionLocalOf<ReceiptImportController?> { null }
 
-private enum class ReceiptPhase { CHOOSE, BANK_TEXT, CAMERA_PERMISSION, CAMERA_READY, CAMERA, QR_SCAN, PICKER, RECOGNIZE, REVIEW, ERROR }
+private enum class ReceiptPhase { CHOOSE, BANK_TEXT, BANK_LOOKUP, BANK_ALIASES, CAMERA_PERMISSION, CAMERA_READY, CAMERA, QR_SCAN, PICKER, RECOGNIZE, REVIEW, ERROR }
 private enum class ReceiptFailure { CAMERA_PERMISSION, CAMERA_LAUNCH, QR_LAUNCH, PICKER_LAUNCH, RECOGNITION }
 private data class ReceiptRequest(
     val ownerId: String,
@@ -108,6 +116,7 @@ internal fun ReceiptImportHost(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current.applicationContext
+    val merchantAliases = remember(context) { BankMerchantAliasStore(context) }
     var request by remember { mutableStateOf<ReceiptRequest?>(null) }
     var reviewed by remember { mutableStateOf<Pair<String, ReceiptPrefill>?>(null) }
     val liveAuth by rememberUpdatedState(auth)
@@ -178,9 +187,23 @@ internal fun ReceiptImportHost(
     }
     LaunchedEffect(active, readyOwner) {
         // A live preview is never resumed automatically after lock/authority loss.
-        if (active != null && (active.phase in setOf(ReceiptPhase.QR_SCAN, ReceiptPhase.BANK_TEXT) ||
+        if (active != null && (active.phase in setOf(ReceiptPhase.QR_SCAN, ReceiptPhase.BANK_TEXT, ReceiptPhase.BANK_LOOKUP, ReceiptPhase.BANK_ALIASES) ||
                 active.proposal?.bankAlert != null) && active.ownerId != readyOwner) {
             if (request == active) clear()
+            return@LaunchedEffect
+        }
+        if (active?.phase == ReceiptPhase.BANK_LOOKUP && active.ownerId == readyOwner &&
+            request == active && mayEdit(active.ownerId)) {
+            val proposal = active.proposal ?: return@LaunchedEffect
+            val descriptor = proposal.bankAlert?.merchant.orEmpty()
+            val resolved = try {
+                val nickname = merchantAliases.list(active.ownerId).singleOrNull {
+                    merchantAliasKey(it.bankName) == merchantAliasKey(descriptor)
+                }?.nickname
+                proposal.copy(merchant = nickname ?: descriptor)
+            } catch (cancel: CancellationException) { throw cancel }
+            catch (_: Exception) { proposal.copy(bankAliasLookupFailed = true) }
+            if (request == active && mayEdit(active.ownerId)) request = active.copy(phase = ReceiptPhase.REVIEW, proposal = resolved)
             return@LaunchedEffect
         }
         if (active?.phase == ReceiptPhase.CAMERA_READY && active.ownerId == readyOwner &&
@@ -271,6 +294,10 @@ internal fun ReceiptImportHost(
                         },
                         modifier = Modifier.fillMaxWidth().testTag("bank_alert_import"),
                     ) { Text("Εισαγωγή τραπεζικού SMS") }
+                    TextButton(
+                        onClick = { if (mayEdit(active.ownerId) && request == active) request = active.copy(phase = ReceiptPhase.BANK_ALIASES) },
+                        modifier = Modifier.fillMaxWidth().testTag("bank_alert_aliases"),
+                    ) { Text("Τοπικά ονόματα εμπόρων") }
                 }
             },
             confirmButton = {
@@ -297,12 +324,22 @@ internal fun ReceiptImportHost(
             onDismiss = { clear() },
             onParsed = { alert ->
                 if (request == active && mayEdit(active.ownerId)) {
-                    request = active.copy(phase = ReceiptPhase.REVIEW, proposal = ReceiptProposal(
+                    request = active.copy(phase = ReceiptPhase.BANK_LOOKUP, proposal = ReceiptProposal(
                         merchant = alert.merchant, date = alert.date, totalCents = alert.cents,
                         currency = ReceiptCurrency.EUR, bankAlert = alert,
                     ))
                 }
             },
+        )
+        ReceiptPhase.BANK_ALIASES -> BankMerchantAliasesDialog(
+            owner = active.ownerId, store = merchantAliases,
+            mayEdit = { request == active && mayEdit(active.ownerId) },
+            onDismiss = { if (request == active) request = active.copy(phase = ReceiptPhase.CHOOSE) },
+        )
+        ReceiptPhase.BANK_LOOKUP -> AlertDialog(
+            onDismissRequest = { clear() }, title = { Text("Εύρεση τοπικού ονόματος") },
+            text = { CircularProgressIndicator() },
+            confirmButton = { TextButton(onClick = { clear() }) { Text("Ακύρωση") } },
         )
         ReceiptPhase.QR_SCAN -> qrScanner(
             { result ->
@@ -337,6 +374,16 @@ internal fun ReceiptImportHost(
                 activityItems = activityItems,
                 categoryOptions = categoryOptions,
                 onDismiss = { clear() },
+                onSaveAlias = proposal.bankAlert?.takeIf { it.kind != BankAlertParser.Kind.WITHDRAWAL && validMerchantAliasName(it.merchant) }?.let { bank ->
+                    val save: suspend (String) -> Boolean = { nickname ->
+                        if (request != active || !mayEdit(active.ownerId)) false else try {
+                            merchantAliases.put(active.ownerId, bank.merchant, nickname)
+                            request == active && mayEdit(active.ownerId)
+                        } catch (cancel: CancellationException) { throw cancel }
+                        catch (_: Exception) { false }
+                    }
+                    save
+                },
                 onApply = { prefill ->
                     if (request == active && mayEdit(active.ownerId)) {
                         reviewed = active.ownerId to prefill
@@ -379,9 +426,10 @@ internal fun BankAlertTextDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Τραπεζικό SMS") },
+        properties = DialogProperties(securePolicy = SecureFlagPolicy.SecureOn),
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Αντέγραψε μόνο την ειδοποίηση αγοράς ή ανάληψης Πειραιώς. Μην επικολλήσεις κωδικούς ασφαλείας. Δεν διαβάζονται άλλα μηνύματα.")
+                Text("Αντέγραψε μόνο την ειδοποίηση αγοράς χρεωστικής ή πιστωτικής κάρτας, ή ανάληψης Πειραιώς. Μην επικολλήσεις κωδικούς ασφαλείας. Δεν διαβάζονται άλλα μηνύματα.")
                 OutlinedTextField(
                     value = text,
                     onValueChange = { value ->
@@ -422,7 +470,11 @@ internal fun ReceiptReviewDialog(
     onDismiss: () -> Unit,
     onApply: (ReceiptPrefill) -> Unit,
     categoryOptions: List<ActivityCategoryOption> = emptyList(),
+    onSaveAlias: (suspend (String) -> Boolean)? = null,
 ) {
+    val aliasScope = rememberCoroutineScope()
+    var aliasBusy by remember(proposal) { mutableStateOf(false) }
+    var aliasStatus by remember(proposal) { mutableStateOf<String?>(null) }
     var amount by remember(proposal) {
         mutableStateOf(proposal.totalCents?.takeIf { proposal.currency == ReceiptCurrency.EUR }
             ?.let(::receiptAmountText).orEmpty())
@@ -439,6 +491,7 @@ internal fun ReceiptReviewDialog(
     var qrConfirmed by remember(proposal, amount, date, confirmedEuro) { mutableStateOf(false) }
     val bankAlert = proposal.bankAlert
     val withdrawal = bankAlert?.kind == BankAlertParser.Kind.WITHDRAWAL
+    val creditPurchase = bankAlert?.kind == BankAlertParser.Kind.CREDIT_PURCHASE
     var bankConfirmed by remember(proposal, amount, date, merchant) { mutableStateOf(false) }
     val suggestion = if (withdrawal) null else receiptCategorySuggestion(activityItems, categoryOptions, merchant)
     var useSuggestion by remember(suggestion, merchant, useSplit) { mutableStateOf(false) }
@@ -456,6 +509,7 @@ internal fun ReceiptReviewDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (bankAlert != null) "Έλεγχος τραπεζικής ειδοποίησης" else "Έλεγχος απόδειξης") },
+        properties = DialogProperties(securePolicy = if (bankAlert != null) SecureFlagPolicy.SecureOn else SecureFlagPolicy.Inherit),
         text = {
             Column(
                 Modifier.verticalScroll(rememberScrollState()),
@@ -464,8 +518,9 @@ internal fun ReceiptReviewDialog(
                 Text(if (bankAlert != null) "Έλεγξε την κίνηση. Καμία καταχώριση δεν γίνεται πριν επιλέξεις λογαριασμό και πατήσεις Καταχώριση."
                     else "Έλεγξε τα στοιχεία της απόδειξης. Η καταχώριση γίνεται μόνο στην επόμενη φόρμα.")
                 if (bankAlert != null) {
-                    Text((if (withdrawal) "Ανάληψη προς μετρητά" else "Αγορά με χρεωστική") +
-                        " · κάρτα •••• " + bankAlert.lastFour +
+                    Text((when { withdrawal -> "Ανάληψη προς μετρητά"; creditPurchase -> "Αγορά με πιστωτική"; else -> "Αγορά με χρεωστική" }) +
+                        bankAlert.lastFour.takeIf { it.isNotBlank() }?.let { " · κάρτα •••• $it" }.orEmpty() +
+                        bankAlert.accountHint.takeIf { it.isNotBlank() }?.let { " · λογ/μός SMS: $it" }.orEmpty() +
                         (bankAlert.time?.let { " · " + it.toString() } ?: "") +
                         bankAlert.country.takeIf { it.isNotBlank() }?.let { " · " + it }.orEmpty(),
                         modifier = Modifier.testTag("bank_alert_summary"))
@@ -473,7 +528,7 @@ internal fun ReceiptReviewDialog(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = bankConfirmed, onCheckedChange = { bankConfirmed = it },
                             modifier = Modifier.testTag("bank_alert_confirmation"))
-                        Text("Επιβεβαιώνω ότι ολοκληρώθηκε με χρεωστική κάρτα")
+                        Text(if (creditPurchase) "Επιβεβαιώνω ότι ολοκληρώθηκε με πιστωτική κάρτα" else "Επιβεβαιώνω ότι ολοκληρώθηκε με χρεωστική κάρτα")
                     }
                 } else if (fiscal != null) {
                     Text(
@@ -525,10 +580,26 @@ internal fun ReceiptReviewDialog(
                     singleLine = true,
                 )
                 OutlinedTextField(
-                    value = merchant, onValueChange = { merchant = it.take(90) },
-                    label = { Text("Κατάστημα / περιγραφή") }, modifier = Modifier.fillMaxWidth(),
+                    value = merchant, onValueChange = { merchant = it.take(90); aliasStatus = null },
+                    label = { Text("Κατάστημα / περιγραφή") }, modifier = Modifier.fillMaxWidth().testTag("receipt_review_merchant"),
                     singleLine = true,
                 )
+                if (bankAlert != null && onSaveAlias != null) {
+                    Text("Όνομα τράπεζας: " + bankAlert.merchant)
+                    if (proposal.bankAliasLookupFailed) Text("Δεν ήταν διαθέσιμες οι τοπικές αντιστοιχίσεις.", color = MaterialTheme.colorScheme.error)
+                    TextButton(
+                        enabled = !aliasBusy && validMerchantAliasName(merchant) && merchantAliasKey(merchant) != merchantAliasKey(bankAlert.merchant),
+                        onClick = {
+                            val nickname = merchant
+                            aliasBusy = true
+                            aliasScope.launch {
+                                aliasStatus = if (onSaveAlias(nickname)) "Αποθηκεύτηκε μόνο στη συσκευή." else "Η αντιστοίχιση δεν αποθηκεύτηκε."
+                                aliasBusy = false
+                            }
+                        }, modifier = Modifier.testTag("bank_alert_save_alias"),
+                    ) { Text("Αποθήκευση ονόματος στη συσκευή") }
+                    aliasStatus?.let { Text(it, modifier = Modifier.testTag("bank_alert_alias_status")) }
+                }
                 OutlinedTextField(
                     value = date, onValueChange = { date = it.take(10) },
                     label = { Text("Ημερομηνία (ΕΕΕΕ-ΜΜ-ΗΗ)") }, modifier = Modifier.fillMaxWidth(),
@@ -576,7 +647,7 @@ internal fun ReceiptReviewDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = confirmedEuro && cents != null && parsedDate != null &&
+                enabled = !aliasBusy && confirmedEuro && cents != null && parsedDate != null &&
                     (matches.isEmpty() || duplicateConfirmed) && (!useSplit || parts.isNotEmpty()) &&
                     (!qrDisagreement || qrConfirmed) && (bankAlert == null || bankConfirmed),
                 onClick = {
@@ -585,11 +656,12 @@ internal fun ReceiptReviewDialog(
                         if (useSplit) parts else emptyList(),
                         suggestion.takeIf { useSuggestion && !useSplit },
                         bankAlert?.kind,
+                        bankAlert?.lastFour?.takeIf { creditPurchase },
                     ))
                 },
                 modifier = Modifier.testTag("receipt_review_apply"),
             ) { Text("Συνέχεια") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Ακύρωση") } },
+        dismissButton = { TextButton(onClick = onDismiss, modifier = Modifier.testTag("receipt_review_cancel")) { Text("Ακύρωση") } },
     )
 }

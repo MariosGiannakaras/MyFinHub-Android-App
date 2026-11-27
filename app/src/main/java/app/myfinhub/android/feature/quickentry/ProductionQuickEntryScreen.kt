@@ -362,19 +362,20 @@ fun ProductionQuickEntryScreen(
             }
 
             if (state.kind.needsCard) {
+                val eligibleCards = state.bankAlertCreditOptions()
                 CompactChoice(
                     label = "Πιστωτική κάρτα",
                     selectedId = state.cardId,
-                    choices = state.creditCards.map { it.id to it.label },
-                    subtitles = state.creditCards
+                    choices = eligibleCards.map { it.id to it.label },
+                    subtitles = eligibleCards
                         .filter { it.provider.isNotBlank() }
                         .associate { it.id to it.provider },
                     onSelected = { onAction(QuickEntryAction.CardChanged(it)) },
                     searchable = true,
                 )
-                if (state.creditCards.isEmpty()) {
+                if (eligibleCards.isEmpty()) {
                     Text(
-                        "Δεν υπάρχει ενεργή πιστωτική κάρτα.",
+                        if (state.bankAlertDraft) "Δεν βρέθηκε ενεργή πιστωτική Πειραιώς με τα ίδια τελευταία ψηφία." else "Δεν υπάρχει ενεργή πιστωτική κάρτα.",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                     )

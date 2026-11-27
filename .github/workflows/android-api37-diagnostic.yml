@@ -1,0 +1,87 @@
+name: Android API 37 Runtime Diagnostic
+
+# Explicit diagnostic on a disposable stock AVD. Required merge checks remain the
+# full original representative UI suite; actual API37/One UI acceptance is on the
+# physical owner S24 and is mandatory before stable promotion.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-api37-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api37-emulator-shard:
+    # Independent full-suite shards. Both must pass to claim this API37 host proof.
+    name: API 37 diagnostic shard ${{ matrix.shard }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    env:
+      MYFINHUB_ANDROID_TEST_SHARD_COUNT: '2'
+      MYFINHUB_ANDROID_TEST_SHARD_INDEX: ${{ matrix.shard }}
+    # A stock compact-phone emulator is only a representative automated host.
+    # The user's physical Samsung Galaxy S24 Ultra is the sole supported device
+    # and remains the authoritative device-specific acceptance target.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Validate read-only D7 physical preflight contract
+        run: python3 -m unittest discover -s scripts -p 'test_s24_physical_preflight.py'
+
+      - name: Verify API 37 host boot gate
+        run: python3 -m unittest discover -s scripts -p test_hosted_api37_emulator.py
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Fail fast on canonical tracking drift
+        run: python3 scripts/render_project_tracking.py --check
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision compile SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Prebuild instrumentation APKs
+        shell: bash
+        run: |
+          set -euo pipefail
+          log="$(mktemp)"
+          trap 'rm -f "$log"' EXIT
+          if ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace 2>&1 | tee "$log"; then
+            exit 0
+          fi
+          if ! grep -Eq 'status code 429|429 from server: Too Many Requests' "$log"; then
+            exit 1
+          fi
+          echo 'Transient dependency repository throttling; retry prebuild once.'
+          sleep 30
+          ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
+
+      - name: Full API 37 runtime instrumentation
+        shell: bash
+        env:
+          MYFINHUB_EXPECTED_ANDROID_API: '37'
+        run: bash scripts/run-hosted-api37-emulator.sh bash scripts/run-connected-android-tests.sh

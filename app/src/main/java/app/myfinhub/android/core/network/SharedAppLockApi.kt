@@ -77,7 +77,19 @@ internal class SharedAppLockApi(
         .retryOnConnectionFailure(false)
         .build()
 
-    suspend fun status(session: AuthSession): SharedAppLockResult<SharedAppLockStatus> =
+    /**
+     * An idle pooled connection can close during MFA. Status is a foreground
+     * read, so retry a transport failure once with the same authenticated session.
+     * Verification, touch, lock and recovery never retry implicitly.
+     */
+    suspend fun status(session: AuthSession): SharedAppLockResult<SharedAppLockStatus> {
+        val first = readStatus(session)
+        return if (first is SharedAppLockResult.Failure && first.kind == SharedAppLockFailure.NETWORK) {
+            readStatus(session)
+        } else first
+    }
+
+    private suspend fun readStatus(session: AuthSession): SharedAppLockResult<SharedAppLockStatus> =
         execute(session, null) { row ->
             require(row.strictBoolean("ok") == true && row["unlockToken"] == null && row["error"] == null)
             parseStatus(row)

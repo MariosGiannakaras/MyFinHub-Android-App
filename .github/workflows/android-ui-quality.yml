@@ -16,6 +16,8 @@ on:
       - 'scripts/test_build_android_ux_review_pack.py'
       - 'scripts/install-android-sdk.sh'
       - 'scripts/run-connected-android-tests.sh'
+      - 'scripts/run-hosted-api37-emulator.sh'
+      - 'scripts/test_hosted_api37_emulator.py'
       - 'scripts/s24_physical_preflight.py'
       - 'scripts/test_s24_physical_preflight.py'
       - 'build.gradle.kts'
@@ -135,6 +137,9 @@ jobs:
       - name: Validate read-only D7 physical preflight contract
         run: python3 -m unittest discover -s scripts -p 'test_s24_physical_preflight.py'
 
+      - name: Verify API 37 host boot gate
+        run: python3 -m unittest discover -s scripts -p test_hosted_api37_emulator.py
+
       - name: Enable KVM
         shell: bash
         run: |
@@ -162,9 +167,24 @@ jobs:
 
       - name: Prebuild instrumentation APKs
         shell: bash
-        run: ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
+        run: |
+          set -euo pipefail
+          log="$(mktemp)"
+          trap 'rm -f "$log"' EXIT
+          if ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace 2>&1 | tee "$log"; then
+            exit 0
+          fi
+          if ! grep -Eq 'status code 429|429 from server: Too Many Requests' "$log"; then
+            exit 1
+          fi
+          echo 'Transient dependency repository throttling; retry prebuild once.'
+          sleep 30
+          ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
 
-      - name: S24 Ultra target phone UI tests
+      # Preserve the original full representative merge gate. API37 hosted system
+      # repeatedly crashed before suite completion; owner S24 API37 remains a
+      # mandatory physical acceptance gate and full API37 diagnostic is separate.
+      - name: Representative API 35 phone UI tests (application targets API 37)
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: 35
@@ -180,7 +200,7 @@ jobs:
             -no-snapshot-load -no-snapshot-save
             -gpu swiftshader_indirect
             -camera-back none -camera-front none
-          script: bash scripts/run-connected-android-tests.sh
+          script: MYFINHUB_EXPECTED_ANDROID_API=35 bash scripts/run-connected-android-tests.sh
 
   s24-ultra-target-instrumented:
     # Stable historical required-check identity: both matrix shards MUST pass.
