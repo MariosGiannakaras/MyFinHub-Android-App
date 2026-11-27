@@ -417,10 +417,13 @@ fun MyFinHubRoot(
         mayPublishRootServerSnapshot(it, authState)
     } == true
 
-    LaunchedEffect(authState, financeState) {
-        val owner = (authState as? AuthShellUiState.Ready)?.session?.userId
-        if (owner != null && financeSessionAuthorized && financeState is FinanceProductState.Ready) {
-            val confirmed = financeViewModel.confirmedBankSmsEvents(owner)
+    val bankSmsOwner = (authState as? AuthShellUiState.Ready)?.session?.userId
+        ?.takeIf { financeSessionAuthorized && financeState is FinanceProductState.Ready }
+    val confirmedBankSmsIds = bankSmsOwner?.let(financeViewModel::confirmedBankSmsEvents).orEmpty()
+    LaunchedEffect(bankSmsOwner, confirmedBankSmsIds) {
+        val owner = bankSmsOwner
+        if (owner != null && confirmedBankSmsIds.isNotEmpty()) {
+            val confirmed = confirmedBankSmsIds
             try {
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                     app.myfinhub.android.feature.bankalert.BankSmsInboxStore(context).reconcileConfirmed(owner, confirmed)

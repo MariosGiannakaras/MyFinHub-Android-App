@@ -228,6 +228,24 @@ jobs:
             exit 1
           fi
 
+          # The private SMS feature is opt-in. Never sign an APK with broader SMS access.
+          actual_permissions="$(sed -nE "s/^[[:space:]]*uses-permission(-sdk-[0-9]+)?: name='([^']+)'.*$/\2/p" <<< "$direct_permissions" | LC_ALL=C sort -u)"
+          expected_permissions="$(printf '%s\n' \
+            android.permission.ACCESS_NETWORK_STATE \
+            android.permission.CAMERA \
+            android.permission.INTERNET \
+            android.permission.POST_NOTIFICATIONS \
+            android.permission.RECEIVE_SMS \
+            android.permission.REQUEST_INSTALL_PACKAGES \
+            android.permission.USE_BIOMETRIC \
+            android.permission.USE_FINGERPRINT \
+            app.myfinhub.android.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION | LC_ALL=C sort -u)"
+          test "$actual_permissions" = "$expected_permissions"
+          manifest_tree="$("$aapt" dump xmltree "$apk" AndroidManifest.xml)"
+          grep -F 'feature.bankalert.BankSmsReceiver' <<< "$manifest_tree"
+          grep -F 'android.permission.BROADCAST_SMS' <<< "$manifest_tree"
+          grep -F 'android.provider.Telephony.SMS_RECEIVED' <<< "$manifest_tree"
+
           if "$apksigner" verify "$apk" >/dev/null 2>&1; then
             echo 'Production intermediate must remain unsigned before protected signing.' >&2
             exit 1
@@ -239,8 +257,8 @@ jobs:
             exit 1
           fi
           for manifest in "${play_manifests[@]}"; do
-            if grep -E 'android.permission.REQUEST_INSTALL_PACKAGES|android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION' "$manifest"; then
-              echo "Installer permission leaked into Play distribution manifest: $manifest" >&2
+            if grep -E 'android.permission.REQUEST_INSTALL_PACKAGES|android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION|android.permission.RECEIVE_SMS|android.permission.POST_NOTIFICATIONS|feature.bankalert.BankSmsReceiver' "$manifest"; then
+              echo "Private-only capability leaked into Play distribution manifest: $manifest" >&2
               exit 1
             fi
           done
@@ -458,7 +476,7 @@ jobs:
           Production-signed Android release candidate for `app.myfinhub.android`.
 
           - Direct APK: same enrolled production signer as prior private candidates; supports in-place update continuity.
-          - Google Play artifact: policy-compatible AAB with MyFinHub direct/self-update installer permissions removed; intended for Play Console Internal testing (or Closed testing when a larger private tester group is needed).
+          - Google Play artifact: policy-compatible AAB with MyFinHub direct/self-update installer and private SMS permissions/receiver removed; intended for Play Console Internal testing (or Closed testing when a larger private tester group is needed).
           - The direct APK is also published to the existing private MyFinHub update channel.
           - SHA-256 checksums and safe release metadata are attached.
 
@@ -509,7 +527,7 @@ jobs:
           print(f"- direct APK size: `{data['size_bytes']}` bytes")
           print(f"- signer certificate SHA-256: `{sys.argv[3]}`")
           print(f"- GitHub Release tag: `v{data['version_name']}`")
-          print("- Google Play artifact: signed `playRelease` AAB with direct-installer permissions removed")
+          print("- Google Play artifact: signed `playRelease` AAB with direct-installer and private SMS permissions/receiver removed")
           PY
       - name: Remove production signing material from runner
         if: always()

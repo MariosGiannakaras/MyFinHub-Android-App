@@ -55,6 +55,8 @@ private data class BankSmsEnvelope(
     val seen: List<String> = emptyList(),
 )
 
+internal data class BankSmsCaptureConsent(val slot: String, val generation: String)
+
 /** Owner-bound future SMS only. No raw SMS, account nickname, balance or inbox history on disk. */
 internal class BankSmsInboxStore(
     context: Context,
@@ -63,15 +65,24 @@ internal class BankSmsInboxStore(
 ) {
     private val preferences = context.applicationContext.getSharedPreferences("bank_sms_capture_consent", Context.MODE_PRIVATE)
 
-    fun enabled(owner: String): Boolean = synchronized(lock) { activeSlot() == slot(owner) }
+    fun enabled(owner: String): Boolean = synchronized(lock) { captureConsent()?.slot == slot(owner) }
+    fun captureConsent(): BankSmsCaptureConsent? = synchronized(lock) {
+        val key = activeSlot() ?: return@synchronized null
+        val generation = preferences.getString("generation", null)?.takeIf { value ->
+            runCatching { UUID.fromString(value).toString() == value }.getOrDefault(false)
+        } ?: return@synchronized null
+        BankSmsCaptureConsent(key, generation)
+    }
     fun enable(owner: String): Boolean = synchronized(lock) {
         val key = slot(owner)
         read(key) // Do not enable over a corrupted/unreadable queue.
-        preferences.edit().putString("owner", key).commit().also { changed() }
+        if (captureConsent()?.slot == key) return@synchronized true
+        preferences.edit().putString("owner", key).putString("generation", UUID.randomUUID().toString())
+            .commit().also { changed() }
     }
     fun disable() = synchronized(lock) {
         if (activeSlot() != null) {
-            check(preferences.edit().remove("owner").commit())
+            check(preferences.edit().remove("owner").remove("generation").commit())
             changed()
         }
     }
@@ -94,8 +105,9 @@ internal class BankSmsInboxStore(
     }
 
     /** Called only by the permission-gated system receiver. Unknown senders and unsafe bodies are ignored. */
-    fun receive(sender: String?, timestamp: Long, body: String): Boolean = synchronized(lock) {
-        val key = activeSlot() ?: return@synchronized false
+    fun receive(consent: BankSmsCaptureConsent, sender: String?, timestamp: Long, body: String): Boolean = synchronized(lock) {
+        if (captureConsent() != consent) return@synchronized false
+        val key = consent.slot
         if (!sender.orEmpty().trim().equals("Piraeus", ignoreCase = true) || timestamp <= 0) return@synchronized false
         val alert = BankAlertParser.parseIncomingPiraeus(body) ?: return@synchronized false
         val pending = PendingBankSms(

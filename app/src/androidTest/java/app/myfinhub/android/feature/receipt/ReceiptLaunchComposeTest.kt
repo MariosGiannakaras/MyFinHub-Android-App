@@ -193,7 +193,7 @@ class ReceiptLaunchComposeTest {
         val auth = mutableStateOf<AuthShellUiState>(AuthShellUiState.Locked(owner, false, PinAttemptStatus(true, 5)))
         val requested = mutableStateOf(true)
         store.enable(owner.userId)
-        assertTrue(store.receive("Piraeus", System.currentTimeMillis(), message))
+        assertTrue(store.receive(requireNotNull(store.captureConsent()), "Piraeus", System.currentTimeMillis(), message))
         val row = store.list(owner.userId).first()
         try {
             composeRule.setContent {

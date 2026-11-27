@@ -28,6 +28,9 @@ internal fun hasBankSmsPermission(context: Context): Boolean =
 class BankSmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION || !hasBankSmsPermission(context)) return
+        val app = context.applicationContext
+        val store = BankSmsInboxStore(app)
+        val consent = store.captureConsent() ?: return
         val parts = runCatching { Telephony.Sms.Intents.getMessagesFromIntent(intent) }.getOrNull() ?: return
         if (parts.size !in 1..10) return
         val sender = parts.first().originatingAddress
@@ -38,11 +41,10 @@ class BankSmsReceiver : BroadcastReceiver() {
         }
         if (body.length !in 1..1500) return
         val timestamp = parts.first().timestampMillis
-        val app = context.applicationContext
         val pending = goAsync()
         try { executor.execute {
             try {
-                if (hasBankSmsPermission(app) && BankSmsInboxStore(app).receive(sender, timestamp, body)) {
+                if (hasBankSmsPermission(app) && store.receive(consent, sender, timestamp, body) && store.captureConsent() == consent) {
                     notifyBankSms(app)
                 }
             } catch (_: Exception) {
