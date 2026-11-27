@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete #559 six original exact-head representative checks (API35 runtime, installed target SDK37) and actual isolated proof against corrected Web #668 67d0d6045f9bbcbd4538f85674e8143869f857a4; confirm Web CI/CodeQL and independent account password enforcement. If source audit/checks pass, publish authorized same-signer physical-test candidate only. API37 hosted system crashes remain explicit and actual S24 Android17/OneUI verification mandatory before stable. Web #668 remains isolated for owning Web integration; no production shared PIN activation or live finance writes. Actual withdrawal format unverified.
+- [ ] Protected rc26 physical-test release: prepare immutable open ready source-marker PR from #559 merge c4ac1e7f63556ca0ca8fae13c93a1c048d9e10ee, six source checks and Web #668 final CI required before guarded production request; no stable/main promotion. Actual Android17/OneUI device test, Play Protect classification and withdrawal format remain unverified. Web owning workstream integrates accepted candidate separately; do not activate server global PIN.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Complete #559 six original exact-head representative checks (API35 runtime, installed target SDK37) and actual isolated proof against corrected Web #668 67d0d6045f9bbcbd4538f85674e8143869f857a4; confirm Web CI/CodeQL and independent account password enforcement. If source audit/checks pass, publish authorized same-signer physical-test candidate only. API37 hosted system crashes remain explicit and actual S24 Android17/OneUI verification mandatory before stable. Web #668 remains isolated for owning Web integration; no production shared PIN activation or live finance writes. Actual withdrawal format unverified.
+Next: Protected rc26 physical-test release: prepare immutable open ready source-marker PR from #559 merge c4ac1e7f63556ca0ca8fae13c93a1c048d9e10ee, six source checks and Web #668 final CI required before guarded production request; no stable/main promotion. Actual Android17/OneUI device test, Play Protect classification and withdrawal format remain unverified. Web owning workstream integrates accepted candidate separately; do not activate server global PIN.
 
 
 ## Active Web parity progress
