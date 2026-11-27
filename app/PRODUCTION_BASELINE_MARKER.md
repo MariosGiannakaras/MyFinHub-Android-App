@@ -38,3 +38,8 @@ The device recording and privacy-safe acceptance contract is
 be filled only from a future actually published and independently verified APK,
 never by guessing from this marker. Production finance writes and signing
 material are explicitly outside this UI/device-readiness checkpoint.
+
+
+## Proposed rc27 automatic bank SMS release-source checkpoint
+
+This release-only marker starts at #563 final feature head `0d2b94845bf75e67d33683b3ddb96c2d7b010add`. It does not alter the application. The feature PR must independently pass all exact-head checks and merge into develop before any protected release request, so the trusted publisher has the new actual private permission/receiver and Play exclusion gates. This open source PR also requires every exact-head Android/hosted UI gate. The production versionCode, signer, artifact digest and release identity remain unset until the guarded publisher completes. The owner authorizes a prerelease for physical S24 Android 17/OneUI testing only, not stable main promotion, production financial test writes or global PIN activation.

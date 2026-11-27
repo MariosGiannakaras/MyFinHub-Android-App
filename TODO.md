@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Finish automatic bank SMS inbox owner correction on android/automatic-bank-sms-inbox-20261127; all exact-head gates, signed permission/receiver audit, protected prerelease and actual S24 Android17/OneUI permission, real incoming SMS, notification and later review acceptance required. No live test finance writes, no stable promotion or global PIN activation; Web production deployment remains separately owned.
+Next: Finish #563 exact-head CI/merge and staged rc27 immutable release-source CI, then protected publisher and independent actual APK permission/signer/ZIP audit before physical S24 acceptance.
 
 
 ## Active Web parity progress
