@@ -27,11 +27,33 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 private val ACCOUNT_METADATA_ID_REGEX = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$")
 
-class OkHttpMyFinHubApi(
+class OkHttpMyFinHubApi internal constructor(
     private val configuration: AppConfiguration,
-    private val client: OkHttpClient,
-    private val json: Json = Json { ignoreUnknownKeys = true },
+    client: OkHttpClient,
+    private val json: Json,
+    private val appLockAuthority: SharedAppLockAuthority?,
 ) : MyFinHubApi {
+    constructor(
+        configuration: AppConfiguration,
+        client: OkHttpClient,
+        json: Json = Json { ignoreUnknownKeys = true },
+    ) : this(configuration, client, json, null)
+
+    internal constructor(
+        configuration: AppConfiguration,
+        client: OkHttpClient,
+        appLockAuthority: SharedAppLockAuthority,
+    ) : this(configuration, client, Json { ignoreUnknownKeys = true }, appLockAuthority)
+
+    // Unlock tickets must not follow redirects or leave the configured API origin.
+    private val client = if (appLockAuthority != null) client.newBuilder()
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .cookieJar(okhttp3.CookieJar.NO_COOKIES)
+        .retryOnConnectionFailure(false)
+        .build()
+    else client
+
     override suspend fun loadFinanceData(session: AuthSession): ApiResult<CanonicalFinanceEnvelope> {
         val gate = requestGate(session)
         if (gate != null) return gate
@@ -276,7 +298,9 @@ class OkHttpMyFinHubApi(
         // undo/redo cursor. Resolve the matching history generation immediately before the PUT.
         // If another session changes either value between this GET and the PUT, the server's two
         // preconditions still fail closed with 409 instead of accepting a stale write.
-        val historyGeneration = when (val history = loadHistoryGeneration(session, expectedRevision)) {
+        val writeGrant = appLockAuthority?.requestGrant(session)
+        if (appLockAuthority != null && writeGrant == null) return appLockRequired()
+        val historyGeneration = when (val history = loadHistoryGeneration(session, expectedRevision, writeGrant)) {
             is ApiResult.Success -> history.value
             is ApiResult.Failure -> return history
         }
@@ -285,7 +309,7 @@ class OkHttpMyFinHubApi(
             put("state", document.state)
             put("updatedAt", JsonPrimitive(document.updatedAt))
         }.toString()
-        val request = authenticatedRequest(session, "/api/data")
+        val request = authenticatedRequest(session, "/api/data", writeGrant)
             .header("If-Match", expectedRevision)
             .header(HISTORY_GENERATION_HEADER, historyGeneration)
             .put(body.toRequestBody(JSON_MEDIA_TYPE))
@@ -411,8 +435,9 @@ class OkHttpMyFinHubApi(
     private suspend fun loadHistoryGeneration(
         session: AuthSession,
         expectedRevision: String,
+        grant: SharedAppLockAuthority.Grant?,
     ): ApiResult<String> {
-        val request = authenticatedRequest(session, "/api/history")
+        val request = authenticatedRequest(session, "/api/history", grant)
             .get()
             .build()
         return execute(request) { responseBody ->
@@ -439,13 +464,24 @@ class OkHttpMyFinHubApi(
         session.accessToken.isBlank() -> ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED)
         session.assuranceLevel != AssuranceLevel.AAL2 -> ApiResult.Failure(ApiFailureKind.MFA_REQUIRED)
         !configuration.isConfigured -> ApiResult.Failure(ApiFailureKind.BUILD_NOT_CONFIGURED)
+        appLockAuthority != null && appLockAuthority.requestGrant(session) == null -> appLockRequired()
         else -> null
     }
 
-    private fun authenticatedRequest(session: AuthSession, path: String): Request.Builder = Request.Builder()
+    private fun authenticatedRequest(
+        session: AuthSession,
+        path: String,
+        grant: SharedAppLockAuthority.Grant? = appLockAuthority?.requestGrant(session),
+    ): Request.Builder = Request.Builder()
         .url("${configuration.myFinHubApiBaseUrl}$path")
         .header("Authorization", "Bearer ${session.accessToken}")
         .header("Accept", "application/json")
+        .apply {
+            grant?.let { tag(SharedAppLockAuthority.Grant::class.java, it) }
+        }
+
+    private fun appLockRequired(status: Int? = null, code: String = "APP_LOCK_REQUIRED") =
+        ApiResult.Failure(ApiFailureKind.APP_LOCK_REQUIRED, statusCode = status, serverCode = code)
 
     private fun parseEnvelope(body: String): ApiResult<CanonicalFinanceEnvelope> = runCatching {
         val envelope = json.parseToJsonElement(body).jsonObject
@@ -468,80 +504,103 @@ class OkHttpMyFinHubApi(
         request: Request,
         notFoundKind: ApiFailureKind? = null,
         parse: (String) -> ApiResult<T>,
-    ): ApiResult<T> = withContext(Dispatchers.IO) {
-        try {
-            client.newCall(request).execute().use { response ->
-                val status = response.code
-                val body = response.body.string()
-                when {
-                    response.isSuccessful -> safeParse(status, body, parse)
-                    status == 401 -> ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED, statusCode = status)
-                    status == 403 -> {
-                        // 403 is also used for owner/permission denial: do not misreport it as MFA.
-                        // Only an explicit, allowlisted MFA_REQUIRED code may request re-verification.
-                        val (serverCode, requestId) = safeFinanceErrorMetadata(body)
-                        ApiResult.Failure(
-                            kind = if (serverCode == "MFA_REQUIRED") ApiFailureKind.MFA_REQUIRED
-                                else ApiFailureKind.FORBIDDEN,
-                            statusCode = status,
-                            serverCode = serverCode,
-                            requestId = requestId,
-                        )
+    ): ApiResult<T> {
+        val grant = request.tag(SharedAppLockAuthority.Grant::class.java)
+        val result: ApiResult<T> = withContext(Dispatchers.IO) {
+            try {
+                val outbound = if (appLockAuthority != null) {
+                    if (grant == null || !appLockAuthority.isCurrent(grant)) return@withContext appLockRequired()
+                    request.newBuilder().apply {
+                        grant.headerValue()?.let { header("X-MyFinHub-App-Unlock", it) }
+                    }.build()
+                } else request
+                client.newCall(outbound).execute().use { response ->
+                    val status = response.code
+                    val body = response.body.string()
+                    if (appLockAuthority != null && (grant == null || !appLockAuthority.isCurrent(grant))) {
+                        return@withContext appLockRequired()
                     }
-                    status == 404 && notFoundKind != null -> {
-                        // Only an explicit canonical vault-absence code may
-                        // authorize legacy migration; status alone is insufficient.
-                        val (serverCode, requestId) = safeFinanceErrorMetadata(body)
-                        ApiResult.Failure(
-                            notFoundKind,
-                            statusCode = status,
-                            serverCode = serverCode,
-                            requestId = requestId,
-                        )
+                    val lockCode = if (status == 423 || status == 503) safeFinanceErrorMetadata(body).first else null
+                    if (status == 423 || (status == 503 && lockCode in setOf("APP_LOCK_UNAVAILABLE", "APP_LOCK_NOT_MIGRATED", "APP_LOCK_INVALID_RESPONSE"))) {
+                        if (grant != null) appLockAuthority?.reject(grant)
+                        return@withContext appLockRequired(status, lockCode ?: "APP_LOCK_REQUIRED")
                     }
-                    status == 409 -> {
-                        // The Web finance server rejects saves while card-secret cleanup is
-                        // pending. That is not a revision mismatch; never offer a stale retry.
-                        val (serverCode, requestId) = safeFinanceErrorMetadata(body)
-                        ApiResult.Failure(
-                            kind = if (serverCode == "CARD_CLEANUP_INTENT_REQUIRED")
-                                ApiFailureKind.CARD_CLEANUP_REQUIRED else ApiFailureKind.REVISION_CONFLICT,
-                            statusCode = status,
-                            serverCode = serverCode,
-                            requestId = requestId,
-                        )
+                    when {
+                        response.isSuccessful -> safeParse(status, body, parse)
+                        status == 401 -> ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED, statusCode = status)
+                        status == 403 -> {
+                            // 403 is also used for owner/permission denial: do not misreport it as MFA.
+                            // Only an explicit, allowlisted MFA_REQUIRED code may request re-verification.
+                            val (serverCode, requestId) = safeFinanceErrorMetadata(body)
+                            ApiResult.Failure(
+                                kind = if (serverCode == "MFA_REQUIRED") ApiFailureKind.MFA_REQUIRED
+                                    else ApiFailureKind.FORBIDDEN,
+                                statusCode = status,
+                                serverCode = serverCode,
+                                requestId = requestId,
+                            )
+                        }
+                        status == 404 && notFoundKind != null -> {
+                            // Only an explicit canonical vault-absence code may
+                            // authorize legacy migration; status alone is insufficient.
+                            val (serverCode, requestId) = safeFinanceErrorMetadata(body)
+                            ApiResult.Failure(
+                                notFoundKind,
+                                statusCode = status,
+                                serverCode = serverCode,
+                                requestId = requestId,
+                            )
+                        }
+                        status == 409 -> {
+                            // The Web finance server rejects saves while card-secret cleanup is
+                            // pending. That is not a revision mismatch; never offer a stale retry.
+                            val (serverCode, requestId) = safeFinanceErrorMetadata(body)
+                            ApiResult.Failure(
+                                kind = if (serverCode == "CARD_CLEANUP_INTENT_REQUIRED")
+                                    ApiFailureKind.CARD_CLEANUP_REQUIRED else ApiFailureKind.REVISION_CONFLICT,
+                                statusCode = status,
+                                serverCode = serverCode,
+                                requestId = requestId,
+                            )
+                        }
+                        status == 428 -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED, statusCode = status)
+                        status == 400 || status == 422 -> {
+                            val (serverCode, requestId) = safeFinanceErrorMetadata(body)
+                            // The Web device-session last_seen_at monotonicity guard can
+                            // reject a concurrent metadata touch as HTTP 400 before
+                            // finance data is read. Only this exact allowlisted code
+                            // is a transient server failure; actual finance validation
+                            // errors remain non-retryable and fail closed.
+                            val deviceSessionTouchFailed =
+                                status == 400 && serverCode == "DEVICE_REGISTRY_UNAVAILABLE"
+                            ApiResult.Failure(
+                                kind = if (deviceSessionTouchFailed) ApiFailureKind.SERVER
+                                    else ApiFailureKind.INVALID_DATA,
+                                retryable = deviceSessionTouchFailed,
+                                statusCode = status,
+                                serverCode = serverCode,
+                                requestId = requestId,
+                            )
+                        }
+                        status == 429 -> ApiResult.Failure(ApiFailureKind.RATE_LIMITED, retryable = true, statusCode = status)
+                        status in 500..599 -> ApiResult.Failure(ApiFailureKind.SERVER, retryable = true, statusCode = status)
+                        else -> ApiResult.Failure(ApiFailureKind.SERVER, statusCode = status)
                     }
-                    status == 428 -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED, statusCode = status)
-                    status == 400 || status == 422 -> {
-                        val (serverCode, requestId) = safeFinanceErrorMetadata(body)
-                        // The Web device-session last_seen_at monotonicity guard can
-                        // reject a concurrent metadata touch as HTTP 400 before
-                        // finance data is read. Only this exact allowlisted code
-                        // is a transient server failure; actual finance validation
-                        // errors remain non-retryable and fail closed.
-                        val deviceSessionTouchFailed =
-                            status == 400 && serverCode == "DEVICE_REGISTRY_UNAVAILABLE"
-                        ApiResult.Failure(
-                            kind = if (deviceSessionTouchFailed) ApiFailureKind.SERVER
-                                else ApiFailureKind.INVALID_DATA,
-                            retryable = deviceSessionTouchFailed,
-                            statusCode = status,
-                            serverCode = serverCode,
-                            requestId = requestId,
-                        )
-                    }
-                    status == 429 -> ApiResult.Failure(ApiFailureKind.RATE_LIMITED, retryable = true, statusCode = status)
-                    status in 500..599 -> ApiResult.Failure(ApiFailureKind.SERVER, retryable = true, statusCode = status)
-                    else -> ApiResult.Failure(ApiFailureKind.SERVER, statusCode = status)
                 }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: IOException) {
+                ApiResult.Failure(ApiFailureKind.NETWORK, retryable = true)
+            } catch (_: Exception) {
+                ApiResult.Failure(ApiFailureKind.SERVER, retryable = true)
             }
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (_: IOException) {
-            ApiResult.Failure(ApiFailureKind.NETWORK, retryable = true)
-        } catch (_: Exception) {
-            ApiResult.Failure(ApiFailureKind.SERVER, retryable = true)
         }
+        // Re-check on the caller dispatcher after the potentially blocking IO handoff.
+        // Preserve the precise lock-required error, but never publish old successes or
+        // unrelated failures into a newly unlocked generation.
+        if (result is ApiResult.Failure && result.kind == ApiFailureKind.APP_LOCK_REQUIRED) return result
+        if (appLockAuthority != null && (grant == null || !appLockAuthority.isCurrent(grant))) return appLockRequired()
+        return result
     }
 
     /** Bounded response metadata only; never display the raw server error or finance payload. */
@@ -582,7 +641,8 @@ class OkHttpMyFinHubApi(
             "INVALID_DATA", "INVALID_SCHEMA_VERSION", "INVALID_REVISION",
             "MFA_REQUIRED", "FORBIDDEN", "REVISION_CONFLICT",
             "HISTORY_CURSOR_CONFLICT", "CARD_CLEANUP_INTENT_REQUIRED", "CARD_SECRET_NOT_FOUND",
-            "DEVICE_REGISTRY_UNAVAILABLE",
+            "DEVICE_REGISTRY_UNAVAILABLE", "APP_LOCK_REQUIRED", "APP_LOCK_UNAVAILABLE",
+            "APP_LOCK_NOT_MIGRATED", "APP_LOCK_INVALID_RESPONSE",
         )
         val SAFE_REQUEST_ID_REGEX = Regex("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
     }

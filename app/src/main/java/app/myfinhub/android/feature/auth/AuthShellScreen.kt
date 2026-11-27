@@ -56,6 +56,12 @@ fun AuthShellScreen(
     onPinFallbackRequested: () -> Unit,
     readyContent: @Composable () -> Unit,
     biometricGateway: BiometricGateway = remember { AndroidBiometricGateway() },
+    onRetrySharedLock: () -> Unit = {},
+    onVerifySharedPin: (CharArray) -> Unit = { it.fill('\u0000') },
+    onRecoverSharedPin: (String, CharArray, CharArray, CharArray) -> Unit = { _, password, code, pin ->
+        password.fill('\u0000'); code.fill('\u0000'); pin.fill('\u0000')
+    },
+    onSharedLogout: () -> Unit = {},
 ) {
     when (state) {
         AuthShellUiState.Loading -> LoadingScreen()
@@ -73,8 +79,133 @@ fun AuthShellScreen(
             onPinFallbackRequested = onPinFallbackRequested,
             onVerifyPin = onVerifyPin,
         )
+        is AuthShellUiState.SharedLocked -> SharedLockedScreen(
+            state, onRetrySharedLock, onVerifySharedPin, onRecoverSharedPin, onSharedLogout,
+        )
         is AuthShellUiState.Ready -> readyContent()
     }
+}
+
+@Composable
+private fun SharedLockedScreen(
+    state: AuthShellUiState.SharedLocked,
+    onRetry: () -> Unit,
+    onVerify: (CharArray) -> Unit,
+    onRecover: (String, CharArray, CharArray, CharArray) -> Unit,
+    onLogout: () -> Unit,
+) {
+    var pin by remember(state.session) { mutableStateOf("") }
+    var recovery by remember(state.session) { mutableStateOf(false) }
+    var email by remember(state.session) { mutableStateOf("") }
+    var password by remember(state.session) { mutableStateOf("") }
+    var code by remember(state.session) { mutableStateOf("") }
+    var newPin by remember(state.session) { mutableStateOf("") }
+    var confirmation by remember(state.session) { mutableStateOf("") }
+    var retryRemaining by remember(state.retryAfterMillis, state.busy) { mutableStateOf(state.retryAfterMillis) }
+    LaunchedEffect(state.retryAfterMillis, state.busy) {
+        while (retryRemaining > 0) {
+            delay(minOf(1_000L, retryRemaining))
+            retryRemaining = (retryRemaining - 1_000L).coerceAtLeast(0)
+        }
+    }
+    fun clearRecovery() {
+        email = ""; password = ""; code = ""; newPin = ""; confirmation = ""
+    }
+    AuthSurface {
+        Text("Κοινό PIN MyFinHub", style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.semantics { heading() })
+        Text(
+            if (state.requiresPin) "Το κοινό PIN προστατεύει την πρόσβαση στα οικονομικά δεδομένα και είναι διαφορετικό από το τοπικό PIN."
+            else "Απαιτείται έλεγχος της κοινής προστασίας πριν εμφανιστούν οικονομικά δεδομένα.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (state.busy) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+        } else if (state.requiresPin && !recovery) {
+            SharedPinField("Κοινό PIN (4 ψηφία)", pin) { pin = it }
+            if (retryRemaining > 0) Text("Δοκίμασε ξανά σε ${formatRetrySeconds(retryRemaining)}.", color = MaterialTheme.colorScheme.error)
+            MyFinHubPrimaryAction(
+                label = "Ξεκλείδωμα",
+                onClick = {
+                    val chars = pin.toCharArray()
+                    pin = ""
+                    onVerify(chars)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = pin.length == 4 && retryRemaining == 0L,
+                icon = null,
+            )
+            MyFinHubOutlinedAction(
+                label = "Ξέχασα το κοινό PIN",
+                onClick = { pin = ""; recovery = true },
+                modifier = Modifier.fillMaxWidth(),
+                icon = null,
+            )
+        } else if (state.requiresPin && recovery) {
+            Text("Ανάκτηση με νέο έλεγχο email, κωδικού και TOTP. Θα ακυρωθούν τα προηγούμενα ξεκλειδώματα.")
+            MyFinHubOutlinedField(
+                value = email, onValueChange = { email = it.take(254) }, label = "Email",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+            )
+            MyFinHubOutlinedField(
+                value = password, onValueChange = { password = it.take(512) }, label = "Κωδικός λογαριασμού",
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+            )
+            MyFinHubOutlinedField(
+                value = code, onValueChange = { code = it.filter { c -> c in '0'..'9' }.take(6) },
+                label = "Κωδικός TOTP",
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next),
+            )
+            SharedPinField("Νέο κοινό PIN", newPin) { newPin = it }
+            SharedPinField("Επιβεβαίωση νέου PIN", confirmation) { confirmation = it }
+            MyFinHubPrimaryAction(
+                label = "Αλλαγή κοινού PIN",
+                onClick = {
+                    val submittedEmail = email
+                    val submittedPassword = password.toCharArray()
+                    val submittedCode = code.toCharArray()
+                    val submittedPin = newPin.toCharArray()
+                    clearRecovery()
+                    recovery = false
+                    onRecover(submittedEmail, submittedPassword, submittedCode, submittedPin)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = email.isNotBlank() && password.length >= 8 && code.length == 6 &&
+                    newPin.length == 4 && newPin == confirmation,
+                icon = null,
+            )
+            MyFinHubOutlinedAction(
+                label = "Επιστροφή στο PIN", onClick = { clearRecovery(); recovery = false },
+                modifier = Modifier.fillMaxWidth(), icon = null,
+            )
+        }
+        state.message?.let { ErrorMessage(it) }
+        if (!state.busy && !recovery) {
+            MyFinHubOutlinedAction(
+                label = "Νέος έλεγχος προστασίας", onClick = { pin = ""; onRetry() },
+                modifier = Modifier.fillMaxWidth(), icon = null,
+            )
+        }
+        if (!state.busy) {
+            MyFinHubOutlinedAction(
+                label = "Αποσύνδεση", onClick = { pin = ""; clearRecovery(); onLogout() },
+                modifier = Modifier.fillMaxWidth(), icon = null,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SharedPinField(label: String, value: String, onValueChange: (String) -> Unit) {
+    MyFinHubOutlinedField(
+        value = value,
+        onValueChange = { onValueChange(it.filter { c -> c in '0'..'9' }.take(4)) },
+        label = label,
+        visualTransformation = PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
+    )
 }
 
 @Composable

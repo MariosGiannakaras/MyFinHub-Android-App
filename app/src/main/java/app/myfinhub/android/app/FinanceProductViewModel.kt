@@ -112,6 +112,7 @@ import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
+import app.myfinhub.android.core.network.productionSharedAppLockAuthority
 import app.myfinhub.android.core.ui.UserNotice
 import app.myfinhub.android.core.ui.apiFailureMessage
 import app.myfinhub.android.core.ui.offlineUserNotice
@@ -210,6 +211,7 @@ internal fun financeSnapshotRequiresRevalidation(
 /** Only previously authenticated owner cache may survive non-auth server read failures. */
 internal fun financeReadFailureMayUseCache(kind: ApiFailureKind): Boolean = when (kind) {
     ApiFailureKind.AUTH_REQUIRED, ApiFailureKind.MFA_REQUIRED, ApiFailureKind.FORBIDDEN,
+    ApiFailureKind.APP_LOCK_REQUIRED,
     ApiFailureKind.BUILD_NOT_CONFIGURED,
     ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE -> false
     else -> true
@@ -249,6 +251,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private val providerAwareApi = OkHttpMyFinHubApi(
         configuration = AppConfiguration.fromBuildConfig(),
         client = NetworkClientFactory.create(),
+        appLockAuthority = productionSharedAppLockAuthority,
     )
     private val repository = FinanceRepository(providerAwareApi)
     private val mutableDeviceSessions = MutableStateFlow(DeviceSessionsUiSnapshot())
@@ -303,7 +306,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun matchesSensitivePresentationSession(
         session: AuthSession,
         allowAutomaticSync: Boolean = true,
-    ): Boolean = financePresentationMatchesAuthority(
+    ): Boolean = productionSharedAppLockAuthority.canPresent(session) && financePresentationMatchesAuthority(
         currentSession, session, automaticSyncAllowed, allowAutomaticSync,
     )
 
@@ -437,6 +440,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     /** Explicit recovery for ambiguous queued work. A fresh server load always happens first. */
     fun retryPendingMutation() {
+        if (currentSession?.let(productionSharedAppLockAuthority::canPresent) != true) return
         if (!canUseServer()) {
             if (serverReadBlocked && hasOnlineSession()) {
                 // Explicit retry revalidates the canonical snapshot before considering a write.
@@ -460,6 +464,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     fun undoLatestPendingMutation() {
+        if (currentSession?.let(productionSharedAppLockAuthority::canPresent) != true) return
         if (canUseServer()) {
             mutableNotices.tryEmit(
                 UserNotice(
@@ -1900,12 +1905,14 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     private fun applyMutation(mutation: CanonicalFinanceMutation) {
         val session = currentSession ?: return
+        if (!productionSharedAppLockAuthority.canPresent(session)) return
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
 
         mutationLaunchInFlight = true
         mutationJob = viewModelScope.launch {
             try {
+                if (!productionSharedAppLockAuthority.canPresent(session)) return@launch
                 when (
                     mutationDeliveryMode(
                         serverAvailable = canUseServer(),
@@ -2080,6 +2087,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutation: CanonicalFinanceMutation,
         previousProjection: CanonicalProductProjection,
     ): Boolean {
+        if (!productionSharedAppLockAuthority.canPresent(session)) return false
         val serverDocument = lastServerDocument ?: try {
             localStore.load(session.userId)?.serverDocument
         } catch (_: FinanceLocalRestoreException) {
@@ -2100,6 +2108,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             )
             return false
         }
+        if (!productionSharedAppLockAuthority.canPresent(session)) return false
         lastServerDocument = serverDocument
 
         val currentOptimisticDocument = runCatching { applyAllPending(serverDocument) }.getOrElse { error ->
@@ -2597,7 +2606,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     private fun hasOnlineSession(): Boolean =
-        automaticSyncAllowed && connectivityObserver.current() == NetworkStatus.ONLINE
+        automaticSyncAllowed && connectivityObserver.current() == NetworkStatus.ONLINE &&
+            currentSession?.let(productionSharedAppLockAuthority::requestGrant) != null
 
     private fun canUseServer(): Boolean = hasOnlineSession() && !serverReadBlocked
 

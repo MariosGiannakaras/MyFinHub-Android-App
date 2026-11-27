@@ -14,6 +14,11 @@ import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.AndroidConnectivityObserver
 import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.NetworkStatus
+import app.myfinhub.android.core.network.SharedAppLockApi
+import app.myfinhub.android.core.network.SharedAppLockResult
+import app.myfinhub.android.core.network.SharedAppLockFailure
+import app.myfinhub.android.core.network.SharedAppLockVerification
+import app.myfinhub.android.core.network.productionSharedAppLockAuthority
 import app.myfinhub.android.core.security.AndroidKeystoreCipher
 import app.myfinhub.android.core.security.AndroidKeystorePinVerifier
 import app.myfinhub.android.core.security.DataStoreEncryptedSessionStore
@@ -28,6 +33,9 @@ import app.myfinhub.android.core.ui.toUserNotice
 import app.myfinhub.android.core.ui.unexpectedUserNotice
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -57,6 +65,17 @@ sealed interface AuthShellUiState {
         val pinStatus: PinAttemptStatus,
         val message: String? = null,
     ) : AuthShellUiState
+
+    /** Existing local authentication has completed; the server privacy gate has not. */
+    data class SharedLocked(
+        val session: AuthSession,
+        val requiresPin: Boolean = false,
+        val retryAfterMillis: Long = 0,
+        val busy: Boolean = false,
+        val message: String? = null,
+    ) : AuthShellUiState {
+        override fun toString() = "SharedLocked(<redacted>)"
+    }
 
     /**
      * [offline] means the owner passed local PIN/biometric unlock but the stored server session has
@@ -115,6 +134,13 @@ class AuthShellViewModel(
     private val connectivityObserver = AndroidConnectivityObserver(application)
     private val httpClient = NetworkClientFactory.create()
     private val authGateway = SupabaseAuthGateway(configuration, httpClient)
+    private val sharedLockApi = SharedAppLockApi(configuration, httpClient)
+    private val sharedAuthority = productionSharedAppLockAuthority
+    private val sharedMutex = Mutex()
+    internal val sharedLockRevision = sharedAuthority.revision
+    internal fun canPresentSharedLock(session: AuthSession) = sharedAuthority.canPresent(session)
+    internal fun currentSharedReady() = (mutableState.value as? AuthShellUiState.Ready)
+        ?.takeIf { sharedAuthority.canPresent(it.session) }
     private val sessionStore = DataStoreEncryptedSessionStore(
         context = application,
         cipher = AndroidKeystoreCipher("myfinhub.auth-session.aes.v1"),
@@ -137,6 +163,9 @@ class AuthShellViewModel(
     private var offlineValidationJob: Job? = null
     private var initialUnlockJob: Job? = null
     private var authenticationJob: Job? = null
+    private var sharedJob: Job? = null
+    private var leaseJob: Job? = null
+    private var touchJob: Job? = null
     private var authTransitionEpoch = 0L
     private var appForeground = true
     private var validatingUnlockSession: AuthSession? = null
@@ -150,21 +179,45 @@ class AuthShellViewModel(
         initialUnlockJob = null
         authenticationJob?.cancel()
         authenticationJob = null
+        sharedJob?.cancel()
+        sharedJob = null
+        leaseJob?.cancel()
+        leaseJob = null
+        touchJob?.cancel()
+        touchJob = null
     }
 
     init {
         initialize()
         viewModelScope.launch {
             connectivityObserver.status.drop(1).collect { status ->
-                if (status != NetworkStatus.ONLINE) return@collect
                 val current = mutableState.value as? AuthShellUiState.Ready ?: return@collect
+                if (status != NetworkStatus.ONLINE) {
+                    // A live server PIN ticket cannot establish offline authorization.
+                    if (sharedAuthority.requestGrant(current.session)?.ticket != null) {
+                        dropSharedAuthority(current.session)
+                        lockAfterSharedLoss(current.session)
+                    } else if (!current.offline) {
+                        // Reconnect must re-check server PIN status before any sync;
+                        // an offline grant cannot send protected requests.
+                        offlineAfterLocalUnlock(current.session)
+                    }
+                    return@collect
+                }
                 if (current.offline) validateOfflineReadySession(current.session)
+            }
+        }
+        viewModelScope.launch {
+            sharedAuthority.revision.collect {
+                val current = mutableState.value as? AuthShellUiState.Ready ?: return@collect
+                if (!sharedAuthority.canPresent(current.session)) lockAfterSharedLoss(current.session)
             }
         }
     }
 
     fun initialize() {
         invalidateOfflineRevalidation()
+        sharedAuthority.clear()
         val epoch = authTransitionEpoch
         mutableState.value = AuthShellUiState.Loading
         viewModelScope.launch {
@@ -346,12 +399,16 @@ class AuthShellViewModel(
         val session = when (val current = mutableState.value) {
             is AuthShellUiState.Ready -> current.session
             is AuthShellUiState.Locked -> current.session
+            is AuthShellUiState.SharedLocked -> current.session
             AuthShellUiState.Loading -> validatingUnlockSession
             else -> null
         } ?: return
         // Invalidate any PIN/biometric completion or server revalidation racing ON_STOP.
         invalidateOfflineRevalidation()
         validatingUnlockSession = null
+        // Block first; the server revocation is best effort and serialized with
+        // verification/touch so a later local verification cannot race an old lock.
+        dropSharedAuthority(session, rememberDisabled = true)
         mutableState.value = AuthShellUiState.Locked(
             session = session,
             showPin = false,
@@ -475,7 +532,7 @@ class AuthShellViewModel(
                 pinVerifier.enroll(pinCopy)
                 if (!stillEnrolling()) return@launch
                 pinLimiter.recordSuccess()
-                if (stillEnrolling()) mutableState.value = AuthShellUiState.Ready(current.session)
+                if (stillEnrolling()) routeSharedReady(current.session, ::stillEnrolling)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
@@ -501,12 +558,14 @@ class AuthShellViewModel(
             is AuthShellUiState.Ready -> current.session
             is AuthShellUiState.Locked -> current.session
             is AuthShellUiState.PinEnrollment -> current.session
+            is AuthShellUiState.SharedLocked -> current.session
             is AuthShellUiState.Mfa -> current.session
             else -> null
         }
         // Revoke visible finance access synchronously, before asynchronous server sign-out.
         // Cancel the reconnect check: its stale result must not restore Ready after logout.
         invalidateOfflineRevalidation()
+        if (session != null) dropSharedAuthority(session) else sharedAuthority.clear()
         mutableState.value = AuthShellUiState.Loading
         viewModelScope.launch {
             try {
@@ -541,7 +600,7 @@ class AuthShellViewModel(
             try {
                 if (!stillCurrent()) return@launch
                 if (connectivityObserver.current() != NetworkStatus.ONLINE) {
-                    mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
+                    if (!offlineAfterLocalUnlock(session)) return@launch
                     mutableNotices.emit(
                         UserNotice(
                             message = "Άνοιξε σε λειτουργία χωρίς σύνδεση.",
@@ -561,10 +620,7 @@ class AuthShellViewModel(
                     is AuthAppState.Failure -> {
                         reportAuthFailure(result.failure, "Έλεγχος συνεδρίας μετά το ξεκλείδωμα")
                         if (stillCurrent()) {
-                            mutableState.value = AuthShellUiState.Ready(
-                                session = result.recoverableSession ?: session,
-                                offline = true,
-                            )
+                            offlineAfterLocalUnlock(result.recoverableSession ?: session)
                         }
                     }
                     is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
@@ -580,7 +636,7 @@ class AuthShellViewModel(
                 throw cancelled
             } catch (error: Exception) {
                 if (stillCurrent()) {
-                    mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
+                    if (!offlineAfterLocalUnlock(session)) return@launch
                     mutableNotices.emit(
                         unexpectedUserNotice(
                             operation = "Έλεγχος συνεδρίας μετά το ξεκλείδωμα",
@@ -627,10 +683,7 @@ class AuthShellViewModel(
                     is AuthAppState.Failure -> {
                         reportAuthFailure(result.failure, "Επαλήθευση συνεδρίας μετά την επανασύνδεση")
                         if (stillCurrent()) {
-                            mutableState.value = AuthShellUiState.Ready(
-                                session = result.recoverableSession ?: session,
-                                offline = true,
-                            )
+                            offlineAfterLocalUnlock(result.recoverableSession ?: session)
                         }
                     }
                 }
@@ -638,7 +691,7 @@ class AuthShellViewModel(
                 throw cancelled
             } catch (error: Exception) {
                 if (stillCurrent()) {
-                    mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
+                    if (!offlineAfterLocalUnlock(session)) return@launch
                     mutableNotices.emit(
                         unexpectedUserNotice(
                             operation = "Επαλήθευση συνεδρίας μετά την επανασύνδεση",
@@ -662,11 +715,232 @@ class AuthShellViewModel(
     ) {
         val pinEnrolled = pinVerifier.isEnrolled()
         if (!stillAuthorized()) return
-        mutableState.value = if (pinEnrolled) {
-            AuthShellUiState.Ready(session = session, offline = false)
-        } else {
-            AuthShellUiState.PinEnrollment(session)
+        if (!pinEnrolled) {
+            mutableState.value = AuthShellUiState.PinEnrollment(session)
+        } else if (!appForeground) {
+            val locked = lockedState(session)
+            if (stillAuthorized()) mutableState.value = locked
+        } else routeSharedReady(session, stillAuthorized)
+    }
+
+    // No offline PIN bypass. A prior disabled response is retained only in process memory,
+    // for the exact previously validated bearer. A cold/offline start must reconnect.
+    private fun offlineAfterLocalUnlock(session: AuthSession): Boolean {
+        if (appForeground && sharedAuthority.publishOfflineDisabled(session)) {
+            mutableState.value = AuthShellUiState.Ready(session, offline = true)
+            return true
         }
+        sharedAuthority.clear()
+        mutableState.value = AuthShellUiState.SharedLocked(
+            session, message = "Συνδέσου στο διαδίκτυο για έλεγχο του κοινού PIN.",
+        )
+        return false
+    }
+
+    private fun stillShared(state: AuthShellUiState.SharedLocked, epoch: Long) =
+        appForeground && epoch == authTransitionEpoch && mutableState.value === state
+
+    private suspend fun routeSharedReady(session: AuthSession, stillAuthorized: () -> Boolean) {
+        if (!appForeground || !stillAuthorized()) return
+        val checking = AuthShellUiState.SharedLocked(session, busy = true)
+        val epoch = authTransitionEpoch
+        mutableState.value = checking
+        sharedAuthority.clear()
+        val result = sharedMutex.withLock { sharedLockApi.status(session) }
+        if (!stillShared(checking, epoch)) return
+        when (result) {
+            is SharedAppLockResult.Success -> {
+                if (result.value.enabled) {
+                    mutableState.value = checking.copy(
+                        busy = false, requiresPin = true,
+                        retryAfterMillis = result.value.retryAfterMs,
+                    )
+                } else {
+                    sharedAuthority.publishDisabled(session)
+                    mutableState.value = AuthShellUiState.Ready(session)
+                }
+            }
+            is SharedAppLockResult.Failure -> mutableState.value = checking.copy(
+                busy = false, message = sharedFailureMessage(result.kind),
+            )
+        }
+    }
+
+    fun retrySharedStatus() {
+        val current = mutableState.value as? AuthShellUiState.SharedLocked ?: return
+        if (!appForeground || current.busy) return
+        val checking = current.copy(busy = true, message = null)
+        val epoch = authTransitionEpoch
+        mutableState.value = checking
+        sharedJob = viewModelScope.launch {
+            try {
+                when (val auth = coordinator.afterLocalUnlock(current.session)) {
+                    is AuthAppState.Ready -> routeSharedReady(auth.session) { stillShared(checking, epoch) }
+                    AuthAppState.LoginRequired -> if (stillShared(checking, epoch)) {
+                        mutableState.value = AuthShellUiState.Login("Η προηγούμενη συνεδρία έληξε. Συνδέσου ξανά.")
+                    }
+                    is AuthAppState.MfaRequired -> if (stillShared(checking, epoch)) {
+                        mutableState.value = AuthShellUiState.Mfa(auth.session, auth.factor)
+                    }
+                    else -> if (stillShared(checking, epoch)) {
+                        mutableState.value = checking.copy(busy = false, message = "Δεν ήταν δυνατός ο έλεγχος συνεδρίας.")
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                if (stillShared(checking, epoch)) mutableState.value = checking.copy(
+                    busy = false, message = "Δεν ήταν δυνατός ο έλεγχος συνεδρίας.",
+                )
+            }
+        }
+    }
+
+    fun verifySharedPin(pin: CharArray) {
+        val current = mutableState.value as? AuthShellUiState.SharedLocked
+        if (current == null || !appForeground || !current.requiresPin || current.busy) {
+            pin.fill('\u0000')
+            return
+        }
+        val copy = pin.copyOf()
+        pin.fill('\u0000')
+        val checking = current.copy(busy = true, message = null)
+        val epoch = authTransitionEpoch
+        mutableState.value = checking
+        sharedJob = viewModelScope.launch {
+            try {
+                val verified = sharedMutex.withLock {
+                    if (!stillShared(checking, epoch)) return@withLock null
+                    val startedAt = monotonicMillis()
+                    sharedLockApi.verify(current.session, copy) to startedAt
+                } ?: return@launch
+                if (!stillShared(checking, epoch)) return@launch
+                when (val result = verified.first) {
+                    is SharedAppLockResult.Success -> when (val value = result.value) {
+                        is SharedAppLockVerification.Verified -> {
+                            if (sharedAuthority.publishVerified(current.session, value, verified.second)) {
+                                mutableState.value = AuthShellUiState.Ready(current.session)
+                                watchSharedLease(current.session)
+                            } else {
+                                mutableState.value = checking.copy(busy = false, message = "Απαιτείται νέο ξεκλείδωμα.")
+                            }
+                        }
+                        is SharedAppLockVerification.Rejected -> {
+                            val reason = value.reason
+                            mutableState.value = checking.copy(
+                                busy = false, requiresPin = value.status.enabled,
+                                retryAfterMillis = value.status.retryAfterMs,
+                                message = when (reason) {
+                                    SharedAppLockVerification.Rejection.WRONG_PIN -> "Λάθος κοινό PIN."
+                                    SharedAppLockVerification.Rejection.RATE_LIMITED -> "Πολλές προσπάθειες. Δοκίμασε ξανά σε λίγο."
+                                    SharedAppLockVerification.Rejection.NOT_CONFIGURED -> "Η ρύθμιση άλλαξε. Έλεγξε ξανά την κατάσταση."
+                                },
+                            )
+                        }
+                    }
+                    is SharedAppLockResult.Failure -> mutableState.value = checking.copy(
+                        busy = false, message = sharedFailureMessage(result.kind),
+                    )
+                }
+            } finally {
+                copy.fill('\u0000')
+            }
+        }
+    }
+
+    fun recoverSharedPin(email: String, password: CharArray, code: CharArray, newPin: CharArray) {
+        val current = mutableState.value as? AuthShellUiState.SharedLocked
+        if (current == null || !appForeground || !current.requiresPin || current.busy) {
+            password.fill('\u0000'); code.fill('\u0000'); newPin.fill('\u0000')
+            return
+        }
+        val passwordCopy = password.copyOf()
+        val codeCopy = code.copyOf()
+        val pinCopy = newPin.copyOf()
+        password.fill('\u0000'); code.fill('\u0000'); newPin.fill('\u0000')
+        val checking = current.copy(busy = true, message = null)
+        val epoch = authTransitionEpoch
+        mutableState.value = checking
+        sharedJob = viewModelScope.launch {
+            try {
+                val result = sharedMutex.withLock {
+                    if (!stillShared(checking, epoch)) return@withLock null
+                    sharedLockApi.recover(current.session, email, passwordCopy, codeCopy, pinCopy)
+                } ?: return@launch
+                if (!stillShared(checking, epoch)) return@launch
+                // Recovery revokes server tickets; it is never an unlock.
+                sharedAuthority.clear()
+                mutableState.value = when (result) {
+                    is SharedAppLockResult.Success -> checking.copy(
+                        busy = false, retryAfterMillis = 0L,
+                        message = "Το κοινό PIN άλλαξε. Ξεκλείδωσε με το νέο PIN.",
+                    )
+                    is SharedAppLockResult.Failure -> checking.copy(
+                        busy = false, message = sharedFailureMessage(result.kind),
+                    )
+                }
+            } finally {
+                passwordCopy.fill('\u0000'); codeCopy.fill('\u0000'); pinCopy.fill('\u0000')
+            }
+        }
+    }
+
+    fun onUserInteraction() {
+        if (!appForeground || touchJob?.isActive == true) return
+        val current = mutableState.value as? AuthShellUiState.Ready ?: return
+        val grant = sharedAuthority.beginTouch(current.session) ?: return
+        val ticket = grant.ticket ?: return
+        touchJob = viewModelScope.launch {
+            sharedMutex.withLock {
+                if (!appForeground || !sharedAuthority.isCurrent(grant)) return@withLock
+                val startedAt = monotonicMillis()
+                val result = sharedLockApi.touch(current.session, ticket)
+                if (result is SharedAppLockResult.Success) {
+                    if (!sharedAuthority.renew(grant, startedAt)) sharedAuthority.reject(grant)
+                } else sharedAuthority.reject(grant)
+            }
+        }
+    }
+
+    private fun watchSharedLease(session: AuthSession) {
+        leaseJob?.cancel()
+        leaseJob = viewModelScope.launch {
+            while ((mutableState.value as? AuthShellUiState.Ready)?.session == session) {
+                delay(500)
+                if (sharedAuthority.expireIfNeeded(session)) return@launch
+            }
+        }
+    }
+
+    private fun lockAfterSharedLoss(session: AuthSession) {
+        if ((mutableState.value as? AuthShellUiState.Ready)?.session != session) return
+        invalidateOfflineRevalidation()
+        mutableState.value = AuthShellUiState.SharedLocked(
+            session, message = "Απαιτείται νέος έλεγχος του κοινού PIN.",
+        )
+    }
+
+    private fun dropSharedAuthority(session: AuthSession, rememberDisabled: Boolean = false) {
+        val ticket = sharedAuthority.clear(rememberDisabled) ?: return
+        if (ticket.valueFor(session) == null) return
+        viewModelScope.launch {
+            sharedMutex.withLock { sharedLockApi.lock(session, ticket) }
+        }
+    }
+
+    private fun sharedFailureMessage(kind: SharedAppLockFailure): String = when (kind) {
+        SharedAppLockFailure.INVALID_INPUT -> "Έλεγξε τα στοιχεία που πληκτρολόγησες."
+        SharedAppLockFailure.RATE_LIMITED -> "Πολλές προσπάθειες. Δοκίμασε αργότερα."
+        SharedAppLockFailure.AUTH_REQUIRED, SharedAppLockFailure.MFA_REQUIRED, SharedAppLockFailure.FORBIDDEN ->
+            "Δεν επιβεβαιώθηκε η ασφαλής πρόσβαση. Έλεγξε ξανά τη συνεδρία."
+        else -> "Η προστασία του κοινού PIN δεν είναι διαθέσιμη. Δοκίμασε ξανά."
+    }
+
+    private fun monotonicMillis(): Long = System.nanoTime() / 1_000_000
+
+    override fun onCleared() {
+        sharedAuthority.clear()
+        super.onCleared()
     }
 
     private suspend fun lockedState(
