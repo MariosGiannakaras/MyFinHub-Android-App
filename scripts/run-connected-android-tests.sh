@@ -14,8 +14,8 @@ if [[ -n "${MYFINHUB_EXPECTED_ANDROID_API:-}" ]]; then
 fi
 ready=false
 for attempt in $(seq 1 60); do
-  if adb shell service check package 2>/dev/null | grep -q 'found' && \
-     adb shell service check activity 2>/dev/null | grep -q 'found'; then
+  if adb shell service check package 2>/dev/null | grep -Eq '^Service package: found[[:space:]]*$' && \
+     adb shell service check activity 2>/dev/null | grep -Eq '^Service activity: found[[:space:]]*$'; then
     ready=true
     break
   fi

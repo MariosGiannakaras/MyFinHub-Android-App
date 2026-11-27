@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Finish #559 exact-head six Android gates and isolated real-stack job against Web PR #668 CI-green immutable candidate. Web #668 remains isolated until owning Web integration; verify the accepted Web SHA before global PIN activation. Execute the owner-authorized new same-signer signed physical-test APK only after the source audit and exact-head gates. No stable promotion, production PIN activation or live finance writes. Physical S24 regression and actual withdrawal format unverified.
+- [ ] Finish #559 exact-head six Android gates and isolated actual candidate proof. API37 emulator readiness corrected without skipping tests; diagnose LockSuccess failure from sanitized isolated report and repair demonstrated cause. Web #668 green remains isolated until owning Web integration; verify accepted Web SHA before global PIN activation. Owner authorizes same-signer signed physical-test APK only after source audit and exact-head gates; no stable promotion, production PIN or live finance writes. Physical S24 acceptance and withdrawal format remain unverified.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Finish #559 exact-head six Android gates and isolated real-stack job against Web PR #668 CI-green immutable candidate. Web #668 remains isolated until owning Web integration; verify the accepted Web SHA before global PIN activation. Execute the owner-authorized new same-signer signed physical-test APK only after the source audit and exact-head gates. No stable promotion, production PIN activation or live finance writes. Physical S24 regression and actual withdrawal format unverified.
+Next: Finish #559 exact-head six Android gates and isolated actual candidate proof. API37 emulator readiness corrected without skipping tests; diagnose LockSuccess failure from sanitized isolated report and repair demonstrated cause. Web #668 green remains isolated until owning Web integration; verify accepted Web SHA before global PIN activation. Owner authorizes same-signer signed physical-test APK only after source audit and exact-head gates; no stable promotion, production PIN or live finance writes. Physical S24 acceptance and withdrawal format remain unverified.
 
 
 ## Active Web parity progress

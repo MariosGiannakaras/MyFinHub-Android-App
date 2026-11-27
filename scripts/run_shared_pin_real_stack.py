@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import secrets
 import subprocess
 import sys
@@ -88,6 +89,37 @@ def require_test_executed(report: Path) -> None:
         raise RuntimeError("Unexpected isolated test case")
 
 
+def safe_test_failure(report: Path) -> str | None:
+    """Emit only approved stage labels, typed failure, HTTP code and source lines.
+
+    Never emit raw JUnit exception text, upstream bodies, stdout or fixture values.
+    """
+    try:
+        cases = ET.parse(report).getroot().findall("testcase")
+        if len(cases) != 1 or cases[0].get("name") != "nativeBearerLockAndRecoveryAgainstRealLocalStack":
+            return None
+        fail = cases[0].find("failure")
+        if fail is None:
+            return None
+        msg = fail.get("message", "")
+        match = re.fullmatch(
+            r"(?:java\.lang\.IllegalStateException: )?([A-Za-z0-9 -]{1,80}): "
+            r"(auth failed|lock request failed|finance request failed) "
+            r"\(([A-Z_]+|null)(?:, HTTP ([1-5][0-9]{2}|null))?(?:, ([A-Z_]+|null))?\)", msg)
+        # All stage strings passed to these helpers are literals in the checked-in test.
+        test_source = (Path(__file__).resolve().parent.parent /
+                       "app/src/test/java/app/myfinhub/android/core/network/SharedAppLockRealStackTest.kt").read_text()
+        labels = set(re.findall(r'(?:authSuccess|lockSuccess|apiSuccess)\("([A-Za-z0-9 -]{1,80})"', test_source))
+        lines = re.findall(r"SharedAppLockRealStackTest\.kt:([0-9]{1,4})", fail.text or "")[:5]
+        where = ", ".join(lines) or "unknown"
+        if match and match.group(1) in labels:
+            stage, kind, reason, status, _ = match.groups()
+            return f"Isolated native test stage: {stage}; {kind}: {reason}; HTTP {status or 'n/a'}; source lines {where}"
+        return f"Isolated native test failed; source lines {where}"
+    except (OSError, ET.ParseError):
+        return None
+
+
 def main(web: Path) -> None:
     # This is deliberately not a developer-machine command: the hosted workflow owns
     # startup/discard of its fresh containers. Refuse preconfigured external targets.
@@ -157,9 +189,15 @@ def main(web: Path) -> None:
                 test_env.pop(var, None)
             report = android / "app/build/test-results/testDebugUnitTest" / f"TEST-{TEST}.xml"
             report.unlink(missing_ok=True)
-            subprocess.run(["./gradlew", ":app:testDebugUnitTest", "--tests", TEST, "--rerun",
-                            "--no-build-cache", "--no-configuration-cache", "--no-daemon"],
-                           cwd=android, env=test_env, check=True, timeout=900)
+            try:
+                subprocess.run(["./gradlew", ":app:testDebugUnitTest", "--tests", TEST, "--rerun",
+                                "--no-build-cache", "--no-configuration-cache", "--no-daemon"],
+                               cwd=android, env=test_env, check=True, timeout=900)
+            except subprocess.CalledProcessError:
+                diagnostic = safe_test_failure(report)
+                if diagnostic:
+                    print(diagnostic, file=sys.stderr)
+                raise
             require_test_executed(report)
             print("PASS: executed native shared-PIN, device and account loopback proof against Web PR #668 candidate")
         finally:

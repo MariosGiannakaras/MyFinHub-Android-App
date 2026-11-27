@@ -16,6 +16,8 @@ on:
       - 'scripts/test_build_android_ux_review_pack.py'
       - 'scripts/install-android-sdk.sh'
       - 'scripts/run-connected-android-tests.sh'
+      - 'scripts/run-hosted-api37-emulator.sh'
+      - 'scripts/test_hosted_api37_emulator.py'
       - 'scripts/s24_physical_preflight.py'
       - 'scripts/test_s24_physical_preflight.py'
       - 'build.gradle.kts'
@@ -135,6 +137,9 @@ jobs:
       - name: Validate read-only D7 physical preflight contract
         run: python3 -m unittest discover -s scripts -p 'test_s24_physical_preflight.py'
 
+      - name: Verify API 37 host boot gate
+        run: python3 -m unittest discover -s scripts -p test_hosted_api37_emulator.py
+
       - name: Enable KVM
         shell: bash
         run: |
@@ -162,27 +167,25 @@ jobs:
 
       - name: Prebuild instrumentation APKs
         shell: bash
-        run: ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
+        run: |
+          set -euo pipefail
+          log="$(mktemp)"
+          trap 'rm -f "$log"' EXIT
+          if ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace 2>&1 | tee "$log"; then
+            exit 0
+          fi
+          if ! grep -Eq 'status code 429|429 from server: Too Many Requests' "$log"; then
+            exit 1
+          fi
+          echo 'Transient dependency repository throttling; retry prebuild once.'
+          sleep 30
+          ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
 
       - name: S24 Ultra target phone UI tests
-        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
-        with:
-          api-level: '37.0'
-          target: google_apis
-          arch: x86_64
-          profile: pixel_6
-          ram-size: 4096M
-          # Google APIs API 37 image exhausted the default userdata partition in run 46025079641.
-          disk-size: 8192M
-          heap-size: 384M
-          disable-animations: true
-          force-avd-creation: true
-          emulator-options: >-
-            -no-window -no-audio -no-boot-anim
-            -no-snapshot-load -no-snapshot-save
-            -gpu lavapipe
-            -camera-back none -camera-front none
-          script: MYFINHUB_EXPECTED_ANDROID_API=37 bash scripts/run-connected-android-tests.sh
+        shell: bash
+        env:
+          MYFINHUB_EXPECTED_ANDROID_API: '37'
+        run: bash scripts/run-hosted-api37-emulator.sh bash scripts/run-connected-android-tests.sh
 
   s24-ultra-target-instrumented:
     # Stable historical required-check identity: both matrix shards MUST pass.

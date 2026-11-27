@@ -46,26 +46,11 @@ jobs:
         run: bash scripts/install-android-sdk.sh
 
       - name: Generate Baseline Profile
-        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
-        with:
-          api-level: '37.0'
-          target: google_apis
-          arch: x86_64
-          profile: pixel_6
-          ram-size: 4096M
-          # Google APIs API 37 image exhausted the default userdata partition in run 46025079641.
-          disk-size: 8192M
-          disable-animations: true
-          force-avd-creation: true
-          emulator-options: >-
-            -no-window -no-audio -no-boot-anim
-            -no-snapshot-load -no-snapshot-save
-            -gpu lavapipe
-            -camera-back none -camera-front none
-          script: |
-            ./gradlew :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace
-            echo '--- Generated Baseline Profile sources ---'
-            find app/src -path '*/generated/baselineProfiles/*.txt' -type f -print -exec sh -c 'echo "--- $1"; cat "$1"' _ {} \;
+        shell: bash
+        run: |
+          bash scripts/run-hosted-api37-emulator.sh ./gradlew :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace
+          echo '--- Generated Baseline Profile sources ---'
+          find app/src -path '*/generated/baselineProfiles/*.txt' -type f -print -exec sh -c 'echo "--- $1"; cat "$1"' _ {} \;
 
       - name: Publish Baseline Profile evidence
         if: always()
@@ -109,23 +94,8 @@ jobs:
         run: bash scripts/install-android-sdk.sh
 
       - name: Run Macrobenchmarks
-        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
-        with:
-          api-level: '37.0'
-          target: google_apis
-          arch: x86_64
-          profile: pixel_6
-          ram-size: 4096M
-          # Google APIs API 37 image exhausted the default userdata partition in run 46025079641.
-          disk-size: 8192M
-          disable-animations: true
-          force-avd-creation: true
-          emulator-options: >-
-            -no-window -no-audio -no-boot-anim
-            -no-snapshot-load -no-snapshot-save
-            -gpu lavapipe
-            -camera-back none -camera-front none
-          script: ./gradlew :benchmark:connectedBenchmarkAndroidTest -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=Macrobenchmark --stacktrace
+        shell: bash
+        run: bash scripts/run-hosted-api37-emulator.sh ./gradlew :benchmark:connectedBenchmarkAndroidTest -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=Macrobenchmark --stacktrace
 
       - name: Publish Macrobenchmark evidence
         if: always()
