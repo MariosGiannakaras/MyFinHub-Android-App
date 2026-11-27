@@ -150,6 +150,7 @@ data class DeviceSessionsUiSnapshot(
     val loaded: Boolean = false,
     val devices: List<DeviceSessionRecord> = emptyList(),
     val revokingSessionId: String? = null,
+    val renamingSessionId: String? = null,
 )
 
 sealed interface FinanceProductState {
@@ -2474,7 +2475,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val session = currentSession ?: return
         val snapshot = mutableDeviceSessions.value
         if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2 ||
-            !snapshot.loaded || snapshot.revokingSessionId != null ||
+            !snapshot.loaded || snapshot.revokingSessionId != null || snapshot.renamingSessionId != null ||
             deviceRevokeJob?.isActive == true) return
         val other = snapshot.devices.singleOrNull {
             it.sessionId == targetSessionId && !it.current
@@ -2529,6 +2530,50 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     ))
                 }
             }
+        }
+    }
+
+    /** Nicknames use the same owner/bearer epoch and single mutation job as revocation. */
+    fun renameConfirmedDeviceSession(targetSessionId: String, nickname: String) {
+        val session = currentSession ?: return
+        val snapshot = mutableDeviceSessions.value
+        if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2 ||
+            !snapshot.loaded || snapshot.revokingSessionId != null || snapshot.renamingSessionId != null ||
+            deviceRevokeJob?.isActive == true) return
+        val target = snapshot.devices.singleOrNull {
+            it.sessionId == targetSessionId && it.defaultLabel != null
+        } ?: return
+        val name = app.myfinhub.android.core.network.normalizedDeviceNickname(nickname) ?: return
+        deviceSessionsJob?.cancel()
+        deviceSessionsJob = null
+        mutableDeviceSessions.value = snapshot.copy(renamingSessionId = target.sessionId)
+        val epoch = serverMetadataAuthorityEpoch
+        deviceRevokeJob = viewModelScope.launch {
+            val result = providerAwareApi.renameDeviceSession(session, target.sessionId, name)
+            if (epoch != serverMetadataAuthorityEpoch || !currentCoroutineContext().isActive ||
+                !sessionScopedFinanceCallbackAuthorized(
+                    currentSession, session, automaticSyncAllowed,
+                )) return@launch
+            val records = (result as? ApiResult.Success<List<DeviceSessionRecord>>)?.value
+            if (records != null) {
+                mutableDeviceSessions.value = DeviceSessionsUiSnapshot(loaded = true, devices = records)
+                return@launch
+            }
+            // Do not repeat a POST with an uncertain result; reconcile from a fresh GET.
+            val reconciliation = providerAwareApi.loadDeviceSessions(session)
+            if (epoch != serverMetadataAuthorityEpoch || !currentCoroutineContext().isActive ||
+                !sessionScopedFinanceCallbackAuthorized(
+                    currentSession, session, automaticSyncAllowed,
+                )) return@launch
+            val reconciled = (reconciliation as? ApiResult.Success<List<DeviceSessionRecord>>)?.value
+            mutableDeviceSessions.value = if (reconciled != null) {
+                DeviceSessionsUiSnapshot(loaded = true, devices = reconciled)
+            } else DeviceSessionsUiSnapshot()
+            mutableNotices.tryEmit(UserNotice(
+                message = "Η αλλαγή ονόματος δεν επιβεβαιώθηκε. Έλεγξε ξανά τις συσκευές.",
+                details = "Ενέργεια: Μετονομασία συσκευής\nΚατάσταση: RECONCILIATION_REQUIRED",
+                diagnosticCode = "MFH-DEVICE-RENAME-REVIEW",
+            ))
         }
     }
 

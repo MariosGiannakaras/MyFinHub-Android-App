@@ -56,6 +56,12 @@ interface MyFinHubApi {
     ): ApiResult<List<DeviceSessionRecord>> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
+    /** Set or clear a nickname for an explicitly selected owner device. */
+    suspend fun renameDeviceSession(
+        session: AuthSession, targetSessionId: String, nickname: String,
+    ): ApiResult<List<DeviceSessionRecord>> =
+        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
     suspend fun saveMutableState(
         session: AuthSession,
         document: CanonicalFinanceDocument,

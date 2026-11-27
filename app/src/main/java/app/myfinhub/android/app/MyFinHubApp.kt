@@ -224,6 +224,7 @@ internal fun MyFinHubAppContent(
     // Internal test-only entry for exercising retained Plan/Insights routes without
     // exposing them as mobile tabs or weakening installed-state migration.
     legacyTestInitialDestination: TopLevelDestination? = null,
+    onRenameDeviceSession: ((String, String) -> Unit)? = null,
 ) {
     // A revealed card can still be drawn under an outgoing Nav3 scene or modal.
     // Keep a root lease until animations settle, even if the Wallet subtree exits.
@@ -418,6 +419,8 @@ internal fun MyFinHubAppContent(
                     MobileDeviceSettingsScreen(
                         onBack = { homeBackStack.removeLastOrNull() },
                         onLogout = onLogout,
+                        deviceSessions = deviceSessions,
+                        onRenameDeviceSession = onRenameDeviceSession,
                         noticeHistoryCount = noticeHistory.size,
                         onOpenNoticeHistory = {
                             homeBackStack.pushIfNew(AppRoute.NoticeHistory)

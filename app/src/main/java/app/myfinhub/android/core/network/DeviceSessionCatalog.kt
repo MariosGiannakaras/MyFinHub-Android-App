@@ -19,7 +19,18 @@ data class DeviceSessionRecord(
     val firstSeenAt: String,
     val lastSeenAt: String,
     val current: Boolean,
+    val nickname: String? = null,
+    val defaultLabel: String? = null,
+    val systemName: String? = null,
+    val browserName: String? = null,
+    val deviceType: String? = null,
 )
+
+/** Match the Web rename normalizer without retaining controls or raw UA/IP. Blank clears. */
+internal fun normalizedDeviceNickname(raw: String): String? {
+    if (raw.length > 120 || raw.any { it.code < 32 || it.code == 127 }) return null
+    return raw.replace(Regex("[\\s\\p{Z}\\uFEFF]+"), " ").trim(' ').takeIf { it.length <= 60 }
+}
 
 private val deviceSessionId = Regex(
     "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
@@ -34,7 +45,7 @@ internal fun parseDeviceSessions(body: String, json: Json = Json): List<DeviceSe
     return rows.map { item ->
         val row = item as? JsonObject ?: return null
         fun text(key: String, limit: Int): String? =
-            (row[key] as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf {
+            (row[key] as? JsonPrimitive)?.takeIf { it.isString }?.contentOrNull?.trim()?.takeIf {
                 it.isNotBlank() && it.length <= limit &&
                     it.none { c -> c.code < 32 || c.code == 127 }
             }
@@ -47,6 +58,13 @@ internal fun parseDeviceSessions(body: String, json: Json = Json): List<DeviceSe
         if (runCatching { Instant.parse(first) }.isFailure ||
             runCatching { Instant.parse(last) }.isFailure) return null
         val current = (row["current"] as? JsonPrimitive)?.booleanOrNull ?: return null
-        DeviceSessionRecord(id, platform, label, version, first, last, current)
+        DeviceSessionRecord(
+            id, platform, label, version, first, last, current,
+            nickname = text("nickname", 60),
+            defaultLabel = text("defaultLabel", 160),
+            systemName = text("systemName", 80),
+            browserName = text("browserName", 80),
+            deviceType = text("deviceType", 80),
+        )
     }.takeIf { parsed -> parsed.distinctBy(DeviceSessionRecord::sessionId).size == parsed.size }
 }
