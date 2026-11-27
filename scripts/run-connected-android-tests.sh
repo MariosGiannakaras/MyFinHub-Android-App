@@ -27,6 +27,11 @@ if [[ "$ready" != "true" ]]; then
   exit 1
 fi
 
+# Record actual guest storage after boot; this contains no app/user data.
+if [[ -n "${MYFINHUB_EXPECTED_ANDROID_API:-}" ]]; then
+  adb shell df -k /data
+fi
+
 if [[ -n "$font_scale" ]]; then
   adb shell settings put system font_scale "$font_scale"
 fi

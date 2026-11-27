@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate Android PR #559 exact head (API 37 required emulator; observed Piraeus credit/debit formats + encrypted owner-scoped local merchant mapping). Web #668 owner-authorized narrow bearer backend PR pending hosted CI and owning Web integration; after integration pin the accepted Web SHA and execute actual isolated device/account endpoint coverage before any global PIN activation. Owner explicitly authorized a new same-signer signed physical-test APK, after audited exact-head gates; no stable promotion or production finance writes. Actual purchase message shapes provided; withdrawal shape remains unverified, as does physical S24 QR/picker/camera/OCR, Activity, SMS nickname/credit/debit and shared lock/offline/queue/upgrade acceptance.
+- [ ] Finish #559 exact-head six Android gates and isolated real-stack job against Web PR #668 CI-green immutable candidate. Web #668 remains isolated until owning Web integration; verify the accepted Web SHA before global PIN activation. Execute the owner-authorized new same-signer signed physical-test APK only after the source audit and exact-head gates. No stable promotion, production PIN activation or live finance writes. Physical S24 regression and actual withdrawal format unverified.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Validate Android PR #559 exact head (API 37 required emulator; observed Piraeus credit/debit formats + encrypted owner-scoped local merchant mapping). Web #668 owner-authorized narrow bearer backend PR pending hosted CI and owning Web integration; after integration pin the accepted Web SHA and execute actual isolated device/account endpoint coverage before any global PIN activation. Owner explicitly authorized a new same-signer signed physical-test APK, after audited exact-head gates; no stable promotion or production finance writes. Actual purchase message shapes provided; withdrawal shape remains unverified, as does physical S24 QR/picker/camera/OCR, Activity, SMS nickname/credit/debit and shared lock/offline/queue/upgrade acceptance.
+Next: Finish #559 exact-head six Android gates and isolated real-stack job against Web PR #668 CI-green immutable candidate. Web #668 remains isolated until owning Web integration; verify the accepted Web SHA before global PIN activation. Execute the owner-authorized new same-signer signed physical-test APK only after the source audit and exact-head gates. No stable promotion, production PIN activation or live finance writes. Physical S24 regression and actual withdrawal format unverified.
 
 
 ## Active Web parity progress

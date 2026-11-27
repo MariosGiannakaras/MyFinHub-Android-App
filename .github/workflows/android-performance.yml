@@ -53,6 +53,8 @@ jobs:
           arch: x86_64
           profile: pixel_6
           ram-size: 4096M
+          # Google APIs API 37 image exhausted the default userdata partition in run 46025079641.
+          disk-size: 8192M
           disable-animations: true
           force-avd-creation: true
           emulator-options: >-
@@ -114,6 +116,8 @@ jobs:
           arch: x86_64
           profile: pixel_6
           ram-size: 4096M
+          # Google APIs API 37 image exhausted the default userdata partition in run 46025079641.
+          disk-size: 8192M
           disable-animations: true
           force-avd-creation: true
           emulator-options: >-

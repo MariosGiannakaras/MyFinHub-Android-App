@@ -14,7 +14,8 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-WEB_SHA = "e05fb3fe58f8a89566b616db056578fbd451f39e"
+# Exact Web PR #668 candidate; do not treat the isolated proof as deployment.
+WEB_SHA = "d25cf3d3774ab084c8256571f323747af10c048f"
 CLI = ["npx", "--yes", "supabase@2.119.0"]
 SUPABASE = "http://127.0.0.1:54321"
 WEB = "http://127.0.0.1:4317"
@@ -160,7 +161,7 @@ def main(web: Path) -> None:
                             "--no-build-cache", "--no-configuration-cache", "--no-daemon"],
                            cwd=android, env=test_env, check=True, timeout=900)
             require_test_executed(report)
-            print("PASS: executed native shared-PIN loopback proof (device management endpoint excluded)")
+            print("PASS: executed native shared-PIN, device and account loopback proof against Web PR #668 candidate")
         finally:
             child.terminate()
             try:
