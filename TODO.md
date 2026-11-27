@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete rc26 independent actual published APK audit and S24 physical testing; no stable main promotion or production shared PIN activation. Owner can install signed rc26/10025 through in-app update or GitHub release in-place, check Play Protect, SMS credit/debit review and local aliases, QR/receipt, installed data/session continuity; do not make test finance writes. Web #668 final CI passed; Web owning integration and production deployment separate, actual withdrawal example pending.
+- [ ] Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Complete rc26 independent actual published APK audit and S24 physical testing; no stable main promotion or production shared PIN activation. Owner can install signed rc26/10025 through in-app update or GitHub release in-place, check Play Protect, SMS credit/debit review and local aliases, QR/receipt, installed data/session continuity; do not make test finance writes. Web #668 final CI passed; Web owning integration and production deployment separate, actual withdrawal example pending.
+Next: Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: Complete rc26 independent actual published APK audit and S24 physical test
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/bank-alert-review-20261127
-Current W6.4: rc25 #552 all seven CI gates and post-merge Android/tracking pass; owner Play Protect PASS; D8 stable and S24 QR/OCR delta pending. Owner active scope extended to all remaining issues; #146 permission-free bank-alert review authored (22 local synthetic parser cases pass), hosted CI pending.
+Issue #155, no open PR, branch android/shared-pin-integrated-web-proof-20261127
+Current W6.4: Web parity implementation 6/6, 24/24 subtasks complete. Signed rc26/10025 published, #561 independent signed APK audit and seven CI gates passed, merged Android develop. Web #668 merged Web develop; pin integrated SHA and run native proof. D8 stable/physical rc26 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #345 device metadata/nickname checkpoint on all six exact-head mandatory checks, then merge only with clean review and stable base. Implement separate shared-PIN bearer/ticket/auth lifecycle including recovery and real-stack tests without weakening local lock, owner+AAL2/device/RLS. Do not activate global PIN or alter Web backend. #146 source is merged; sanitized actual Piraeus purchase and withdrawal templates and S24 confirmation are still required for real-format interoperability. Background ingestion remains gated by Google Play policy and explicit permission/consent decision. Owner rc25 QR/OCR/Activity physical retest and D8 stable promotion still pending; #149 superseded/closed, #27 permanent index stays open.
+Next Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

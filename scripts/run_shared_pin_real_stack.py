@@ -15,8 +15,8 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-# Exact Web PR #668 candidate; do not treat the isolated proof as deployment.
-WEB_SHA = "67d0d6045f9bbcbd4538f85674e8143869f857a4"
+# Exact accepted Web develop #668 merge; do not treat isolated proof as deployment.
+WEB_SHA = "05395ed3a0d4b119619d7f0672c508a0e6ec6cb8"
 CLI = ["npx", "--yes", "supabase@2.119.0"]
 SUPABASE = "http://127.0.0.1:54321"
 WEB = "http://127.0.0.1:4317"
@@ -217,7 +217,7 @@ def main(web: Path) -> None:
             kinds = safe_transport_diagnostics(report)
             if kinds:
                 print("Isolated transport categories: " + ", ".join(kinds))
-            print("PASS: executed native shared-PIN, device and account loopback proof against Web PR #668 candidate")
+            print("PASS: executed native shared-PIN, device and account loopback proof against integrated Web develop #668 merge")
         finally:
             child.terminate()
             try:

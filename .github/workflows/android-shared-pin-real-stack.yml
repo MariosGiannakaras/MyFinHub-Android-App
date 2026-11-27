@@ -33,12 +33,12 @@ jobs:
           persist-credentials: false
       - name: Check runner safety contract
         run: python3 -m unittest discover -s scripts -p test_shared_pin_real_stack_runner.py
-      # Web PR #668 exact CI/CodeQL-green candidate; loopback proof is NOT a production integration.
-      - name: Checkout immutable Web candidate (read only)
+      # Web #668 accepted develop commit; loopback proof is NOT production deployment.
+      - name: Checkout immutable integrated Web develop SHA (read only)
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: MariosGiannakaras/MyFinHub
-          ref: 67d0d6045f9bbcbd4538f85674e8143869f857a4
+          ref: 05395ed3a0d4b119619d7f0672c508a0e6ec6cb8
           path: isolated-web
           persist-credentials: false
       - name: Set up Node

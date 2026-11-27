@@ -1,12 +1,18 @@
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
 
-from run_shared_pin_real_stack import local_status, require_test_executed, safe_test_failure, safe_transport_diagnostics
+from run_shared_pin_real_stack import WEB_SHA, local_status, require_test_executed, safe_test_failure, safe_transport_diagnostics
 
 
 class IsolatedRunnerSafetyTest(unittest.TestCase):
+    def test_workflow_and_runner_pin_same_immutable_web_sha(self):
+        workflow = (Path(__file__).resolve().parent.parent / '.github/workflows/android-shared-pin-real-stack.yml').read_text()
+        self.assertRegex(WEB_SHA, r'^[0-9a-f]{40}$')
+        self.assertEqual(re.findall(r'(?m)^\s+ref: ([0-9a-f]{40})\s*$', workflow), [WEB_SHA])
+
     def test_only_exact_loopback_and_distinct_keys(self):
         config = {"API_URL": "http://127.0.0.1:54321", "PUBLISHABLE_KEY": "p" * 30, "SERVICE_ROLE_KEY": "s" * 30}
         self.assertEqual(local_status(json.dumps(config)), ("p" * 30, "s" * 30))
