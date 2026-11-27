@@ -1005,6 +1005,7 @@ private fun authDiagnosticStatus(state: AuthShellUiState): String = when (state)
     is AuthShellUiState.Mfa -> "Απαιτεί επαλήθευση λογαριασμού"
     is AuthShellUiState.PinEnrollment -> "Ρύθμιση τοπικού PIN"
     is AuthShellUiState.Locked -> "Η εφαρμογή είναι κλειδωμένη"
+    is AuthShellUiState.SharedLocked -> "Απαιτείται έλεγχος κοινού PIN"
     is AuthShellUiState.Ready -> if (state.offline) {
         "Τοπικά διαθέσιμη · αναμονή επαλήθευσης σύνδεσης"
     } else {
