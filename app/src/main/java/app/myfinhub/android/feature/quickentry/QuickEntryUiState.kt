@@ -161,9 +161,10 @@ data class QuickEntryUiState(
     val debitExpenseRequiresAccountChoice: Boolean = false,
     /** Receipt categories are deliberate choices, not inferred on sync refresh. */
     val receiptDraft: Boolean = false,
-    /** Pasted bank alert requires deliberate current funding and cash-destination selection. */
+    /** Bank alert requires deliberate current funding and cash-destination selection. */
     val bankAlertDraft: Boolean = false,
     val bankAlertCardLastFour: String? = null,
+    val bankSmsInboxId: String? = null,
 ) {
     val amount: Double?
         get() = amountText.toCurrencyCentsOrNull()?.div(100.0)
@@ -352,6 +353,7 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
         receiptDraft = false,
         bankAlertDraft = false,
         bankAlertCardLastFour = null,
+        bankSmsInboxId = null,
         debitExpenseRequiresAccountChoice = false,
         amountText = state.amountText.takeIf { previousUsesAmount && newUsesAmount }.orEmpty(),
         category = category,
@@ -513,6 +515,7 @@ private fun prefillReceipt(state: QuickEntryUiState, value: ReceiptPrefill): Qui
         receiptDraft = true,
         bankAlertDraft = value.bankAlertKind != null,
         bankAlertCardLastFour = value.bankAlertCardLastFour.takeIf { kind == QuickEntryKind.CARD_PURCHASE },
+        bankSmsInboxId = value.bankSmsInboxId.takeIf { value.bankAlertKind != null },
         cardId = if (kind == QuickEntryKind.CARD_PURCHASE) "" else clean.cardId,
         accountId = if (value.bankAlertKind != null) "" else clean.accountId,
         fromAccountId = if (value.bankAlertKind != null) "" else clean.fromAccountId,
@@ -541,6 +544,7 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
         receiptDraft = false,
         bankAlertDraft = false,
         bankAlertCardLastFour = null,
+        bankSmsInboxId = null,
         amountText = "",
         dateText = LocalDate.now().toString(),
         note = "",

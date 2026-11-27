@@ -554,6 +554,10 @@ class AuthShellViewModel(
     }
 
     fun logout() {
+        try {
+            app.myfinhub.android.feature.bankalert.BankSmsInboxStore(getApplication<Application>()).disable()
+            app.myfinhub.android.feature.bankalert.clearBankSmsNotification(getApplication<Application>())
+        } catch (_: Exception) { /* Local sign-out must still proceed. */ }
         val session = when (val current = mutableState.value) {
             is AuthShellUiState.Ready -> current.session
             is AuthShellUiState.Locked -> current.session

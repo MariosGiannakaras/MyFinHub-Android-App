@@ -6,6 +6,11 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Explicit user-initiated receipt camera/QR capture only. Photo/manual entry works without it. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Private direct-install build only; never read historical SMS. -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- SMS is optional; finance and manual entry remain available without telephony. -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
@@ -35,6 +40,12 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/receipt_file_paths" />
         </provider>
+        <receiver android:name=".feature.bankalert.BankSmsReceiver"
+            android:exported="true" android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
         <receiver
             android:name=".core.update.UpdateInstallReceiver"
             android:exported="false" />

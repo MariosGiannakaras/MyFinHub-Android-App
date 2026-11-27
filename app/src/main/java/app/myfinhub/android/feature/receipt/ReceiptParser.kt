@@ -31,6 +31,7 @@ data class ReceiptPrefill(
     val categorySuggestion: ReceiptCategorySuggestion? = null,
     val bankAlertKind: BankAlertParser.Kind? = null,
     val bankAlertCardLastFour: String? = null,
+    val bankSmsInboxId: String? = null,
 )
 data class ReceiptPrefillLine(val label: String, val amountText: String)
 data class ReceiptCategorySuggestion(val category: String, val subcategory: String = "")

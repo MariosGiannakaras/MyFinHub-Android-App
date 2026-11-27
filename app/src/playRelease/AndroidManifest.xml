@@ -11,4 +11,10 @@
         android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"
         tools:node="remove" />
 
+    <!-- Private SMS capture is not declared for Play without policy approval. -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" tools:node="remove" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" tools:node="remove" />
+    <application>
+        <receiver android:name=".feature.bankalert.BankSmsReceiver" tools:node="remove" />
+    </application>
 </manifest>

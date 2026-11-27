@@ -28,7 +28,7 @@ public final class BankAlertParser {
         public final String country;
         public final String accountHint;
 
-        private Alert(Kind kind, long cents, LocalDate date, LocalTime time,
+        Alert(Kind kind, long cents, LocalDate date, LocalTime time,
                       String lastFour, String merchant, String country, String accountHint) {
             this.kind = kind;
             this.cents = cents;
@@ -59,7 +59,7 @@ public final class BankAlertParser {
     private static final Pattern EXACT_CREDIT_CARD = Pattern.compile("ΚΑΡΤΑ:\\s*[0-9]{4,6}[*]{3,}[0-9]{4}");
     private static final String EXACT_AMOUNT = "(?:" + AMOUNT + "|[0-9]{1,6})";
     private static final Pattern CREDIT_AMOUNT = Pattern.compile("ΠΟΣΟ=\\s*(" + EXACT_AMOUNT + ")\\s+EUR");
-    private static final Pattern DEBIT_AMOUNT = Pattern.compile("ΠΟΣΟ=\\s*-(" + EXACT_AMOUNT + ")\\s+EUR\\s*\\((?:ΧΡ|XP)\\)");
+    private static final Pattern DEBIT_AMOUNT = Pattern.compile("ΠΟΣΟ=\\s*[-−](" + EXACT_AMOUNT + ")\\s+EUR\\s*\\([ΧX][ΡP]\\)");
     private static final Pattern BALANCE = Pattern.compile("-?[0-9]{1,9}(?:[.,][0-9]{2})?");
     private static final Pattern EXACT_DATETIME = Pattern.compile("[0-9]{1,2}/[0-9]{1,2}/(?:20[0-9]{2}|[0-9]{2})\\s+[0-9]{1,2}:[0-9]{2}");
 
@@ -92,7 +92,7 @@ public final class BankAlertParser {
 
     /** Exact line shapes supplied by the owner, with no sender-name inference. */
     private static Alert structured(String text, boolean credit) {
-        String[] lines = text.trim().split("\\R");
+        String[] lines = java.util.Arrays.stream(text.trim().split("\\R")).map(String::trim).filter(line -> !line.isEmpty()).toArray(String[]::new);
         if (lines.length != (credit ? 6 : 7)) return null;
         for (int i = 0; i < lines.length; i++) lines[i] = lines[i].trim();
         String datetime = fold(lines[1]);
@@ -124,6 +124,14 @@ public final class BankAlertParser {
         if (!safeMerchant(merchant)) return null;
         return new Alert(credit ? Kind.CREDIT_PURCHASE : Kind.PURCHASE, cents(amount.group(1)), date(dates),
                 LocalTime.of(Integer.parseInt(times.group(1)), Integer.parseInt(times.group(2))), lastFour, merchant, country, hint);
+    }
+
+    /** Automatic pickup accepts only the two verified Piraeus transaction layouts. */
+    public static Alert parseIncomingPiraeus(String raw) {
+        if (raw == null || raw.length() > 1500) return null;
+        String header = fold(raw.trim().split("\\R", 2)[0].trim());
+        if (!header.equals("ALERT-ΠΙΣΤΩΤΙΚΗ ΚΑΡΤΑ") && !header.equals("ALERT-ΑΓΟΡΑ ΜΕ ΚΑΡΤΑ")) return null;
+        return parse(raw);
     }
 
     public static Alert parse(String raw) {

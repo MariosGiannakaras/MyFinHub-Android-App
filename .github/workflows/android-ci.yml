@@ -145,14 +145,14 @@ jobs:
           grep -Fx "targetSdkVersion:'37'" <<< "$badging"
           echo 'Actual packaged minSdk 26 and targetSdk 37 verified.'
 
-          # The approved rc25 permission set must remain unchanged for rc26.
-          # Manual bank-alert paste must not add READ_SMS or RECEIVE_SMS (or
-          # any other permission), including through transitive manifests.
+          # Private SMS capture adds only RECEIVE_SMS and POST_NOTIFICATIONS; no inbox/history access.
           actual_permissions="$("$aapt" dump permissions "$apk" | sed -nE "s/^[[:space:]]*uses-permission(-sdk-[0-9]+)?: name='([^']+)'.*$/\2/p" | LC_ALL=C sort -u)"
           expected_permissions="$(printf '%s\n' \
             android.permission.ACCESS_NETWORK_STATE \
             android.permission.CAMERA \
             android.permission.INTERNET \
+            android.permission.POST_NOTIFICATIONS \
+            android.permission.RECEIVE_SMS \
             android.permission.REQUEST_INSTALL_PACKAGES \
             android.permission.USE_BIOMETRIC \
             android.permission.USE_FINGERPRINT \
@@ -162,7 +162,11 @@ jobs:
             echo 'Unexpected APK permission delta; inspect before signed publication.' >&2
             exit 1
           fi
-          echo 'APK permission audit passed: rc25 permission set unchanged; no SMS access.'
+          manifest_tree="$("$aapt" dump xmltree "$apk" AndroidManifest.xml)"
+          grep -F 'feature.bankalert.BankSmsReceiver' <<< "$manifest_tree"
+          grep -F 'android.permission.BROADCAST_SMS' <<< "$manifest_tree"
+          grep -F 'android.provider.Telephony.SMS_RECEIVED' <<< "$manifest_tree"
+          echo 'Private APK permission and system SMS receiver audit passed.'
 
           if "$apksigner" verify "$apk" >/dev/null 2>&1; then
             echo 'Public CI release APK must remain unsigned.' >&2
@@ -189,12 +193,12 @@ jobs:
             exit 1
           fi
           for manifest in "${play_manifests[@]}"; do
-            if grep -E 'android.permission.REQUEST_INSTALL_PACKAGES|android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION' "$manifest"; then
-              echo "Installer permission leaked into Google Play manifest: $manifest" >&2
+            if grep -E 'android.permission.REQUEST_INSTALL_PACKAGES|android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION|android.permission.RECEIVE_SMS|android.permission.POST_NOTIFICATIONS|feature.bankalert.BankSmsReceiver' "$manifest"; then
+              echo "Private-only capability leaked into Google Play manifest: $manifest" >&2
               exit 1
             fi
           done
-          echo 'Google Play bundle is built without direct/self-update installer permissions.'
+          echo 'Google Play bundle is built without direct/self-update installer permissions or private SMS capture.'
 
       - name: No Android project yet
         if: steps.project.outputs.present != 'true'

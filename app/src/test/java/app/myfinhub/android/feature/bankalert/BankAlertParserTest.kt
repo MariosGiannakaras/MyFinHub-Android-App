@@ -69,6 +69,16 @@ class BankAlertParserTest {
         assertEquals("GR", alert.country)
     }
 
+    @Test fun automaticCaptureOnlyAcceptsVerifiedTransactionLayouts() {
+        assertEquals(1300L, BankAlertParser.parseIncomingPiraeus(realShapeDebit)?.cents)
+        assertEquals(1743L, BankAlertParser.parseIncomingPiraeus(realShapeCredit)?.cents)
+        assertEquals(330L, BankAlertParser.parseIncomingPiraeus(realShapeDebit
+            .replace("-13 EUR (ΧΡ)", "−3.30 EUR (XΡ)").replace("\n", "\r\n\r\n"))?.cents)
+        assertNull(BankAlertParser.parseIncomingPiraeus(purchase))
+        assertNull(BankAlertParser.parseIncomingPiraeus(realShapeCredit + "\nOTP 123456"))
+        assertNull(BankAlertParser.parseIncomingPiraeus(realShapeDebit + "\n" + realShapeCredit))
+    }
+
     @Test fun rejectsModifiedObservedShapesRatherThanGuessing() {
         listOf(realShapeDebit.replace("-13 EUR", "13 EUR"), realShapeDebit.replace("(ΧΡ)", "(ΠΡ)"),
             realShapeDebit + "\nOTP 123456", realShapeDebit + "\n" + realShapeDebit,
