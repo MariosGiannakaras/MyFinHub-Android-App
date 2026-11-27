@@ -139,11 +139,15 @@ jobs:
 
           aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
           apksigner="$ANDROID_HOME/build-tools/37.0.0/apksigner"
-          "$aapt" dump badging "$apk" | grep -F "package: name='app.myfinhub.android' versionCode='1'"
+          badging="$("$aapt" dump badging "$apk")"
+          grep -F "package: name='app.myfinhub.android' versionCode='1'" <<< "$badging"
+          grep -Fx "sdkVersion:'26'" <<< "$badging"
+          grep -Fx "targetSdkVersion:'37'" <<< "$badging"
+          echo 'Actual packaged minSdk 26 and targetSdk 37 verified.'
 
-          # The explicitly requested live QR scanner adds CAMERA and nothing else.
-          # Inspect packaged permissions, including transitive library manifests,
-          # before authorizing a new signed physical-test candidate.
+          # The approved rc25 permission set must remain unchanged for rc26.
+          # Manual bank-alert paste must not add READ_SMS or RECEIVE_SMS (or
+          # any other permission), including through transitive manifests.
           actual_permissions="$("$aapt" dump permissions "$apk" | sed -nE "s/^[[:space:]]*uses-permission(-sdk-[0-9]+)?: name='([^']+)'.*$/\2/p" | LC_ALL=C sort -u)"
           expected_permissions="$(printf '%s\n' \
             android.permission.ACCESS_NETWORK_STATE \
@@ -158,7 +162,7 @@ jobs:
             echo 'Unexpected APK permission delta; inspect before signed publication.' >&2
             exit 1
           fi
-          echo 'APK permission audit passed: rc24 permission set plus CAMERA only.'
+          echo 'APK permission audit passed: rc25 permission set unchanged; no SMS access.'
 
           if "$apksigner" verify "$apk" >/dev/null 2>&1; then
             echo 'Public CI release APK must remain unsigned.' >&2

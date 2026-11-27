@@ -79,9 +79,11 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertEqual([], difference["removed"])
 
     def test_hardened_release_rejects_unattended_install_permission(self):
-        for label in ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25"):
+        for label in ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25", "rc26"):
             name, code, _ = RELEASES[label]
             badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'"
+            if label == "rc26":
+                badging += "\nsdkVersion:'26'\ntargetSdkVersion:'37'\n"
             permissions = f"uses-permission: name='{UNATTENDED_INSTALL_PERMISSION}'"
             with self.subTest(label=label), patch("audit_play_protect_apk.run", side_effect=[badging, permissions]):
                 with self.assertRaisesRegex(AuditError, "Unexpected dangerous APK permissions"):
@@ -167,6 +169,27 @@ class PublishedApkAuditTests(unittest.TestCase):
             with self.subTest(diff=unverified):
                 with self.assertRaisesRegex(AuditError, "executable DEX delta"):
                     report(a, b, unverified)
+
+    def test_rc26_unchanged_permissions_and_executable_delta(self):
+        a = {"signer": "a" * 64, "perms": ["android.permission.INTERNET", "android.permission.CAMERA"],
+             "version": "1.0.0-rc25", "size": 1, "entries": 2,
+             "dex": 1, "digest": "a" * 64}
+        b = {**a, "version": "1.0.0-rc26"}
+        diff = {"added": [], "removed": [], "changed": ["classes.dex"]}
+        self.assertIn("Added permissions: none", report(a, b, diff))
+        for perms in ([], a["perms"] + ["android.permission.READ_SMS"]):
+            with self.assertRaisesRegex(AuditError, "permission set differs"):
+                report(a, {**b, "perms": perms}, diff)
+        with self.assertRaisesRegex(AuditError, "executable DEX delta"):
+            report(a, b, {**diff, "changed": ["AndroidManifest.xml"]})
+
+    def test_rc26_rejects_wrong_or_missing_packaged_sdk(self):
+        name, code, _ = RELEASES["rc26"]
+        badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'"
+        for suffix in ("", "\nsdkVersion:'26'\ntargetSdkVersion:'36'\n", "\nsdkVersion:'27'\ntargetSdkVersion:'37'\n"):
+            with self.subTest(suffix=suffix), patch("audit_play_protect_apk.run", return_value=badging+suffix):
+                with self.assertRaisesRegex(AuditError, "SDK declaration mismatch"):
+                    apk_check(self.apk(), RELEASES["rc26"], "a" * 64, "aapt", "apksigner")
 
     def test_signer_continuity_required(self):
         a = {"signer": "a" * 64, "perms": [], "version": "rc16", "size": 1,
