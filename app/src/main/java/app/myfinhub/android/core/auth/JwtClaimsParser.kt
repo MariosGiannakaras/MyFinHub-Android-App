@@ -1,6 +1,6 @@
 package app.myfinhub.android.core.auth
 
-import android.util.Base64
+import java.util.Base64
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -16,7 +16,7 @@ class JwtClaimsParser(
 ) {
     fun assuranceLevel(token: String): AssuranceLevel = runCatching {
         val payload = token.split('.').getOrNull(1) ?: return AssuranceLevel.UNKNOWN
-        val decoded = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        val decoded = Base64.getUrlDecoder().decode(payload)
         when (json.parseToJsonElement(decoded.decodeToString()).jsonObject["aal"]?.jsonPrimitive?.content) {
             "aal1" -> AssuranceLevel.AAL1
             "aal2" -> AssuranceLevel.AAL2
