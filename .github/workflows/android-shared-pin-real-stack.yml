@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: MariosGiannakaras/MyFinHub
-          ref: d25cf3d3774ab084c8256571f323747af10c048f
+          ref: 67d0d6045f9bbcbd4538f85674e8143869f857a4
           path: isolated-web
           persist-credentials: false
       - name: Set up Node

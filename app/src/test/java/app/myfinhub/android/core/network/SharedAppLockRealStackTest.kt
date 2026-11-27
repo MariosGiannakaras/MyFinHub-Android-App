@@ -240,8 +240,10 @@ class SharedAppLockRealStackTest {
             // Refresh the actual unlock ticket first, not the test's frozen clock.
             lockSuccess("account stage touch", lock.touch(owner, verified.ticket))
             val replacement = "Isolated-NewPass-9!"
-            assertTrue("Invalid current password rejected",
-                finance.changeAccountSecurity(owner, WebAccountSecurityChange.Password("InvalidSyntheticPassword", replacement)) is ApiResult.Failure)
+            val wrongPassword = finance.changeAccountSecurity(owner,
+                WebAccountSecurityChange.Password("InvalidSyntheticPassword", replacement))
+            assertTrue("Invalid current password rejected with HTTP 400",
+                wrongPassword is ApiResult.Failure && wrongPassword.statusCode == 400)
             apiSuccess("native password change", finance.changeAccountSecurity(owner,
                 WebAccountSecurityChange.Password(password, replacement)))
             assertEquals(AssuranceLevel.AAL1, authSuccess("new password accepted",
