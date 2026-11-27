@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from run_shared_pin_real_stack import local_status, require_test_executed, safe_test_failure
+from run_shared_pin_real_stack import local_status, require_test_executed, safe_test_failure, safe_transport_diagnostics
 
 
 class IsolatedRunnerSafetyTest(unittest.TestCase):
@@ -35,6 +35,15 @@ class IsolatedRunnerSafetyTest(unittest.TestCase):
             self.assertEqual(safe_test_failure(report), 'Isolated native test failed; source lines unknown')
             report.unlink()
             self.assertIsNone(safe_test_failure(report))
+
+    def test_transport_diagnostic_only_accepts_fixed_categories(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report = Path(tmp) / "test.xml"
+            report.write_text("<testsuite><system-out>ISOLATED_HTTP_TRANSPORT=EOF\n"
+                              "ISOLATED_HTTP_TRANSPORT=PRIVATE_TOKEN\n"
+                              "ISOLATED_HTTP_TRANSPORT=TIMEOUT\nraw password"
+                              "</system-out></testsuite>")
+            self.assertEqual(safe_transport_diagnostics(report), ["EOF", "TIMEOUT"])
 
     def test_report_must_prove_execution_not_skip_or_empty_suite(self):
         name = "nativeBearerLockAndRecoveryAgainstRealLocalStack"

@@ -7,6 +7,11 @@ import app.myfinhub.android.core.auth.SupabaseAuthGateway
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.withMutableState
 import java.io.File
+import java.io.EOFException
+import java.io.IOException
+import java.net.ProtocolException
+import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.net.Proxy
 import java.nio.ByteBuffer
 import java.time.Instant
@@ -22,7 +27,9 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.Call
 import okhttp3.CookieJar
+import okhttp3.EventListener
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -59,7 +66,20 @@ class SharedAppLockRealStackTest {
             val fixture = File(input("MYFINHUB_ISOLATED_FIXTURE")).readText()
             client = NetworkClientFactory.create().newBuilder()
                 .proxy(Proxy.NO_PROXY).cookieJar(CookieJar.NO_COOKIES)
-                .followRedirects(false).followSslRedirects(false).build()
+                .followRedirects(false).followSslRedirects(false)
+                .eventListener(object : EventListener() {
+                    override fun callFailed(call: Call, ioe: IOException) {
+                        // Fixed categories only. Never print request, URL, exception message or headers.
+                        val kind = when (ioe) {
+                            is SocketTimeoutException -> "TIMEOUT"
+                            is EOFException -> "EOF"
+                            is ProtocolException -> "PROTOCOL"
+                            is SocketException -> "SOCKET"
+                            else -> "OTHER_IO"
+                        }
+                        println("ISOLATED_HTTP_TRANSPORT=$kind")
+                    }
+                }).build()
             val configuration = AppConfiguration(web, supabase, key)
             gateway = SupabaseAuthGateway(configuration, client)
             lock = SharedAppLockApi(configuration, client)

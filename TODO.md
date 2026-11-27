@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Finish #559 exact-head six Android gates and isolated actual candidate proof. API37 emulator readiness corrected without skipping tests; diagnose LockSuccess failure from sanitized isolated report and repair demonstrated cause. Web #668 green remains isolated until owning Web integration; verify accepted Web SHA before global PIN activation. Owner authorizes same-signer signed physical-test APK only after source audit and exact-head gates; no stable promotion, production PIN or live finance writes. Physical S24 acceptance and withdrawal format remain unverified.
+- [ ] Complete #559 six original full representative exact-head checks (API35 runtime, installed target SDK37) plus isolated real-stack proof; API37 diagnostic host crash remains explicit, owner physical Android17/OneUI mandatory before stable. After source audit and source checks, publish owner-authorized same-signer physical-test candidate only. Web #668 stays isolated for owning Web integration; verify accepted Web SHA before global PIN activation. No stable promotion or production data writes; actual withdrawal format remains unverified.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Finish #559 exact-head six Android gates and isolated actual candidate proof. API37 emulator readiness corrected without skipping tests; diagnose LockSuccess failure from sanitized isolated report and repair demonstrated cause. Web #668 green remains isolated until owning Web integration; verify accepted Web SHA before global PIN activation. Owner authorizes same-signer signed physical-test APK only after source audit and exact-head gates; no stable promotion, production PIN or live finance writes. Physical S24 acceptance and withdrawal format remain unverified.
+Next: Complete #559 six original full representative exact-head checks (API35 runtime, installed target SDK37) plus isolated real-stack proof; API37 diagnostic host crash remains explicit, owner physical Android17/OneUI mandatory before stable. After source audit and source checks, publish owner-authorized same-signer physical-test candidate only. Web #668 stays isolated for owning Web integration; verify accepted Web SHA before global PIN activation. No stable promotion or production data writes; actual withdrawal format remains unverified.
 
 
 ## Active Web parity progress

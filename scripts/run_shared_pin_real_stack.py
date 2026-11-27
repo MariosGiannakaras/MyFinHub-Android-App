@@ -89,6 +89,16 @@ def require_test_executed(report: Path) -> None:
         raise RuntimeError("Unexpected isolated test case")
 
 
+def safe_transport_diagnostics(report: Path) -> list[str]:
+    try:
+        root = ET.parse(report).getroot()
+        # Gradle stores test stdout in this element. Only our fixed categories can leave it.
+        return re.findall(r"(?m)^ISOLATED_HTTP_TRANSPORT=(TIMEOUT|EOF|PROTOCOL|SOCKET|OTHER_IO)$",
+                          root.findtext("system-out", ""))[-5:]
+    except (OSError, ET.ParseError):
+        return []
+
+
 def safe_test_failure(report: Path) -> str | None:
     """Emit only approved stage labels, typed failure, HTTP code and source lines.
 
@@ -194,11 +204,19 @@ def main(web: Path) -> None:
                                 "--no-build-cache", "--no-configuration-cache", "--no-daemon"],
                                cwd=android, env=test_env, check=True, timeout=900)
             except subprocess.CalledProcessError:
+                if child.poll() is not None:
+                    print("Isolated Web process exited before native test completion.", file=sys.stderr)
                 diagnostic = safe_test_failure(report)
                 if diagnostic:
                     print(diagnostic, file=sys.stderr)
+                kinds = safe_transport_diagnostics(report)
+                if kinds:
+                    print("Isolated transport categories: " + ", ".join(kinds), file=sys.stderr)
                 raise
             require_test_executed(report)
+            kinds = safe_transport_diagnostics(report)
+            if kinds:
+                print("Isolated transport categories: " + ", ".join(kinds))
             print("PASS: executed native shared-PIN, device and account loopback proof against Web PR #668 candidate")
         finally:
             child.terminate()

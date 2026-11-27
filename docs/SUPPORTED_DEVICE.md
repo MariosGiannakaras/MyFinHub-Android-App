@@ -30,8 +30,17 @@ Automated merge validation should focus on:
 Do not run automatic tablet/foldable device matrices for ordinary Android work.
 
 The owner uses current Android and Samsung One UI. The application and benchmark target
-Android 17 (API 37), while retaining minSdk 26; the mandatory compact-phone emulator
-uses API 37.0 and verifies the runtime SDK before running both existing shards. No
+Android 17 (API 37), while retaining minSdk 26. The full representative merge suite
+uses its previously proven API 35 AVD runtime (both complete shards), with an explicit
+runtime SDK check and an installed application target-SDK-37 assertion. The hosted
+API 37.0 images repeatedly crashed Android system services during instrumentation
+across AOSP/Google APIs and software renderers, including both shards in
+run #46038475571; this is not successful API 37 execution. A separate manual
+`Android API 37 Runtime Diagnostic` workflow retains the full two-shard API 37 run
+for when the host is viable. Actual Android 17 / One UI acceptance on the owner's S24
+is mandatory before stable release. An explicitly authorized, protected signed
+physical-test candidate may follow the existing six complete source checks and audit;
+this does not waive the physical acceptance requirement. No
 additional device classes or OEM-only APIs are required. Android 17's platform privacy
 and security defaults remain enabled; the app already uses explicit receipt-camera URI
 grants, user-selected Photo Picker, biometric authentication, private update confirmation,

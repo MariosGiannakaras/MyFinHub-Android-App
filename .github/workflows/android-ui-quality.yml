@@ -181,11 +181,26 @@ jobs:
           sleep 30
           ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
 
-      - name: S24 Ultra target phone UI tests
-        shell: bash
-        env:
-          MYFINHUB_EXPECTED_ANDROID_API: '37'
-        run: bash scripts/run-hosted-api37-emulator.sh bash scripts/run-connected-android-tests.sh
+      # Preserve the original full representative merge gate. API37 hosted system
+      # repeatedly crashed before suite completion; owner S24 API37 remains a
+      # mandatory physical acceptance gate and full API37 diagnostic is separate.
+      - name: Representative API 35 phone UI tests (application targets API 37)
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 3072M
+          heap-size: 384M
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: >-
+            -no-window -no-audio -no-boot-anim
+            -no-snapshot-load -no-snapshot-save
+            -gpu swiftshader_indirect
+            -camera-back none -camera-front none
+          script: MYFINHUB_EXPECTED_ANDROID_API=35 bash scripts/run-connected-android-tests.sh
 
   s24-ultra-target-instrumented:
     # Stable historical required-check identity: both matrix shards MUST pass.
