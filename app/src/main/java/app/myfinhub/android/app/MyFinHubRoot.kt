@@ -111,6 +111,8 @@ fun MyFinHubRoot(
     financeViewModel: FinanceProductViewModel = viewModel(),
     cardSecretViewModel: CardSecretViewModel = viewModel(),
     updateViewModel: UpdateViewModel = viewModel(),
+    bankInboxRequested: Boolean = false,
+    onBankInboxOpened: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -415,10 +417,27 @@ fun MyFinHubRoot(
         mayPublishRootServerSnapshot(it, authState)
     } == true
 
+    LaunchedEffect(authState, financeState) {
+        val owner = (authState as? AuthShellUiState.Ready)?.session?.userId
+        if (owner != null && financeSessionAuthorized && financeState is FinanceProductState.Ready) {
+            val confirmed = financeViewModel.confirmedBankSmsEvents(owner)
+            try {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    app.myfinhub.android.feature.bankalert.BankSmsInboxStore(context).reconcileConfirmed(owner, confirmed)
+                }
+            } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+            catch (_: Exception) { /* Still visible, but event ID prevents duplicate creation. */ }
+        }
+    }
+
     MyFinHubTheme(darkTheme = darkTheme) {
         CompositionLocalProvider(LocalUpdateController provides updateController) {
             ReceiptImportHost(
                 auth = authState,
+                bankInboxRequested = bankInboxRequested,
+                onBankInboxOpened = onBankInboxOpened,
+                existingBankEventIds = (financeState as? FinanceProductState.Ready)?.projection?.document
+                    ?.financeEvents()?.map { it.id }?.toSet().orEmpty(),
                 authorized = financeSessionAuthorized && (financeState as? FinanceProductState.Ready)?.let {
                     !it.saving && it.issue == null
                 } == true,

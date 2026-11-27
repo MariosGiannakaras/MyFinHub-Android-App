@@ -22,6 +22,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.core.content.FileProvider
@@ -37,6 +38,7 @@ import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.bankalert.BankMerchantAliasStore
+import app.myfinhub.android.feature.bankalert.BankSmsInboxStore
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.time.LocalDateTime
@@ -79,7 +81,10 @@ class ReceiptLaunchComposeTest {
 
     private fun startReceipt(tag: String) {
         composeRule.onNodeWithTag("quick_entry_receipt").performClick()
-        composeRule.onNodeWithTag(tag).performClick()
+        if (tag == "bank_alert_import") {
+            composeRule.onNodeWithTag("bank_sms_inbox").performClick()
+            composeRule.onNodeWithTag(tag).performScrollTo().performClick()
+        } else composeRule.onNodeWithTag(tag).performClick()
     }
 
     @Test
@@ -141,6 +146,80 @@ class ReceiptLaunchComposeTest {
             composeRule.onNodeWithTag("receipt_review_merchant").performScrollTo().assertTextContains("My example store")
             composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
         } finally { runBlocking { store.remove("test-owner", descriptor) } }
+    }
+
+    @Test
+    fun directAliasDirectorySavesAndReopensDeviceOnlyNickname() {
+        val store = BankMerchantAliasStore(instrumentation.targetContext)
+        val descriptor = "SYNTHETIC DIRECTORY SHOP"
+        val nickname = "My test nickname"
+        runBlocking { store.remove("test-owner", descriptor) }
+        try {
+            showHost()
+            startReceipt("bank_alert_aliases")
+            composeRule.onNodeWithTag("bank_alias_original").performScrollTo().performTextReplacement(descriptor)
+            composeRule.onNodeWithTag("bank_alias_nickname").performScrollTo().performTextReplacement(nickname)
+            composeRule.waitUntil(timeoutMillis = 10_000) {
+                runCatching { composeRule.onNodeWithTag("bank_alias_save").assertIsEnabled() }.isSuccess
+            }
+            composeRule.onNodeWithTag("bank_alias_save").performClick()
+            composeRule.waitUntil(timeoutMillis = 10_000) {
+                composeRule.onAllNodesWithTag("bank_alias_status").fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithTag("bank_alias_status").performScrollTo().assertTextContains("Αποθηκεύτηκε μόνο στη συσκευή.")
+            composeRule.onNodeWithText("Κλείσιμο").performClick()
+            composeRule.onNodeWithTag("bank_alert_aliases").performClick()
+            composeRule.waitUntil(timeoutMillis = 10_000) {
+                runCatching { composeRule.onNodeWithText(nickname).assertExists() }.isSuccess
+            }
+            composeRule.onNodeWithText(nickname).performScrollTo().assertIsDisplayed()
+            assertEquals(nickname, runBlocking { store.list("test-owner") }.single { it.bankName == descriptor }.nickname)
+        } finally { runBlocking { store.remove("test-owner", descriptor) } }
+    }
+
+    @Test
+    fun automaticInboxOpensAfterNotificationAndCancellationKeepsPending() {
+        val store = BankSmsInboxStore(instrumentation.targetContext)
+        val owner = AuthSession("synthetic-access", "synthetic-refresh", Long.MAX_VALUE, "sms-test-owner", AssuranceLevel.AAL2)
+        val message = """
+            ALERT-ΑΓΟΡΑ ΜΕ ΚΑΡΤΑ
+            18/10/26 08:17
+            ΛΟΓ/ΜΟΣ:TEST ACCOUNT
+            ΠΟΣΟ=-13 EUR (ΧΡ)
+            ΛΟΓ.ΥΠΟΛ=111.22
+            ΔΙΑΘ.ΥΠΟΛ=100.50
+            SYNTHETIC SMS STORE
+        """.trimIndent()
+        val auth = mutableStateOf<AuthShellUiState>(AuthShellUiState.Locked(owner, false, PinAttemptStatus(true, 5)))
+        val requested = mutableStateOf(true)
+        store.enable(owner.userId)
+        assertTrue(store.receive("Piraeus", System.currentTimeMillis(), message))
+        val row = store.list(owner.userId).first()
+        try {
+            composeRule.setContent {
+                MyFinHubTheme {
+                    ReceiptImportHost(auth.value, auth.value is AuthShellUiState.Ready, emptyList(),
+                        { it == owner.userId && auth.value is AuthShellUiState.Ready }, bankInboxRequested = requested.value,
+                        onBankInboxOpened = { requested.value = false }) {
+                        ProductionQuickEntryScreen(QuickEntryUiState(), {}, {})
+                    }
+                }
+            }
+            composeRule.onNodeWithTag("bank_sms_capture_status").assertDoesNotExist()
+            composeRule.runOnIdle { auth.value = AuthShellUiState.Ready(owner) }
+            val tag = "bank_sms_review_${row.id}"
+            composeRule.waitUntil(timeoutMillis = 10_000) {
+                composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithTag(tag).performScrollTo().performClick()
+            composeRule.waitUntil(timeoutMillis = 10_000) {
+                composeRule.onAllNodesWithTag("bank_alert_summary").fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithTag("receipt_review_amount").performScrollTo().assertTextContains("13.00")
+            composeRule.onNodeWithTag("receipt_review_apply").assertIsNotEnabled()
+            composeRule.onNodeWithTag("receipt_review_cancel").performClick()
+            assertTrue(store.list(owner.userId).any { it.id == row.id })
+        } finally { store.discard(owner.userId, row.id); store.disable() }
     }
 
     @Test

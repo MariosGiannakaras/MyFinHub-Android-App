@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
+Next: Finish automatic bank SMS inbox owner correction on android/automatic-bank-sms-inbox-20261127; all exact-head gates, signed permission/receiver audit, protected prerelease and actual S24 Android17/OneUI permission, real incoming SMS, notification and later review acceptance required. No live test finance writes, no stable promotion or global PIN activation; Web production deployment remains separately owned.
 
 
 ## Active Web parity progress
@@ -81,8 +81,8 @@ Next: Verify the isolated Android native shared-PIN/device/account proof against
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/shared-pin-integrated-web-proof-20261127
-Current W6.4: Web parity implementation 6/6, 24/24 subtasks complete. Signed rc26/10025 published, #561 independent signed APK audit and seven CI gates passed, merged Android develop. Web #668 merged Web develop; pin integrated SHA and run native proof. D8 stable/physical rc26 pending.
+Issue #155, no open PR, branch android/automatic-bank-sms-inbox-20261127
+Current W6.4: Owner clarification 2026-11-27: automatic future Piraeus SMS detection, notification, and durable on-device pending review (not manual text entry); no automatic finance writes. Private sideload RECEIVE_SMS and POST_NOTIFICATIONS only; Play variant excludes both and receiver. Encrypted owner-bound structured queue and exact sender/verified credit/debit templates, no raw SMS/account hint/balance retention; deliberate permission/consent, owner lock/logout isolation, explicit review/save with stable random canonical event ID; pending until server-confirmed, queued entries cannot be resubmitted. Local alias edit persistence and error/retry fixed. Synthetic parser local smoke and hosted gates/physical delivery to be verified; rc26 remains the last signed candidate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
 

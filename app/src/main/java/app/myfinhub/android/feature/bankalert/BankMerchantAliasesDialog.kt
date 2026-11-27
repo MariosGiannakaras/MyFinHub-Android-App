@@ -35,6 +35,8 @@ internal fun BankMerchantAliasesDialog(
 ) {
     var rows by remember(owner) { mutableStateOf<List<BankMerchantAlias>>(emptyList()) }
     var bankName by remember(owner) { mutableStateOf("") }
+    var editing by remember(owner) { mutableStateOf<String?>(null) }
+    var status by remember(owner) { mutableStateOf<String?>(null) }
     var nickname by remember(owner) { mutableStateOf("") }
     var busy by remember(owner) { mutableStateOf(true) }
     var failed by remember(owner) { mutableStateOf(false) }
@@ -53,7 +55,11 @@ internal fun BankMerchantAliasesDialog(
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Οι αντιστοιχίσεις μένουν κρυπτογραφημένες μόνο σε αυτή τη συσκευή. Δεν συγχρονίζονται με το Web.")
-                if (failed) Text("Δεν ήταν δυνατή η πρόσβαση στις αντιστοιχίσεις.", color = MaterialTheme.colorScheme.error)
+                if (failed) {
+                    Text("Δεν ήταν δυνατή η αλλαγή ή η πρόσβαση στις αντιστοιχίσεις. Έλεγξε αν υπάρχει ήδη το όνομα.", color = MaterialTheme.colorScheme.error)
+                    TextButton(onClick = { busy = true; scope.launch { refresh() } }) { Text("Δοκίμασε ξανά") }
+                }
+                status?.let { Text(it, modifier = Modifier.testTag("bank_alias_status")) }
                 if (!busy && !failed && rows.isEmpty()) Text("Δεν υπάρχουν αποθηκευμένα ονόματα.")
                 rows.forEach { row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -61,12 +67,12 @@ internal fun BankMerchantAliasesDialog(
                             Text(row.nickname, style = MaterialTheme.typography.titleSmall)
                             Text(row.bankName, style = MaterialTheme.typography.bodySmall)
                         }
-                        TextButton(enabled = !busy && !failed, onClick = { bankName = row.bankName; nickname = row.nickname }) { Text("Επεξεργασία") }
+                        TextButton(enabled = !busy && !failed, onClick = { editing = row.bankName; bankName = row.bankName; nickname = row.nickname; status = null }) { Text("Επεξεργασία") }
                         TextButton(enabled = !busy && !failed, onClick = {
                             if (!mayEdit()) return@TextButton
                             busy = true
                             scope.launch {
-                                try { store.remove(owner, row.bankName); refresh() }
+                                try { store.remove(owner, row.bankName); if (editing == row.bankName) { editing = null; bankName = ""; nickname = "" }; status = "Διαγράφηκε."; refresh() }
                                 catch (cancel: CancellationException) { throw cancel }
                                 catch (_: Exception) { failed = true; busy = false }
                             }
@@ -77,17 +83,20 @@ internal fun BankMerchantAliasesDialog(
                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("bank_alias_original"))
                 OutlinedTextField(nickname, { nickname = it.take(90) }, label = { Text("Δικό σου όνομα") },
                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("bank_alias_nickname"))
-                TextButton(enabled = !busy && !failed && validMerchantAliasName(bankName) && validMerchantAliasName(nickname), onClick = {
+                if (editing != null) TextButton(onClick = { editing = null; bankName = ""; nickname = "" }) { Text("Νέα αντιστοίχιση") }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = !busy && !failed && validMerchantAliasName(bankName) && validMerchantAliasName(nickname), onClick = {
                     if (!mayEdit()) return@TextButton
                     busy = true
                     scope.launch {
-                        try { store.put(owner, bankName, nickname); bankName = ""; nickname = ""; refresh() }
+                        try { store.replace(owner, editing, bankName, nickname); editing = null; bankName = ""; nickname = ""; status = "Αποθηκεύτηκε μόνο στη συσκευή."; refresh() }
                         catch (cancel: CancellationException) { throw cancel }
                         catch (_: Exception) { failed = true; busy = false }
                     }
-                }, modifier = Modifier.testTag("bank_alias_save")) { Text("Αποθήκευση στη συσκευή") }
-            }
+                }, modifier = Modifier.testTag("bank_alias_save")) { Text("Αποθήκευση") }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Κλείσιμο") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Κλείσιμο") } },
     )
 }

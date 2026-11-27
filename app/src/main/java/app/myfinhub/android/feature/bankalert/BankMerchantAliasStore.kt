@@ -55,6 +55,20 @@ internal class BankMerchantAliasStore(
         }
     }
 
+    suspend fun replace(owner: String, previous: String?, bankName: String, nickname: String) = withContext(Dispatchers.IO) {
+        require(validMerchantAliasName(bankName) && validMerchantAliasName(nickname))
+        synchronized(lock) {
+            val rows = read(owner)
+            val oldKey = previous?.let(::merchantAliasKey)
+            val newKey = merchantAliasKey(bankName)
+            require(rows.none { merchantAliasKey(it.bankName) == newKey && newKey != oldKey })
+            val updated = rows.filterNot { merchantAliasKey(it.bankName) == oldKey } +
+                BankMerchantAlias(bankName.trim(), nickname.trim())
+            require(updated.size <= MAX_ROWS)
+            write(owner, updated)
+        }
+    }
+
     suspend fun remove(owner: String, bankName: String) = withContext(Dispatchers.IO) {
         synchronized(lock) { write(owner, read(owner).filterNot { merchantAliasKey(it.bankName) == merchantAliasKey(bankName) }) }
     }

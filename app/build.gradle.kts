@@ -161,6 +161,7 @@ android {
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", supabasePublishableKey.get().asBuildConfigString())
         buildConfigField("String", "ANDROID_UPDATE_CHANNEL", androidUpdateChannel.get().asBuildConfigString())
         buildConfigField("boolean", "SELF_UPDATE_ENABLED", "true")
+        buildConfigField("boolean", "BANK_SMS_CAPTURE_ENABLED", "true")
     }
 
     buildTypes {
@@ -177,6 +178,7 @@ android {
             initWith(getByName("release"))
             matchingFallbacks += listOf("release")
             buildConfigField("boolean", "SELF_UPDATE_ENABLED", "false")
+            buildConfigField("boolean", "BANK_SMS_CAPTURE_ENABLED", "false")
         }
 
         // These names are owned by the Baseline Profile Gradle plugin for the release variant.

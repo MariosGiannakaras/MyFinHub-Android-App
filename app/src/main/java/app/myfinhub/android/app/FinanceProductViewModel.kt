@@ -755,6 +755,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(RestoreCanonicalCard(cardId = normalized, nowIso = Instant.now().toString()))
     }
 
+    internal fun confirmedBankSmsEvents(owner: String): Set<String> =
+        if (currentSession?.userId == owner) lastServerDocument?.financeEvents()?.map { it.id }?.toSet().orEmpty()
+        else emptySet()
+
     fun onQuickEntryAction(action: QuickEntryAction) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         // A sync issue blocks finance writes, not safe local edits to the draft.
@@ -780,7 +784,14 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutableState.value = ready.copy(projection = ready.projection.copy(quickEntryState = preview))
         if (preview.validationMessage != null) return
 
-        val eventId = "evt-android-${UUID.randomUUID()}"
+        val inboxId = preview.bankSmsInboxId
+        // A pending SMS has one stable random event ID. Never append it twice, including
+        // after a process restart or an offline enqueue awaiting server confirmation.
+        val eventId = inboxId?.let { "evt-android-$it" } ?: "evt-android-${UUID.randomUUID()}"
+        if (inboxId != null && ready.projection.document.financeEvents().any { it.id == eventId }) {
+            setQuickEntryError("Η τραπεζική κίνηση έχει ήδη καταχωριστεί ή περιμένει συγχρονισμό.")
+            return
+        }
         val now = Instant.now().toString()
         val mutation = runCatching {
             createQuickEntryCanonicalMutation(

@@ -46,6 +46,8 @@ import androidx.core.content.ContextCompat
 import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.auth.AuthShellUiState
+import app.myfinhub.android.feature.bankalert.BankSmsInboxStore
+import app.myfinhub.android.feature.bankalert.BankSmsInboxDialog
 import app.myfinhub.android.feature.bankalert.BankAlertParser
 import app.myfinhub.android.feature.bankalert.BankMerchantAliasStore
 import app.myfinhub.android.feature.bankalert.BankMerchantAliasesDialog
@@ -63,7 +65,7 @@ internal data class ReceiptImportController(
 )
 internal val LocalReceiptImportController = staticCompositionLocalOf<ReceiptImportController?> { null }
 
-private enum class ReceiptPhase { CHOOSE, BANK_TEXT, BANK_LOOKUP, BANK_ALIASES, CAMERA_PERMISSION, CAMERA_READY, CAMERA, QR_SCAN, PICKER, RECOGNIZE, REVIEW, ERROR }
+private enum class ReceiptPhase { CHOOSE, BANK_INBOX, BANK_TEXT, BANK_LOOKUP, BANK_ALIASES, CAMERA_PERMISSION, CAMERA_READY, CAMERA, QR_SCAN, PICKER, RECOGNIZE, REVIEW, ERROR }
 private enum class ReceiptFailure { CAMERA_PERMISSION, CAMERA_LAUNCH, QR_LAUNCH, PICKER_LAUNCH, RECOGNITION }
 private data class ReceiptRequest(
     val ownerId: String,
@@ -73,6 +75,7 @@ private data class ReceiptRequest(
     val proposal: ReceiptProposal? = null,
     val failure: ReceiptFailure? = null,
     val qrOnly: Boolean = false,
+    val pendingBankSmsId: String? = null,
     // Preserve identity through copies so a stale camera callback cannot match a new request.
     val token: Any = Any(),
 )
@@ -110,6 +113,9 @@ internal fun ReceiptImportHost(
     activityItems: List<ActivityItem>,
     currentOwnerMayEdit: (String) -> Boolean,
     categoryOptions: List<ActivityCategoryOption> = emptyList(),
+    bankInboxRequested: Boolean = false,
+    onBankInboxOpened: () -> Unit = {},
+    existingBankEventIds: Set<String> = emptySet(),
     qrScanner: @Composable ((ReceiptQrRead) -> Unit, () -> Unit, () -> Unit) -> Unit = { read, failure, dismiss ->
         ReceiptQrScanner(read, failure, dismiss)
     },
@@ -117,6 +123,7 @@ internal fun ReceiptImportHost(
 ) {
     val context = LocalContext.current.applicationContext
     val merchantAliases = remember(context) { BankMerchantAliasStore(context) }
+    val bankSmsInbox = remember(context) { BankSmsInboxStore(context) }
     var request by remember { mutableStateOf<ReceiptRequest?>(null) }
     var reviewed by remember { mutableStateOf<Pair<String, ReceiptPrefill>?>(null) }
     val liveAuth by rememberUpdatedState(auth)
@@ -180,6 +187,29 @@ internal fun ReceiptImportHost(
 
     val readyOwner = (auth as? AuthShellUiState.Ready)?.session?.userId
         ?.takeIf { authorized }
+    LaunchedEffect(auth) {
+        val owner = when (auth) {
+            is AuthShellUiState.Ready -> auth.session.userId
+            is AuthShellUiState.Locked -> auth.session.userId
+            is AuthShellUiState.SharedLocked -> auth.session.userId
+            is AuthShellUiState.PinEnrollment -> auth.session.userId
+            is AuthShellUiState.Mfa -> auth.session.userId
+            AuthShellUiState.Loading -> return@LaunchedEffect
+            else -> null
+        }
+        try {
+            bankSmsInbox.reconcileOwner(owner)
+            if (owner == null || !bankSmsInbox.enabled(owner)) {
+                app.myfinhub.android.feature.bankalert.clearBankSmsNotification(context)
+            }
+        } catch (_: Exception) { /* Fail closed. */ }
+    }
+    LaunchedEffect(bankInboxRequested, readyOwner, request, reviewed) {
+        if (bankInboxRequested && readyOwner != null && request == null && reviewed == null && mayEdit(readyOwner)) {
+            request = ReceiptRequest(readyOwner, ReceiptPhase.BANK_INBOX)
+            onBankInboxOpened()
+        }
+    }
     val active = request
     val requestOwner = active?.ownerId ?: reviewed?.first
     LaunchedEffect(auth, requestOwner) {
@@ -187,7 +217,7 @@ internal fun ReceiptImportHost(
     }
     LaunchedEffect(active, readyOwner) {
         // A live preview is never resumed automatically after lock/authority loss.
-        if (active != null && (active.phase in setOf(ReceiptPhase.QR_SCAN, ReceiptPhase.BANK_TEXT, ReceiptPhase.BANK_LOOKUP, ReceiptPhase.BANK_ALIASES) ||
+        if (active != null && (active.phase in setOf(ReceiptPhase.QR_SCAN, ReceiptPhase.BANK_INBOX, ReceiptPhase.BANK_TEXT, ReceiptPhase.BANK_LOOKUP, ReceiptPhase.BANK_ALIASES) ||
                 active.proposal?.bankAlert != null) && active.ownerId != readyOwner) {
             if (request == active) clear()
             return@LaunchedEffect
@@ -289,11 +319,11 @@ internal fun ReceiptImportHost(
                     TextButton(
                         onClick = {
                             if (mayEdit(active.ownerId) && request == active) {
-                                request = active.copy(phase = ReceiptPhase.BANK_TEXT)
+                                request = active.copy(phase = ReceiptPhase.BANK_INBOX)
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().testTag("bank_alert_import"),
-                    ) { Text("Εισαγωγή τραπεζικού SMS") }
+                        modifier = Modifier.fillMaxWidth().testTag("bank_sms_inbox"),
+                    ) { Text("Εισερχόμενα τραπεζικά SMS") }
                     TextButton(
                         onClick = { if (mayEdit(active.ownerId) && request == active) request = active.copy(phase = ReceiptPhase.BANK_ALIASES) },
                         modifier = Modifier.fillMaxWidth().testTag("bank_alert_aliases"),
@@ -319,6 +349,21 @@ internal fun ReceiptImportHost(
                     modifier = Modifier.testTag("receipt_gallery"),
                 ) { Text("Φωτογραφία") }
             },
+        )
+        ReceiptPhase.BANK_INBOX -> BankSmsInboxDialog(
+            owner = active.ownerId, store = bankSmsInbox, aliases = merchantAliases,
+            existingEventIds = existingBankEventIds,
+            mayEdit = { request == active && mayEdit(active.ownerId) },
+            onReview = { pending ->
+                if (request == active && mayEdit(active.ownerId) && pending.eventId !in existingBankEventIds) {
+                    val alert = pending.alert()
+                    request = active.copy(phase = ReceiptPhase.BANK_LOOKUP, pendingBankSmsId = pending.id,
+                        proposal = ReceiptProposal(merchant = alert.merchant, date = alert.date,
+                            totalCents = alert.cents, currency = ReceiptCurrency.EUR, bankAlert = alert))
+                }
+            },
+            onManual = { if (request == active && mayEdit(active.ownerId)) request = active.copy(phase = ReceiptPhase.BANK_TEXT) },
+            onDismiss = { if (request == active) request = active.copy(phase = ReceiptPhase.CHOOSE) },
         )
         ReceiptPhase.BANK_TEXT -> BankAlertTextDialog(
             onDismiss = { clear() },
@@ -386,7 +431,7 @@ internal fun ReceiptImportHost(
                 },
                 onApply = { prefill ->
                     if (request == active && mayEdit(active.ownerId)) {
-                        reviewed = active.ownerId to prefill
+                        reviewed = active.ownerId to prefill.copy(bankSmsInboxId = active.pendingBankSmsId)
                         request = null
                     }
                 },
