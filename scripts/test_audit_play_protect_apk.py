@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from audit_play_protect_apk import (AuditError, RELEASES, UNATTENDED_INSTALL_PERMISSION, apk_check,
                                    metadata_check, report, validate_zip, signer_digests, zip_diff,
-                                   receipt_provider_check)
+                                   receipt_provider_check, bank_sms_receiver_check, PRIVATE_SMS_PERMISSIONS)
 
 
 class PublishedApkAuditTests(unittest.TestCase):
@@ -79,10 +79,10 @@ class PublishedApkAuditTests(unittest.TestCase):
         self.assertEqual([], difference["removed"])
 
     def test_hardened_release_rejects_unattended_install_permission(self):
-        for label in ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25", "rc26"):
+        for label in ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25", "rc26", "rc27"):
             name, code, _ = RELEASES[label]
             badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'"
-            if label == "rc26":
+            if label in ("rc26", "rc27"):
                 badging += "\nsdkVersion:'26'\ntargetSdkVersion:'37'\n"
             permissions = f"uses-permission: name='{UNATTENDED_INSTALL_PERMISSION}'"
             with self.subTest(label=label), patch("audit_play_protect_apk.run", side_effect=[badging, permissions]):
@@ -190,6 +190,49 @@ class PublishedApkAuditTests(unittest.TestCase):
             with self.subTest(suffix=suffix), patch("audit_play_protect_apk.run", return_value=badging+suffix):
                 with self.assertRaisesRegex(AuditError, "SDK declaration mismatch"):
                     apk_check(self.apk(), RELEASES["rc26"], "a" * 64, "aapt", "apksigner")
+
+    def test_rc27_receiver_and_exact_permission_delta(self):
+        xml = """    E: receiver (line=42)
+      A: android:name(0x01010003)="app.myfinhub.android.feature.bankalert.BankSmsReceiver"
+      A: android:permission(0x01010006)="android.permission.BROADCAST_SMS"
+      A: android:exported(0x01010010)=(type 0x12)0xffffffff
+      E: intent-filter (line=43)
+        E: action (line=44)
+          A: android:name(0x01010003)="android.provider.Telephony.SMS_RECEIVED"
+    E: receiver (line=48)
+"""
+        bank_sms_receiver_check(xml)
+        for invalid in (xml.replace("BROADCAST_SMS", "RECEIVE_SMS"),
+                        xml.replace("0xffffffff", "0x0"),
+                        xml.replace("SMS_RECEIVED", "SMS_DELIVER"), xml + xml):
+            with self.subTest(invalid=invalid), self.assertRaises(AuditError):
+                bank_sms_receiver_check(invalid)
+        old = {"signer": "a" * 64, "perms": sorted(PRIVATE_SMS_PERMISSIONS - {
+            "android.permission.RECEIVE_SMS", "android.permission.POST_NOTIFICATIONS"}),
+            "version": "1.0.0-rc26", "size": 1, "entries": 2, "dex": 1, "digest": "a" * 64}
+        new = {**old, "version": "1.0.0-rc27", "perms": sorted(PRIVATE_SMS_PERMISSIONS)}
+        diff = {"added": [], "removed": [], "changed": ["classes.dex"]}
+        self.assertIn("Added permissions: android.permission.POST_NOTIFICATIONS, android.permission.RECEIVE_SMS",
+                      report(old, new, diff))
+        with self.assertRaisesRegex(AuditError, "permission delta must be exactly"):
+            report(old, {**new, "perms": new["perms"] + ["android.permission.READ_SMS"]}, diff)
+        with self.assertRaisesRegex(AuditError, "executable DEX delta"):
+            report(old, new, {**diff, "changed": ["AndroidManifest.xml"]})
+
+    def test_rc27_nine_permissions_only_historical_receive_sms_still_forbidden(self):
+        for label in ("rc26", "rc27"):
+            name, code, _ = RELEASES[label]
+            badging = f"package: name='app.myfinhub.android' versionCode='{code}' versionName='{name}'\nsdkVersion:'26'\ntargetSdkVersion:'37'\n"
+            if label == "rc26":
+                with patch("audit_play_protect_apk.run", side_effect=[badging, "uses-permission: name='android.permission.RECEIVE_SMS'"]):
+                    with self.assertRaisesRegex(AuditError, "Unexpected dangerous"):
+                        apk_check(self.apk(), RELEASES[label], "a" * 64, "aapt", "apksigner")
+            else:
+                perms = PRIVATE_SMS_PERMISSIONS - {"android.permission.POST_NOTIFICATIONS"}
+                dump = "\n".join(f"uses-permission: name='{permission}'" for permission in perms)
+                with patch("audit_play_protect_apk.run", side_effect=[badging, dump]):
+                    with self.assertRaisesRegex(AuditError, "exactly the approved nine"):
+                        apk_check(self.apk(), RELEASES[label], "a" * 64, "aapt", "apksigner")
 
     def test_signer_continuity_required(self):
         a = {"signer": "a" * 64, "perms": [], "version": "rc16", "size": 1,

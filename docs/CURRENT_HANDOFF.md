@@ -20,7 +20,7 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #155 — Reconcile Android finance contracts and restore web-parity Home and cards.
 - Workstream state: `in_progress`.
-- Latest private production candidate: `1.0.0-rc26` / `10025` — `published_signed_independent_artifact_verified_physical_acceptance_pending`.
+- Latest private production candidate: `1.0.0-rc27` / `10026` — `published_signed_independent_artifact_audit_pending_physical_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
@@ -30,10 +30,410 @@ Owner clarification 2026-11-27: automatic future Piraeus SMS detection, notifica
 #562 merged develop 82cc4b343449ea662c1481b6a160f4b5be8e40e6; all seven gates including actual integrated Web develop Kotlin native proof PASS; both postmerge checks PASS. Local Java observed-shape synthetic parser smoke: three shapes and CRLF/NBSP/blank/mixed sign/alphabet variants PASS. Hosted Android validation pending.
 Hardened admission with owner/consent generation captured at broadcast arrival and checked again before persistence; no stale broadcast can move to another owner or later consent generation. Protected publisher asserts actual nine private permissions, system receiver and Play exclusion. Synthetic incoming parser 3 accept / 8 reject standalone Java PASS; tracking first-head PASS and screenshot regression PASS; final-head checks pending.
 Final validation b504147: tracking #46075166469, release publisher #46075166353 and screenshot regression in #46075166478 PASS. Android CI #46075166350 compiled product and instrumentation and completed JVM tests, lint failed solely on RECEIVE_SMS implying required telephony/ChromeOS hardware. Declared telephony optional in manifest; no lint suppression or permission relaxation. Both full representative API35/target37 emulator shards PASS on b504147: 236/236 and 223/223 (459 total), including three new automatic inbox/alias tests; aggregate pending. Only lint indicated missing optional telephony declaration. Local manifest XML verification PASS.
+PR #563 exact head 0d2b94845bf75e67d33683b3ddb96c2d7b010add: all seven source gates PASS, Android CI #46076400428 verified actual unsigned min26/target37 and exact nine permissions, receiver and Play exclusion; Project Tracking #46076400431; protected publisher tests #46076400506; UI #46076400464 screenshot, 236+223=459 complete API35 emulator tests targeting 37 and aggregate. Squash merged develop 1394e2839cb71d20ed37e0d879c763c1d3445987. Post-merge tracking #46077954116 and publisher tests #46077954099 PASS. Release-source #564 exact d919bfa40ec9053c50825b80d57b6ce2ecbd69e9: seven gates PASS, Android CI #46076600305, tracking #46076600255, publisher #46076600279, UI #46076600318 459/459 complete tests + aggregate. Release source and merged runtime trees identical; only baseline marker and tracking/docs differ. Protected one-file release request develop bca1d86f26c4f084e054cc75f17ff8def1d72f78.
+Protected publisher #46078018870 attempt 1 Maven Central HTTP429 before tests; attempt 2 all six jobs SUCCESS, including exact production-channel tests, unsigned direct/Play permission receiver audit, enrolled signing, APK upload read-back and immutable prerelease. v1.0.0-rc27 tag resolves exact source d919bfa40ec9053c50825b80d57b6ce2ecbd69e9; published 2026-11-27T22:50:39Z, 1.0.0-rc27/10026, direct APK 37125225 bytes SHA-256 90d84b09c428c37134ffa58f16fa64fe778742ac877fea4b4fb912fc740435cb; independent downloaded actual signed audit and physical acceptance pending. No stable promotion.
 
 ## Immediate work
 
-- Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
+- I
+- n
+- d
+- e
+- p
+- e
+- n
+- d
+- e
+- n
+- t
+-  
+- a
+- c
+- t
+- u
+- a
+- l
+-  
+- s
+- i
+- g
+- n
+- e
+- d
+- -
+- b
+- y
+- t
+- e
+-  
+- a
+- u
+- d
+- i
+- t
+-  
+- a
+- n
+- d
+-  
+- o
+- w
+- n
+- e
+- r
+-  
+- i
+- n
+- -
+- p
+- l
+- a
+- c
+- e
+-  
+- S
+- 2
+- 4
+-  
+- A
+- n
+- d
+- r
+- o
+- i
+- d
+- 1
+- 7
+- /
+- O
+- n
+- e
+- U
+- I
+-  
+- u
+- p
+- d
+- a
+- t
+- e
+-  
+- a
+- n
+- d
+-  
+- r
+- e
+- a
+- l
+-  
+- i
+- n
+- c
+- o
+- m
+- i
+- n
+- g
+-  
+- P
+- i
+- r
+- a
+- e
+- u
+- s
+-  
+- c
+- r
+- e
+- d
+- i
+- t
+- /
+- d
+- e
+- b
+- i
+- t
+-  
+- p
+- u
+- r
+- c
+- h
+- a
+- s
+- e
+-  
+- S
+- M
+- S
+-  
+- (
+- n
+- o
+- t
+- i
+- f
+- i
+- c
+- a
+- t
+- i
+- o
+- n
+-  
+- t
+- a
+- p
+-  
+- a
+- n
+- d
+-  
+- l
+- a
+- t
+- e
+- r
+-  
+- c
+- o
+- n
+- f
+- i
+- r
+- m
+- a
+- t
+- i
+- o
+- n
+- )
+- ,
+-  
+- l
+- o
+- c
+- a
+- l
+-  
+- a
+- l
+- i
+- a
+- s
+- ,
+-  
+- r
+- e
+- c
+- e
+- i
+- p
+- t
+- /
+- p
+- i
+- c
+- k
+- e
+- r
+- /
+- c
+- a
+- m
+- e
+- r
+- a
+-  
+- a
+- n
+- d
+-  
+- i
+- n
+- s
+- t
+- a
+- l
+- l
+- e
+- d
+-  
+- d
+- a
+- t
+- a
+- /
+- s
+- e
+- s
+- s
+- i
+- o
+- n
+-  
+- c
+- o
+- n
+- t
+- i
+- n
+- u
+- i
+- t
+- y
+- ,
+-  
+- P
+- l
+- a
+- y
+-  
+- P
+- r
+- o
+- t
+- e
+- c
+- t
+-  
+- r
+- e
+- m
+- a
+- i
+- n
+-  
+- p
+- e
+- n
+- d
+- i
+- n
+- g
+- ;
+-  
+- n
+- o
+-  
+- l
+- i
+- v
+- e
+-  
+- t
+- e
+- s
+- t
+-  
+- f
+- i
+- n
+- a
+- n
+- c
+- e
+-  
+- w
+- r
+- i
+- t
+- e
+- s
+- ,
+-  
+- n
+- o
+-  
+- s
+- t
+- a
+- b
+- l
+- e
+-  
+- p
+- r
+- o
+- m
+- o
+- t
+- i
+- o
+- n
+-  
+- o
+- r
+-  
+- g
+- l
+- o
+- b
+- a
+- l
+-  
+- P
+- I
+- N
+-  
+- a
+- c
+- t
+- i
+- v
+- a
+- t
+- i
+- o
+- n
+- .
+-  
+- W
+- e
+- b
+-  
+- p
+- r
+- o
+- d
+- u
+- c
+- t
+- i
+- o
+- n
+-  
+- d
+- e
+- p
+- l
+- o
+- y
+- m
+- e
+- n
+- t
+-  
+- s
+- e
+- p
+- a
+- r
+- a
+- t
+- e
+- l
+- y
+-  
+- o
+- w
+- n
+- e
+- d
+- .
 
 ## Constraints
 

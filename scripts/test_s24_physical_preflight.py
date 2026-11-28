@@ -61,7 +61,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
     def test_old_rc12_reports_insufficient_build_and_never_claims_acceptance(self):
         result = self.check()
         self.assertEqual(result["version_code"], 10011)
-        self.assertEqual(result["candidate_check"], "older_than_published_rc26")
+        self.assertEqual(result["candidate_check"], "older_than_published_rc27")
         self.assertEqual(result["physical_acceptance"], "not_assessed")
         self.assertEqual(result["play_protect"], "not_assessed")
         exported = json.dumps(result)
@@ -71,26 +71,26 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         self.assertTrue(all(cmd[:2] == ["adb", "-d"] for cmd in self.commands))
         self.assertFalse(any("install" in cmd or "pull" in cmd or "put" in cmd for cmd in self.commands))
 
-    def test_latest_rc26_published_version_still_requires_independent_verification(self):
-        self.version_code = 10025
-        self.version_name = "1.0.0-rc26"
+    def test_latest_rc27_published_version_still_requires_independent_verification(self):
+        self.version_code = 10026
+        self.version_name = "1.0.0-rc27"
         result = self.check()
         self.assertEqual(
-            result["candidate_check"], "published_rc26_version_only_requires_signer_and_owner_verification",
+            result["candidate_check"], "published_rc27_version_only_requires_signer_and_owner_verification",
         )
         self.assertEqual(result["physical_acceptance"], "not_assessed")
         self.assertEqual(result["play_protect"], "not_assessed")
         self.assertNotIn("signer_verified", result)
 
     def test_expected_candidate_exact_version_matches_without_claiming_acceptance(self):
-        self.version_code = 10025
-        self.version_name = "1.0.0-rc26"
-        result = self.check(expected_version_code=10025)
-        self.assertEqual(result["expected_version_code"], 10025)
+        self.version_code = 10026
+        self.version_name = "1.0.0-rc27"
+        result = self.check(expected_version_code=10026)
+        self.assertEqual(result["expected_version_code"], 10026)
         self.assertIs(result["candidate_version_matches_expected"], True)
         self.assertEqual(
             result["candidate_check"],
-            "published_rc26_version_only_requires_signer_and_owner_verification",
+            "published_rc27_version_only_requires_signer_and_owner_verification",
         )
         self.assertEqual(result["physical_acceptance"], "not_assessed")
         self.assertEqual(result["play_protect"], "not_assessed")
@@ -124,7 +124,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
                 self.version_code = code
                 self.version_name = name
                 result = self.check(expected_version_code=code)
-                self.assertEqual(result["candidate_check"], "older_than_published_rc26")
+                self.assertEqual(result["candidate_check"], "older_than_published_rc27")
                 self.assertIs(result["candidate_version_matches_expected"], True)
                 self.assertEqual(result["physical_acceptance"], "not_assessed")
                 self.assertEqual(result["play_protect"], "not_assessed")
@@ -154,19 +154,19 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         self.assertEqual(result["physical_acceptance"], "not_assessed")
 
     def test_unknown_future_version_requires_independent_release_verification(self):
-        self.version_code = 10025 + 1
-        self.version_name = "1.0.0-rc27"
+        self.version_code = 10026 + 1
+        self.version_name = "1.0.0-rc28"
         result = self.check()
         self.assertEqual(result["candidate_check"], "newer_build_requires_source_and_signer_verification")
         self.assertEqual(result["physical_acceptance"], "not_assessed")
         self.assertEqual(result["play_protect"], "not_assessed")
         # Future versions cannot pass the expected-code gate until the
         # verified signed release metadata has been added to the allowlist.
-        expected = self.check(expected_version_code=10025 + 1)
+        expected = self.check(expected_version_code=10026 + 1)
         self.assertIs(expected["candidate_version_matches_expected"], False)
 
-    def test_rc18_through_rc26_published_tags_remain_version_only_evidence(self):
-        for code, name in ((10017, "1.0.0-rc18"), (10018, "1.0.0-rc19"), (10019, "1.0.0-rc20"), (10020, "1.0.0-rc21"), (10021, "1.0.0-rc22"), (10022, "1.0.0-rc23"), (10023, "1.0.0-rc24"), (10024, "1.0.0-rc25"), (10025, "1.0.0-rc26")):
+    def test_rc18_through_rc27_published_tags_remain_version_only_evidence(self):
+        for code, name in ((10017, "1.0.0-rc18"), (10018, "1.0.0-rc19"), (10019, "1.0.0-rc20"), (10020, "1.0.0-rc21"), (10021, "1.0.0-rc22"), (10022, "1.0.0-rc23"), (10023, "1.0.0-rc24"), (10024, "1.0.0-rc25"), (10025, "1.0.0-rc26"), (10026, "1.0.0-rc27")):
             with self.subTest(code=code):
                 self.version_code = code
                 self.version_name = name
@@ -236,7 +236,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         result = self.check()
         self.assertEqual(result["version_code"], 10016)
         self.assertEqual(
-            result["candidate_check"], "older_than_published_rc26",
+            result["candidate_check"], "older_than_published_rc27",
         )
 
     def test_missing_exact_package_section_fails_closed(self):

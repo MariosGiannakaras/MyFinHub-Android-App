@@ -20,8 +20,9 @@ RELEASES = {
     "rc24": ("1.0.0-rc24", 10023, "6be67bbaf249c245b151c2abf417b4801806faa47e2e2ea35d303bd7c601b8a7"),
     "rc25": ("1.0.0-rc25", 10024, "273f23283cb758a43a771155e4397236859a75ccb0b4f044b8d546601363c038"),
     "rc26": ("1.0.0-rc26", 10025, "e8149dcd74f42892be66a0661613de831224fae8f89dad22ef21df30852bf7c5"),
+    "rc27": ("1.0.0-rc27", 10026, "90d84b09c428c37134ffa58f16fa64fe778742ac877fea4b4fb912fc740435cb"),
 }
-HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25", "rc26")
+HARDENED_RELEASES = ("rc18", "rc20", "rc21", "rc22", "rc23", "rc24", "rc25", "rc26", "rc27")
 UNATTENDED_INSTALL_PERMISSION = "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"
 DISALLOWED = {
     "android.permission.READ_SMS", "android.permission.RECEIVE_SMS",
@@ -31,6 +32,13 @@ DISALLOWED = {
     "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE",
 }
 
+PRIVATE_SMS_PERMISSIONS = {
+    "android.permission.ACCESS_NETWORK_STATE", "android.permission.CAMERA",
+    "android.permission.INTERNET", "android.permission.POST_NOTIFICATIONS",
+    "android.permission.RECEIVE_SMS", "android.permission.REQUEST_INSTALL_PACKAGES",
+    "android.permission.USE_BIOMETRIC", "android.permission.USE_FINGERPRINT",
+    "app.myfinhub.android.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+}
 
 class AuditError(Exception):
     pass
@@ -132,27 +140,77 @@ def receipt_provider_check(output):
         raise AuditError("Receipt FileProvider lacks explicit URI grants")
 
 
+def bank_sms_receiver_check(output):
+    """Require the SMS broadcast action, permission and exported flag on the same receiver."""
+    receiver_blocks = []
+    current = None
+    for line in output.splitlines():
+        stripped = line.lstrip()
+        indent = len(line) - len(stripped)
+        if stripped.startswith("E: "):
+            if current is not None and indent <= current[0]:
+                receiver_blocks.append(current)
+                current = None
+            if stripped.startswith("E: receiver "):
+                current = (indent, [])
+        if current is not None:
+            current[1].append((indent, stripped))
+    if current is not None:
+        receiver_blocks.append(current)
+
+    def attrs(block, depth, name):
+        return [value for indent, value in block[1] if indent == block[0] + depth
+                and value.startswith("A: android:" + name + "(")]
+
+    def string_match(lines, value):
+        return len(lines) == 1 and re.search(r'="' + re.escape(value) + r'"(?:\s|$)', lines[0])
+
+    matches = [block for block in receiver_blocks if string_match(
+        attrs(block, 2, "name"), "app.myfinhub.android.feature.bankalert.BankSmsReceiver")]
+    if len(matches) != 1:
+        raise AuditError("Missing or ambiguous bank SMS receiver")
+    block = matches[0]
+    if not string_match(attrs(block, 2, "permission"), "android.permission.BROADCAST_SMS"):
+        raise AuditError("Bank SMS receiver is not protected by BROADCAST_SMS")
+    exported = attrs(block, 2, "exported")
+    if len(exported) != 1 or not re.search(r'=\(type 0x12\)0x(?:ffffffff|1)(?:\s|$)', exported[0]):
+        raise AuditError("Bank SMS receiver is not explicitly exported for system delivery")
+    actions = attrs(block, 6, "name")
+    if not string_match(actions, "android.provider.Telephony.SMS_RECEIVED"):
+        raise AuditError("Bank SMS receiver must handle only SMS_RECEIVED")
+    if sum("android.provider.Telephony.SMS_RECEIVED" in value for candidate in receiver_blocks
+           for _, value in candidate[1]) != 1:
+        raise AuditError("Ambiguous or duplicate SMS_RECEIVED receiver action")
+
+
 def apk_check(path, release, expected_signer, aapt, apksigner):
     name, code, _ = release
     badging = run(aapt, "dump", "badging", str(path))
     match = re.search(r"package:\s+name='([^']+)'\s+versionCode='(\d+)'\s+versionName='([^']+)'", badging)
     if not match or match.groups() != ("app.myfinhub.android", str(code), name):
         raise AuditError("APK package/version does not match pinned release")
-    if name == "1.0.0-rc26" and (not re.search(r"^sdkVersion:\x2726\x27$", badging, re.M) or not re.search(r"^targetSdkVersion:\x2737\x27$", badging, re.M)):
-        raise AuditError("rc26 APK SDK declaration mismatch")
+    if name in {"1.0.0-rc26", "1.0.0-rc27"} and (not re.search(r"^sdkVersion:\x2726\x27$", badging, re.M) or not re.search(r"^targetSdkVersion:\x2737\x27$", badging, re.M)):
+        raise AuditError(name + " APK SDK declaration mismatch")
     dump = run(aapt, "dump", "permissions", str(path))
     perms = set(re.findall(r"uses-permission(?:-sdk-\d+)?: name='([^']+)'", dump))
     if not perms:
         raise AuditError("Unable to inspect APK permissions")
     unexpected = perms & DISALLOWED
+    if name == "1.0.0-rc27":
+        unexpected.discard("android.permission.RECEIVE_SMS")  # Exact approved rc27 only.
     # rc16/rc17 are historical evidence and predate the removal. Every
     # inspected release after that security correction must lack this permission.
     if code >= RELEASES["rc18"][1] and UNATTENDED_INSTALL_PERMISSION in perms:
         unexpected.add(UNATTENDED_INSTALL_PERMISSION)
     if unexpected:
         raise AuditError("Unexpected dangerous APK permissions: " + ", ".join(sorted(unexpected)))
+    if name == "1.0.0-rc27" and perms != PRIVATE_SMS_PERMISSIONS:
+        raise AuditError("rc27 must have exactly the approved nine private APK permissions")
     if code >= RELEASES["rc23"][1]:
-        receipt_provider_check(run(aapt, "dump", "xmltree", str(path), "AndroidManifest.xml"))
+        manifest = run(aapt, "dump", "xmltree", str(path), "AndroidManifest.xml")
+        receipt_provider_check(manifest)
+        if name == "1.0.0-rc27":
+            bank_sms_receiver_check(manifest)
     output = run(apksigner, "verify", "--verbose", "--print-certs", str(path))
     # apksigner may print the same certificate for multiple signing schemes;
     # duplicate identical digests are not multiple different signing identities.
@@ -205,7 +263,9 @@ def report(a, b, diff=None):
         raise AuditError(f"{newer_label} permission set differs from {older_label}; investigate before acceptance")
     if (older_label, newer_label) == ("rc24", "rc25") and (added != ["android.permission.CAMERA"] or removed):
         raise AuditError("rc25 permission delta must be exactly CAMERA added and none removed")
-    if (older_label, newer_label) in {("rc23", "rc24"), ("rc24", "rc25"), ("rc25", "rc26")}:
+    if (older_label, newer_label) == ("rc26", "rc27") and (added != ["android.permission.POST_NOTIFICATIONS", "android.permission.RECEIVE_SMS"] or removed):
+        raise AuditError("rc27 permission delta must be exactly RECEIVE_SMS and POST_NOTIFICATIONS added and none removed")
+    if (older_label, newer_label) in {("rc23", "rc24"), ("rc24", "rc25"), ("rc25", "rc26"), ("rc26", "rc27")}:
         if diff is None or not any(re.fullmatch(r"classes[0-9]*\.dex", name)
                                    for key in ("added", "removed", "changed") for name in diff[key]):
             raise AuditError(f"{newer_label} executable DEX delta not verified against {older_label}")
@@ -253,7 +313,7 @@ def main():
             for suffix in ("apk", "metadata")
         ]
         if any(optional_paths) and not all(optional_paths):
-            raise AuditError("Provide all rc18, rc20, rc21, rc22, rc23, rc24, rc25 and rc26 APK/metadata pairs together")
+            raise AuditError("Provide all rc18, rc20, rc21, rc22, rc23, rc24, rc25, rc26 and rc27 APK/metadata pairs together")
         keys = list(RELEASES) if all(optional_paths) else ["rc16", "rc17"]
         apks = {key: getattr(args, key + "_apk") for key in keys}
         results = {
@@ -262,7 +322,7 @@ def main():
         }
         pairs = [("rc16", "rc17")]
         if all(optional_paths):
-            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22"), ("rc22", "rc23"), ("rc18", "rc23"), ("rc23", "rc24"), ("rc18", "rc24"), ("rc24", "rc25"), ("rc18", "rc25"), ("rc25", "rc26"), ("rc18", "rc26")]
+            pairs += [("rc17", "rc18"), ("rc18", "rc20"), ("rc20", "rc21"), ("rc18", "rc21"), ("rc21", "rc22"), ("rc18", "rc22"), ("rc22", "rc23"), ("rc18", "rc23"), ("rc23", "rc24"), ("rc18", "rc24"), ("rc24", "rc25"), ("rc18", "rc25"), ("rc25", "rc26"), ("rc18", "rc26"), ("rc26", "rc27"), ("rc18", "rc27")]
         output = "\n".join(report(results[older], results[newer], zip_diff(apks[older], apks[newer]))
                            for older, newer in pairs)
         args.report.write_text(output, encoding="utf-8")

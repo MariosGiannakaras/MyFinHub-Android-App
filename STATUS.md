@@ -16,16 +16,416 @@ Owner clarification 2026-11-27: automatic future Piraeus SMS detection, notifica
 #562 merged develop 82cc4b343449ea662c1481b6a160f4b5be8e40e6; all seven gates including actual integrated Web develop Kotlin native proof PASS; both postmerge checks PASS. Local Java observed-shape synthetic parser smoke: three shapes and CRLF/NBSP/blank/mixed sign/alphabet variants PASS. Hosted Android validation pending.
 Hardened admission with owner/consent generation captured at broadcast arrival and checked again before persistence; no stale broadcast can move to another owner or later consent generation. Protected publisher asserts actual nine private permissions, system receiver and Play exclusion. Synthetic incoming parser 3 accept / 8 reject standalone Java PASS; tracking first-head PASS and screenshot regression PASS; final-head checks pending.
 Final validation b504147: tracking #46075166469, release publisher #46075166353 and screenshot regression in #46075166478 PASS. Android CI #46075166350 compiled product and instrumentation and completed JVM tests, lint failed solely on RECEIVE_SMS implying required telephony/ChromeOS hardware. Declared telephony optional in manifest; no lint suppression or permission relaxation. Both full representative API35/target37 emulator shards PASS on b504147: 236/236 and 223/223 (459 total), including three new automatic inbox/alias tests; aggregate pending. Only lint indicated missing optional telephony declaration. Local manifest XML verification PASS.
+PR #563 exact head 0d2b94845bf75e67d33683b3ddb96c2d7b010add: all seven source gates PASS, Android CI #46076400428 verified actual unsigned min26/target37 and exact nine permissions, receiver and Play exclusion; Project Tracking #46076400431; protected publisher tests #46076400506; UI #46076400464 screenshot, 236+223=459 complete API35 emulator tests targeting 37 and aggregate. Squash merged develop 1394e2839cb71d20ed37e0d879c763c1d3445987. Post-merge tracking #46077954116 and publisher tests #46077954099 PASS. Release-source #564 exact d919bfa40ec9053c50825b80d57b6ce2ecbd69e9: seven gates PASS, Android CI #46076600305, tracking #46076600255, publisher #46076600279, UI #46076600318 459/459 complete tests + aggregate. Release source and merged runtime trees identical; only baseline marker and tracking/docs differ. Protected one-file release request develop bca1d86f26c4f084e054cc75f17ff8def1d72f78.
+Protected publisher #46078018870 attempt 1 Maven Central HTTP429 before tests; attempt 2 all six jobs SUCCESS, including exact production-channel tests, unsigned direct/Play permission receiver audit, enrolled signing, APK upload read-back and immutable prerelease. v1.0.0-rc27 tag resolves exact source d919bfa40ec9053c50825b80d57b6ce2ecbd69e9; published 2026-11-27T22:50:39Z, 1.0.0-rc27/10026, direct APK 37125225 bytes SHA-256 90d84b09c428c37134ffa58f16fa64fe778742ac877fea4b4fb912fc740435cb; independent downloaded actual signed audit and physical acceptance pending. No stable promotion.
 
 ## Current production candidate
 
-`1.0.0-rc26` / versionCode `10025` — **published_signed_independent_artifact_verified_physical_acceptance_pending**.
+`1.0.0-rc27` / versionCode `10026` — **published_signed_independent_artifact_audit_pending_physical_pending**.
 
-RC26 source PR #560 exact 9fa7cfffde227b366e1a604e5c911c19be3b4d74 passed all six gates (tracking #46054872234, Android CI #46054872216, screenshot+234/222 representative API35 tests and aggregate #46054872212); actual unsigned manifest SDK26/37 and seven expected permissions verified, no SMS permission, OCR and native alignment PASS. Web #668 fb688179a36af52dae5d3784e166069d0b44ee82 final CI #46053238745 PASS (2665/2665 tests), CodeQL and actual Web stack PASS; Web owning integration/deployment separate. Guarded request develop 54a226e22b5de034a3c2122b1b53ef8738fccf16 changed only production.json. Protected publisher #46056667239 all six jobs SUCCESS; direct APK 1.0.0-rc26 / 10025 public signed prerelease v1.0.0-rc26 tag points to 9fa7cfffde227b366e1a604e5c911c19be3b4d74, published on 2026-11-27 at 19:37 UTC, storage production/10025/MyFinHub-10025.apk, 37108841 bytes SHA-256 e8149dcd74f42892be66a0661613de831224fae8f89dad22ef21df30852bf7c5; private read-back and GitHub local artifact checksum matched, enrolled signer and package/version verified by publisher. Independent actual signed-byte audit, rc26 physical S24/OneUI Android17, Play Protect and installed continuity still pending. 2026-11-27: PR #561 exact head 32ca37160aa538e5d6f12d09da59d23c96ba249c all seven gates PASS (Tracking #46058202489, Android CI #46058202482, UI #46058202414 screenshot/both complete representative API35 shards/aggregate, independent downloaded signed APK audit #46058202465). Actual rc25 and rc26 have identical enrolled signer SHA-256 4fbb940a1b51ab62b73d3b7a5b47f45c140f35c56c4a524734145999871ccb53 and identical seven permissions; pinned APK size/hash, app.myfinhub.android, version 10025/1.0.0-rc26, actual min26/target37, ZIP/ELF integrity and 16 KiB alignment, scoped receipt provider, pinned OCR and native assets verified. Both classes.dex and classes2.dex changed. Squash merged Android develop 18284f680fff87c48466aa9a9b6904378964f13d. No physical or Play Protect clearance inferred.
+Protected publisher #46078018870 attempt 1 Maven Central HTTP429 before tests; attempt 2 all six jobs SUCCESS, including exact production-channel tests, unsigned direct/Play permission receiver audit, enrolled signing, APK upload read-back and immutable prerelease. v1.0.0-rc27 tag resolves exact source d919bfa40ec9053c50825b80d57b6ce2ecbd69e9; published 2026-11-27T22:50:39Z, 1.0.0-rc27/10026, direct APK 37125225 bytes SHA-256 90d84b09c428c37134ffa58f16fa64fe778742ac877fea4b4fb912fc740435cb; independent downloaded actual signed audit and physical acceptance pending. No stable promotion. Independent local download of actual public rc27 matched pinned SHA-256 and length, ZIP CRC PASS; public metadata matches package app.myfinhub.android, version 10026/1.0.0-rc27, enrolled certificate 4fbb940a1b51ab62b73d3b7a5b47f45c140f35c56c4a524734145999871ccb53, source SHA, private storage production/10026/MyFinHub-10026.apk. Hosted apksigner/manifest/ELF verification pending.
 
 ## Next
 
-1. Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
+1. I
+2. n
+3. d
+4. e
+5. p
+6. e
+7. n
+8. d
+9. e
+10. n
+11. t
+12.  
+13. a
+14. c
+15. t
+16. u
+17. a
+18. l
+19.  
+20. s
+21. i
+22. g
+23. n
+24. e
+25. d
+26. -
+27. b
+28. y
+29. t
+30. e
+31.  
+32. a
+33. u
+34. d
+35. i
+36. t
+37.  
+38. a
+39. n
+40. d
+41.  
+42. o
+43. w
+44. n
+45. e
+46. r
+47.  
+48. i
+49. n
+50. -
+51. p
+52. l
+53. a
+54. c
+55. e
+56.  
+57. S
+58. 2
+59. 4
+60.  
+61. A
+62. n
+63. d
+64. r
+65. o
+66. i
+67. d
+68. 1
+69. 7
+70. /
+71. O
+72. n
+73. e
+74. U
+75. I
+76.  
+77. u
+78. p
+79. d
+80. a
+81. t
+82. e
+83.  
+84. a
+85. n
+86. d
+87.  
+88. r
+89. e
+90. a
+91. l
+92.  
+93. i
+94. n
+95. c
+96. o
+97. m
+98. i
+99. n
+100. g
+101.  
+102. P
+103. i
+104. r
+105. a
+106. e
+107. u
+108. s
+109.  
+110. c
+111. r
+112. e
+113. d
+114. i
+115. t
+116. /
+117. d
+118. e
+119. b
+120. i
+121. t
+122.  
+123. p
+124. u
+125. r
+126. c
+127. h
+128. a
+129. s
+130. e
+131.  
+132. S
+133. M
+134. S
+135.  
+136. (
+137. n
+138. o
+139. t
+140. i
+141. f
+142. i
+143. c
+144. a
+145. t
+146. i
+147. o
+148. n
+149.  
+150. t
+151. a
+152. p
+153.  
+154. a
+155. n
+156. d
+157.  
+158. l
+159. a
+160. t
+161. e
+162. r
+163.  
+164. c
+165. o
+166. n
+167. f
+168. i
+169. r
+170. m
+171. a
+172. t
+173. i
+174. o
+175. n
+176. )
+177. ,
+178.  
+179. l
+180. o
+181. c
+182. a
+183. l
+184.  
+185. a
+186. l
+187. i
+188. a
+189. s
+190. ,
+191.  
+192. r
+193. e
+194. c
+195. e
+196. i
+197. p
+198. t
+199. /
+200. p
+201. i
+202. c
+203. k
+204. e
+205. r
+206. /
+207. c
+208. a
+209. m
+210. e
+211. r
+212. a
+213.  
+214. a
+215. n
+216. d
+217.  
+218. i
+219. n
+220. s
+221. t
+222. a
+223. l
+224. l
+225. e
+226. d
+227.  
+228. d
+229. a
+230. t
+231. a
+232. /
+233. s
+234. e
+235. s
+236. s
+237. i
+238. o
+239. n
+240.  
+241. c
+242. o
+243. n
+244. t
+245. i
+246. n
+247. u
+248. i
+249. t
+250. y
+251. ,
+252.  
+253. P
+254. l
+255. a
+256. y
+257.  
+258. P
+259. r
+260. o
+261. t
+262. e
+263. c
+264. t
+265.  
+266. r
+267. e
+268. m
+269. a
+270. i
+271. n
+272.  
+273. p
+274. e
+275. n
+276. d
+277. i
+278. n
+279. g
+280. ;
+281.  
+282. n
+283. o
+284.  
+285. l
+286. i
+287. v
+288. e
+289.  
+290. t
+291. e
+292. s
+293. t
+294.  
+295. f
+296. i
+297. n
+298. a
+299. n
+300. c
+301. e
+302.  
+303. w
+304. r
+305. i
+306. t
+307. e
+308. s
+309. ,
+310.  
+311. n
+312. o
+313.  
+314. s
+315. t
+316. a
+317. b
+318. l
+319. e
+320.  
+321. p
+322. r
+323. o
+324. m
+325. o
+326. t
+327. i
+328. o
+329. n
+330.  
+331. o
+332. r
+333.  
+334. g
+335. l
+336. o
+337. b
+338. a
+339. l
+340.  
+341. P
+342. I
+343. N
+344.  
+345. a
+346. c
+347. t
+348. i
+349. v
+350. a
+351. t
+352. i
+353. o
+354. n
+355. .
+356.  
+357. W
+358. e
+359. b
+360.  
+361. p
+362. r
+363. o
+364. d
+365. u
+366. c
+367. t
+368. i
+369. o
+370. n
+371.  
+372. d
+373. e
+374. p
+375. l
+376. o
+377. y
+378. m
+379. e
+380. n
+381. t
+382.  
+383. s
+384. e
+385. p
+386. a
+387. r
+388. a
+389. t
+390. e
+391. l
+392. y
+393.  
+394. o
+395. w
+396. n
+397. e
+398. d
+399. .
 
 ## Non-negotiable constraints
 
@@ -66,7 +466,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Finish automatic bank SMS inbox owner correction on android/automatic-bank-sms-inbox-20261127; all exact-head gates, signed permission/receiver audit, protected prerelease and actual S24 Android17/OneUI permission, real incoming SMS, notification and later review acceptance required. No live test finance writes, no stable promotion or global PIN activation; Web production deployment remains separately owned.
+Next: Independent actual signed-byte audit and owner in-place S24 Android17/OneUI update and real incoming Piraeus credit/debit purchase SMS (notification tap and later confirmation), local alias, receipt/picker/camera and installed data/session continuity, Play Protect remain pending; no live test finance writes, no stable promotion or global PIN activation. Web production deployment separately owned.
 
 
 ## Active Web parity progress
@@ -75,10 +475,10 @@ Next: Finish automatic bank SMS inbox owner correction on android/automatic-bank
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/automatic-bank-sms-inbox-20261127
-Current W6.4: Owner clarification 2026-11-27: automatic future Piraeus SMS detection, notification, and durable on-device pending review (not manual text entry); no automatic finance writes. Private sideload RECEIVE_SMS and POST_NOTIFICATIONS only; Play variant excludes both and receiver. Encrypted owner-bound structured queue and exact sender/verified credit/debit templates, no raw SMS/account hint/balance retention; deliberate permission/consent, owner lock/logout isolation, explicit review/save with stable random canonical event ID; pending until server-confirmed, queued entries cannot be resubmitted. Local alias edit persistence and error/retry fixed. Synthetic parser local smoke and hosted gates/physical delivery to be verified; rc26 remains the last signed candidate.
+Issue #155, no open PR, branch android/rc27-signed-bank-sms-apk-audit-20261127
+Current W6.4: Automatic future Piraeus SMS detection, generic notification opening owner-authorized review, durable encrypted local pending inbox and local merchant descriptor→nickname mapping, no manual paste required. Private direct variant uses RECEIVE_SMS and POST_NOTIFICATIONS with opt-in; Play variant excludes both and receiver. Only exact sender and verified credit/debit purchase shapes; no raw history, raw SMS/account hint/balance stored. Explicit review and normal Save only, stable random event ID and server-confirmed reconciliation protect against duplicate submission. PR #563 exact head 0d2b94845bf75e67d33683b3ddb96c2d7b010add: all seven source gates PASS, Android CI #46076400428 verified actual unsigned min26/target37 and exact nine permissions, receiver and Play exclusion; Project Tracking #46076400431; protected publisher tests #46076400506; UI #46076400464 screenshot, 236+223=459 complete API35 emulator tests targeting 37 and aggregate. Squash merged develop 1394e2839cb71d20ed37e0d879c763c1d3445987. Post-merge tracking #46077954116 and publisher tests #46077954099 PASS. Release-source #564 exact d919bfa40ec9053c50825b80d57b6ce2ecbd69e9: seven gates PASS, Android CI #46076600305, tracking #46076600255, publisher #46076600279, UI #46076600318 459/459 complete tests + aggregate. Release source and merged runtime trees identical; only baseline marker and tracking/docs differ. Protected one-file release request develop bca1d86f26c4f084e054cc75f17ff8def1d72f78.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
+Next Independent actual signed-byte audit and owner in-place S24 Android17/OneUI update and real incoming Piraeus credit/debit purchase SMS (notification tap and later confirmation), local alias, receipt/picker/camera and installed data/session continuity, Play Protect remain pending; no live test finance writes, no stable promotion or global PIN activation. Web production deployment separately owned.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

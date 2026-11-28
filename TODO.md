@@ -5,7 +5,405 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
+- [ ] I
+- [ ] n
+- [ ] d
+- [ ] e
+- [ ] p
+- [ ] e
+- [ ] n
+- [ ] d
+- [ ] e
+- [ ] n
+- [ ] t
+- [ ]  
+- [ ] a
+- [ ] c
+- [ ] t
+- [ ] u
+- [ ] a
+- [ ] l
+- [ ]  
+- [ ] s
+- [ ] i
+- [ ] g
+- [ ] n
+- [ ] e
+- [ ] d
+- [ ] -
+- [ ] b
+- [ ] y
+- [ ] t
+- [ ] e
+- [ ]  
+- [ ] a
+- [ ] u
+- [ ] d
+- [ ] i
+- [ ] t
+- [ ]  
+- [ ] a
+- [ ] n
+- [ ] d
+- [ ]  
+- [ ] o
+- [ ] w
+- [ ] n
+- [ ] e
+- [ ] r
+- [ ]  
+- [ ] i
+- [ ] n
+- [ ] -
+- [ ] p
+- [ ] l
+- [ ] a
+- [ ] c
+- [ ] e
+- [ ]  
+- [ ] S
+- [ ] 2
+- [ ] 4
+- [ ]  
+- [ ] A
+- [ ] n
+- [ ] d
+- [ ] r
+- [ ] o
+- [ ] i
+- [ ] d
+- [ ] 1
+- [ ] 7
+- [ ] /
+- [ ] O
+- [ ] n
+- [ ] e
+- [ ] U
+- [ ] I
+- [ ]  
+- [ ] u
+- [ ] p
+- [ ] d
+- [ ] a
+- [ ] t
+- [ ] e
+- [ ]  
+- [ ] a
+- [ ] n
+- [ ] d
+- [ ]  
+- [ ] r
+- [ ] e
+- [ ] a
+- [ ] l
+- [ ]  
+- [ ] i
+- [ ] n
+- [ ] c
+- [ ] o
+- [ ] m
+- [ ] i
+- [ ] n
+- [ ] g
+- [ ]  
+- [ ] P
+- [ ] i
+- [ ] r
+- [ ] a
+- [ ] e
+- [ ] u
+- [ ] s
+- [ ]  
+- [ ] c
+- [ ] r
+- [ ] e
+- [ ] d
+- [ ] i
+- [ ] t
+- [ ] /
+- [ ] d
+- [ ] e
+- [ ] b
+- [ ] i
+- [ ] t
+- [ ]  
+- [ ] p
+- [ ] u
+- [ ] r
+- [ ] c
+- [ ] h
+- [ ] a
+- [ ] s
+- [ ] e
+- [ ]  
+- [ ] S
+- [ ] M
+- [ ] S
+- [ ]  
+- [ ] (
+- [ ] n
+- [ ] o
+- [ ] t
+- [ ] i
+- [ ] f
+- [ ] i
+- [ ] c
+- [ ] a
+- [ ] t
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ]  
+- [ ] t
+- [ ] a
+- [ ] p
+- [ ]  
+- [ ] a
+- [ ] n
+- [ ] d
+- [ ]  
+- [ ] l
+- [ ] a
+- [ ] t
+- [ ] e
+- [ ] r
+- [ ]  
+- [ ] c
+- [ ] o
+- [ ] n
+- [ ] f
+- [ ] i
+- [ ] r
+- [ ] m
+- [ ] a
+- [ ] t
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ] )
+- [ ] ,
+- [ ]  
+- [ ] l
+- [ ] o
+- [ ] c
+- [ ] a
+- [ ] l
+- [ ]  
+- [ ] a
+- [ ] l
+- [ ] i
+- [ ] a
+- [ ] s
+- [ ] ,
+- [ ]  
+- [ ] r
+- [ ] e
+- [ ] c
+- [ ] e
+- [ ] i
+- [ ] p
+- [ ] t
+- [ ] /
+- [ ] p
+- [ ] i
+- [ ] c
+- [ ] k
+- [ ] e
+- [ ] r
+- [ ] /
+- [ ] c
+- [ ] a
+- [ ] m
+- [ ] e
+- [ ] r
+- [ ] a
+- [ ]  
+- [ ] a
+- [ ] n
+- [ ] d
+- [ ]  
+- [ ] i
+- [ ] n
+- [ ] s
+- [ ] t
+- [ ] a
+- [ ] l
+- [ ] l
+- [ ] e
+- [ ] d
+- [ ]  
+- [ ] d
+- [ ] a
+- [ ] t
+- [ ] a
+- [ ] /
+- [ ] s
+- [ ] e
+- [ ] s
+- [ ] s
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ]  
+- [ ] c
+- [ ] o
+- [ ] n
+- [ ] t
+- [ ] i
+- [ ] n
+- [ ] u
+- [ ] i
+- [ ] t
+- [ ] y
+- [ ] ,
+- [ ]  
+- [ ] P
+- [ ] l
+- [ ] a
+- [ ] y
+- [ ]  
+- [ ] P
+- [ ] r
+- [ ] o
+- [ ] t
+- [ ] e
+- [ ] c
+- [ ] t
+- [ ]  
+- [ ] r
+- [ ] e
+- [ ] m
+- [ ] a
+- [ ] i
+- [ ] n
+- [ ]  
+- [ ] p
+- [ ] e
+- [ ] n
+- [ ] d
+- [ ] i
+- [ ] n
+- [ ] g
+- [ ] ;
+- [ ]  
+- [ ] n
+- [ ] o
+- [ ]  
+- [ ] l
+- [ ] i
+- [ ] v
+- [ ] e
+- [ ]  
+- [ ] t
+- [ ] e
+- [ ] s
+- [ ] t
+- [ ]  
+- [ ] f
+- [ ] i
+- [ ] n
+- [ ] a
+- [ ] n
+- [ ] c
+- [ ] e
+- [ ]  
+- [ ] w
+- [ ] r
+- [ ] i
+- [ ] t
+- [ ] e
+- [ ] s
+- [ ] ,
+- [ ]  
+- [ ] n
+- [ ] o
+- [ ]  
+- [ ] s
+- [ ] t
+- [ ] a
+- [ ] b
+- [ ] l
+- [ ] e
+- [ ]  
+- [ ] p
+- [ ] r
+- [ ] o
+- [ ] m
+- [ ] o
+- [ ] t
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ]  
+- [ ] o
+- [ ] r
+- [ ]  
+- [ ] g
+- [ ] l
+- [ ] o
+- [ ] b
+- [ ] a
+- [ ] l
+- [ ]  
+- [ ] P
+- [ ] I
+- [ ] N
+- [ ]  
+- [ ] a
+- [ ] c
+- [ ] t
+- [ ] i
+- [ ] v
+- [ ] a
+- [ ] t
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ] .
+- [ ]  
+- [ ] W
+- [ ] e
+- [ ] b
+- [ ]  
+- [ ] p
+- [ ] r
+- [ ] o
+- [ ] d
+- [ ] u
+- [ ] c
+- [ ] t
+- [ ] i
+- [ ] o
+- [ ] n
+- [ ]  
+- [ ] d
+- [ ] e
+- [ ] p
+- [ ] l
+- [ ] o
+- [ ] y
+- [ ] m
+- [ ] e
+- [ ] n
+- [ ] t
+- [ ]  
+- [ ] s
+- [ ] e
+- [ ] p
+- [ ] a
+- [ ] r
+- [ ] a
+- [ ] t
+- [ ] e
+- [ ] l
+- [ ] y
+- [ ]  
+- [ ] o
+- [ ] w
+- [ ] n
+- [ ] e
+- [ ] d
+- [ ] .
 
 ## Completed foundations
 
@@ -72,7 +470,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D8
-Next: Finish automatic bank SMS inbox owner correction on android/automatic-bank-sms-inbox-20261127; all exact-head gates, signed permission/receiver audit, protected prerelease and actual S24 Android17/OneUI permission, real incoming SMS, notification and later review acceptance required. No live test finance writes, no stable promotion or global PIN activation; Web production deployment remains separately owned.
+Next: Independent actual signed-byte audit and owner in-place S24 Android17/OneUI update and real incoming Piraeus credit/debit purchase SMS (notification tap and later confirmation), local alias, receipt/picker/camera and installed data/session continuity, Play Protect remain pending; no live test finance writes, no stable promotion or global PIN activation. Web production deployment separately owned.
 
 
 ## Active Web parity progress
@@ -81,10 +479,10 @@ Next: Finish automatic bank SMS inbox owner correction on android/automatic-bank
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch android/automatic-bank-sms-inbox-20261127
-Current W6.4: Owner clarification 2026-11-27: automatic future Piraeus SMS detection, notification, and durable on-device pending review (not manual text entry); no automatic finance writes. Private sideload RECEIVE_SMS and POST_NOTIFICATIONS only; Play variant excludes both and receiver. Encrypted owner-bound structured queue and exact sender/verified credit/debit templates, no raw SMS/account hint/balance retention; deliberate permission/consent, owner lock/logout isolation, explicit review/save with stable random canonical event ID; pending until server-confirmed, queued entries cannot be resubmitted. Local alias edit persistence and error/retry fixed. Synthetic parser local smoke and hosted gates/physical delivery to be verified; rc26 remains the last signed candidate.
+Issue #155, no open PR, branch android/rc27-signed-bank-sms-apk-audit-20261127
+Current W6.4: Automatic future Piraeus SMS detection, generic notification opening owner-authorized review, durable encrypted local pending inbox and local merchant descriptor→nickname mapping, no manual paste required. Private direct variant uses RECEIVE_SMS and POST_NOTIFICATIONS with opt-in; Play variant excludes both and receiver. Only exact sender and verified credit/debit purchase shapes; no raw history, raw SMS/account hint/balance stored. Explicit review and normal Save only, stable random event ID and server-confirmed reconciliation protect against duplicate submission. PR #563 exact head 0d2b94845bf75e67d33683b3ddb96c2d7b010add: all seven source gates PASS, Android CI #46076400428 verified actual unsigned min26/target37 and exact nine permissions, receiver and Play exclusion; Project Tracking #46076400431; protected publisher tests #46076400506; UI #46076400464 screenshot, 236+223=459 complete API35 emulator tests targeting 37 and aggregate. Squash merged develop 1394e2839cb71d20ed37e0d879c763c1d3445987. Post-merge tracking #46077954116 and publisher tests #46077954099 PASS. Release-source #564 exact d919bfa40ec9053c50825b80d57b6ce2ecbd69e9: seven gates PASS, Android CI #46076600305, tracking #46076600255, publisher #46076600279, UI #46076600318 459/459 complete tests + aggregate. Release source and merged runtime trees identical; only baseline marker and tracking/docs differ. Protected one-file release request develop bca1d86f26c4f084e054cc75f17ff8def1d72f78.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify the isolated Android native shared-PIN/device/account proof against the merged Web develop SHA on android/shared-pin-integrated-web-proof-20261127; merge only after all exact-head gates. Actual rc26 signed artifact audit passed. Owner physical S24/Android17/OneUI installation in-place, Play Protect, SMS credit/debit review and local aliases, receipt QR/picker/camera and installed data/session continuity remain pending; do not make test finance writes. Web #668 merged to develop; Web owning production deployment separate, actual withdrawal format unverified, no production global PIN activation or stable promotion.
+Next Independent actual signed-byte audit and owner in-place S24 Android17/OneUI update and real incoming Piraeus credit/debit purchase SMS (notification tap and later confirmation), local alias, receipt/picker/camera and installed data/session continuity, Play Protect remain pending; no live test finance writes, no stable promotion or global PIN activation. Web production deployment separately owned.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
